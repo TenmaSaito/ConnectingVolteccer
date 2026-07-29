@@ -1,0 +1,521 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ソース ファイル">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="ヘッダー ファイル">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="リソース ファイル">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="ソース ファイル\object">
+      <UniqueIdentifier>{10343a5f-dcaa-4246-b6bf-19adc6f7334d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\object\mesh">
+      <UniqueIdentifier>{d34b5c3d-ac4f-46ee-8329-3d0212f90723}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\object\primitive">
+      <UniqueIdentifier>{95886a60-272e-4a7e-bd64-7e2d1a4ad8e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\object">
+      <UniqueIdentifier>{ef15689e-c8f4-4dca-83ac-3a80a8050e5c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\object\mesh">
+      <UniqueIdentifier>{81832a5b-9612-46d2-a01a-2b349e85d2b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\object\primitive">
+      <UniqueIdentifier>{2dbec449-7102-47a8-b90c-437eef8e8569}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\util">
+      <UniqueIdentifier>{7a165f05-96f8-40d0-bf8b-ad4f3541e11b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\util\calc">
+      <UniqueIdentifier>{64adafb9-2e3b-4ff8-9c0c-8debecc38d97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\util">
+      <UniqueIdentifier>{65792a4f-9498-41ac-b42e-7328b343ea6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\manager">
+      <UniqueIdentifier>{cd079e39-5ef1-41f8-a639-b33725e53065}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\manager\camera">
+      <UniqueIdentifier>{eb4a9847-8e02-425d-b373-2ff0b316de0e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\manager\input">
+      <UniqueIdentifier>{791f8d44-d0b9-4e2c-9302-04a4d2aaab9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\manager\buffer">
+      <UniqueIdentifier>{1bde1620-4755-4cb0-bce8-1d376c0aa503}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\manager">
+      <UniqueIdentifier>{b5e804dc-262a-436f-8e0e-67b4514245f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\manager\camera">
+      <UniqueIdentifier>{3897425d-da08-432a-a486-817a76d0031e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\manager\input">
+      <UniqueIdentifier>{1abdfd1e-5ba0-4152-b7d6-7bd721a68f5d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\manager\buffer">
+      <UniqueIdentifier>{24eafd24-a3b8-4303-83c2-8f7d46da5086}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\util\calc">
+      <UniqueIdentifier>{c7ee689b-e60f-445d-9e9c-06226f971ba6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\object\effect">
+      <UniqueIdentifier>{c1ff6cdd-3313-4547-8c39-54d6c033f7f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\object\effect">
+      <UniqueIdentifier>{dd57a4a6-2d60-4f31-883c-d1d3137dd44a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\manager\scene">
+      <UniqueIdentifier>{cbdc84a3-eb4f-4338-ac9a-036384cbc645}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\manager\scene">
+      <UniqueIdentifier>{fb1d34e3-61f1-4ea6-b374-7eb59cd960fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\manager\render">
+      <UniqueIdentifier>{ea3e2884-0f1d-4895-8a78-40caa09c72a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\manager\render">
+      <UniqueIdentifier>{124e011a-9b46-4cec-b8c5-aed369edc09b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\manager\base">
+      <UniqueIdentifier>{9f832f17-ac26-466b-88f7-2a0e88f0434b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\manager\base">
+      <UniqueIdentifier>{67f1b329-fdb2-401c-b3d5-8c3c2ed0a86e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\manager\transition">
+      <UniqueIdentifier>{be9724df-7e2c-4de9-af75-ae3533cd53d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\manager\transition">
+      <UniqueIdentifier>{2b980ffe-5a8f-4436-ac14-236f884e229a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="model.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="motion.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="player.cpp">
+      <Filter>ソース ファイル\object</Filter>
+    </ClCompile>
+    <ClCompile Include="mesh3D.cpp">
+      <Filter>ソース ファイル\object\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="mesh.cpp">
+      <Filter>ソース ファイル\object\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="meshOrbit3D.cpp">
+      <Filter>ソース ファイル\object\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="object.cpp">
+      <Filter>ソース ファイル\object\primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="object3D.cpp">
+      <Filter>ソース ファイル\object\primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="objectBillboard.cpp">
+      <Filter>ソース ファイル\object\primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="objectX.cpp">
+      <Filter>ソース ファイル\object\primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="debugproc.cpp">
+      <Filter>ソース ファイル\util</Filter>
+    </ClCompile>
+    <ClCompile Include="filestream.cpp">
+      <Filter>ソース ファイル\util</Filter>
+    </ClCompile>
+    <ClCompile Include="memdbg.cpp">
+      <Filter>ソース ファイル\util</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>ソース ファイル\util</Filter>
+    </ClCompile>
+    <ClCompile Include="light.cpp">
+      <Filter>ソース ファイル\manager</Filter>
+    </ClCompile>
+    <ClCompile Include="camera.cpp">
+      <Filter>ソース ファイル\manager\camera</Filter>
+    </ClCompile>
+    <ClCompile Include="playerCamera.cpp">
+      <Filter>ソース ファイル\manager\camera</Filter>
+    </ClCompile>
+    <ClCompile Include="input.cpp">
+      <Filter>ソース ファイル\manager\input</Filter>
+    </ClCompile>
+    <ClCompile Include="joypad.cpp">
+      <Filter>ソース ファイル\manager\input</Filter>
+    </ClCompile>
+    <ClCompile Include="sound.cpp">
+      <Filter>ソース ファイル\manager\buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="texture.cpp">
+      <Filter>ソース ファイル\manager\buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="vec2math.cpp">
+      <Filter>ソース ファイル\util\calc</Filter>
+    </ClCompile>
+    <ClCompile Include="vec3math.cpp">
+      <Filter>ソース ファイル\util\calc</Filter>
+    </ClCompile>
+    <ClCompile Include="matrix.cpp">
+      <Filter>ソース ファイル\util\calc</Filter>
+    </ClCompile>
+    <ClCompile Include="rand.cpp">
+      <Filter>ソース ファイル\util\calc</Filter>
+    </ClCompile>
+    <ClCompile Include="color.cpp">
+      <Filter>ソース ファイル\util</Filter>
+    </ClCompile>
+    <ClCompile Include="sparkEffect.cpp">
+      <Filter>ソース ファイル\object\effect</Filter>
+    </ClCompile>
+    <ClCompile Include="thunderEffect.cpp">
+      <Filter>ソース ファイル\object\effect</Filter>
+    </ClCompile>
+    <ClCompile Include="utilityPole.cpp">
+      <Filter>ソース ファイル\object</Filter>
+    </ClCompile>
+    <ClCompile Include="electricalCable.cpp">
+      <Filter>ソース ファイル\object</Filter>
+    </ClCompile>
+    <ClCompile Include="electricCurrent.cpp">
+      <Filter>ソース ファイル\object</Filter>
+    </ClCompile>
+    <ClCompile Include="efffect.cpp">
+      <Filter>ソース ファイル\object\effect</Filter>
+    </ClCompile>
+    <ClCompile Include="meshField.cpp">
+      <Filter>ソース ファイル\object\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="windowCapture.cpp">
+      <Filter>ソース ファイル\util</Filter>
+    </ClCompile>
+    <ClCompile Include="grass.cpp">
+      <Filter>ソース ファイル\object</Filter>
+    </ClCompile>
+    <ClCompile Include="grassland.cpp">
+      <Filter>ソース ファイル\object</Filter>
+    </ClCompile>
+    <ClCompile Include="map.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="util.cpp">
+      <Filter>ソース ファイル\util</Filter>
+    </ClCompile>
+    <ClCompile Include="planet.cpp">
+      <Filter>ソース ファイル\object</Filter>
+    </ClCompile>
+    <ClCompile Include="objectXQuaternion.cpp">
+      <Filter>ソース ファイル\object\primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="scene.cpp">
+      <Filter>ソース ファイル\manager\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="title.cpp">
+      <Filter>ソース ファイル\manager\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="game.cpp">
+      <Filter>ソース ファイル\manager\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="object2D.cpp">
+      <Filter>ソース ファイル\object\primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="xfile.cpp">
+      <Filter>ソース ファイル\manager\buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="renderer.cpp">
+      <Filter>ソース ファイル\manager\render</Filter>
+    </ClCompile>
+    <ClCompile Include="textureRenderer.cpp">
+      <Filter>ソース ファイル\manager\render</Filter>
+    </ClCompile>
+    <ClCompile Include="meshSphere.cpp">
+      <Filter>ソース ファイル\object\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="lasso.cpp">
+      <Filter>ソース ファイル\object</Filter>
+    </ClCompile>
+    <ClCompile Include="polygon2D.cpp">
+      <Filter>ソース ファイル\object\primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="gameover.cpp">
+      <Filter>ソース ファイル\manager\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="gameclear.cpp">
+      <Filter>ソース ファイル\manager\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="billboard.cpp">
+      <Filter>ソース ファイル\object\primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="ray.cpp">
+      <Filter>ソース ファイル\util\calc</Filter>
+    </ClCompile>
+    <ClCompile Include="directX.cpp">
+      <Filter>ソース ファイル\manager\base</Filter>
+    </ClCompile>
+    <ClCompile Include="directXSubDrawer.cpp">
+      <Filter>ソース ファイル\manager\base</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>ソース ファイル\manager\base</Filter>
+    </ClCompile>
+    <ClCompile Include="manager.cpp">
+      <Filter>ソース ファイル\manager\base</Filter>
+    </ClCompile>
+    <ClCompile Include="sceneTransition.cpp">
+      <Filter>ソース ファイル\manager\transition</Filter>
+    </ClCompile>
+    <ClCompile Include="circleTransition.cpp">
+      <Filter>ソース ファイル\manager\transition</Filter>
+    </ClCompile>
+    <ClCompile Include="building.cpp">
+      <Filter>ソース ファイル\object</Filter>
+    </ClCompile>
+    <ClCompile Include="timer.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="number.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="objectLine.cpp">
+      <Filter>ソース ファイル\object\primitive</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="model.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="motion.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="field.h">
+      <Filter>ヘッダー ファイル\object</Filter>
+    </ClInclude>
+    <ClInclude Include="mesh.h">
+      <Filter>ヘッダー ファイル\object\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="mesh3D.h">
+      <Filter>ヘッダー ファイル\object\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="object.h">
+      <Filter>ヘッダー ファイル\object\primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="object3D.h">
+      <Filter>ヘッダー ファイル\object\primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="objectBillboard.h">
+      <Filter>ヘッダー ファイル\object\primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="objectX.h">
+      <Filter>ヘッダー ファイル\object\primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="player.h">
+      <Filter>ヘッダー ファイル\object</Filter>
+    </ClInclude>
+    <ClInclude Include="meshOrbit3D.h">
+      <Filter>ヘッダー ファイル\object\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="light.h">
+      <Filter>ヘッダー ファイル\manager</Filter>
+    </ClInclude>
+    <ClInclude Include="camera.h">
+      <Filter>ヘッダー ファイル\manager\camera</Filter>
+    </ClInclude>
+    <ClInclude Include="playerCamera.h">
+      <Filter>ヘッダー ファイル\manager\camera</Filter>
+    </ClInclude>
+    <ClInclude Include="input.h">
+      <Filter>ヘッダー ファイル\manager\input</Filter>
+    </ClInclude>
+    <ClInclude Include="joypad.h">
+      <Filter>ヘッダー ファイル\manager\input</Filter>
+    </ClInclude>
+    <ClInclude Include="texture.h">
+      <Filter>ヘッダー ファイル\manager\buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="sound.h">
+      <Filter>ヘッダー ファイル\manager\buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="debugproc.h">
+      <Filter>ヘッダー ファイル\util</Filter>
+    </ClInclude>
+    <ClInclude Include="filestream.h">
+      <Filter>ヘッダー ファイル\util</Filter>
+    </ClInclude>
+    <ClInclude Include="memdbg.h">
+      <Filter>ヘッダー ファイル\util</Filter>
+    </ClInclude>
+    <ClInclude Include="vec2math.h">
+      <Filter>ヘッダー ファイル\util\calc</Filter>
+    </ClInclude>
+    <ClInclude Include="vec3math.h">
+      <Filter>ヘッダー ファイル\util\calc</Filter>
+    </ClInclude>
+    <ClInclude Include="rand.h">
+      <Filter>ヘッダー ファイル\util\calc</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix.h">
+      <Filter>ヘッダー ファイル\util\calc</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>ヘッダー ファイル\util</Filter>
+    </ClInclude>
+    <ClInclude Include="color.h">
+      <Filter>ヘッダー ファイル\util</Filter>
+    </ClInclude>
+    <ClInclude Include="cpu.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="electricalCable.h">
+      <Filter>ヘッダー ファイル\object</Filter>
+    </ClInclude>
+    <ClInclude Include="thunderEffect.h">
+      <Filter>ヘッダー ファイル\object\effect</Filter>
+    </ClInclude>
+    <ClInclude Include="sparkEffect.h">
+      <Filter>ヘッダー ファイル\object\effect</Filter>
+    </ClInclude>
+    <ClInclude Include="utilityPole.h">
+      <Filter>ヘッダー ファイル\object</Filter>
+    </ClInclude>
+    <ClInclude Include="electricCurrent.h">
+      <Filter>ヘッダー ファイル\object</Filter>
+    </ClInclude>
+    <ClInclude Include="meshField.h">
+      <Filter>ヘッダー ファイル\object\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="thunderCamera.h">
+      <Filter>ヘッダー ファイル\manager\camera</Filter>
+    </ClInclude>
+    <ClInclude Include="effect.h">
+      <Filter>ヘッダー ファイル\object\effect</Filter>
+    </ClInclude>
+    <ClInclude Include="windowCapture.h">
+      <Filter>ヘッダー ファイル\util</Filter>
+    </ClInclude>
+    <ClInclude Include="grass.h">
+      <Filter>ヘッダー ファイル\object</Filter>
+    </ClInclude>
+    <ClInclude Include="grassland.h">
+      <Filter>ヘッダー ファイル\object</Filter>
+    </ClInclude>
+    <ClInclude Include="enemy.h">
+      <Filter>ヘッダー ファイル\object</Filter>
+    </ClInclude>
+    <ClInclude Include="map.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="util.h">
+      <Filter>ヘッダー ファイル\util</Filter>
+    </ClInclude>
+    <ClInclude Include="planet.h">
+      <Filter>ヘッダー ファイル\object</Filter>
+    </ClInclude>
+    <ClInclude Include="objectXQuaternion.h">
+      <Filter>ヘッダー ファイル\object</Filter>
+    </ClInclude>
+    <ClInclude Include="debug.h">
+      <Filter>ヘッダー ファイル\util</Filter>
+    </ClInclude>
+    <ClInclude Include="title.h">
+      <Filter>ヘッダー ファイル\manager\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="scene.h">
+      <Filter>ヘッダー ファイル\manager\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="game.h">
+      <Filter>ヘッダー ファイル\manager\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="object2D.h">
+      <Filter>ヘッダー ファイル\object\primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="titleCamera.h">
+      <Filter>ヘッダー ファイル\manager\camera</Filter>
+    </ClInclude>
+    <ClInclude Include="xfile.h">
+      <Filter>ヘッダー ファイル\manager\buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="instancingModel.h">
+      <Filter>ヘッダー ファイル\manager\buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="renderer.h">
+      <Filter>ヘッダー ファイル\manager\render</Filter>
+    </ClInclude>
+    <ClInclude Include="textureRenderer.h">
+      <Filter>ヘッダー ファイル\manager\render</Filter>
+    </ClInclude>
+    <ClInclude Include="building.h">
+      <Filter>ヘッダー ファイル\object</Filter>
+    </ClInclude>
+    <ClInclude Include="meshSphere.h">
+      <Filter>ヘッダー ファイル\object\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="lasso.h">
+      <Filter>ヘッダー ファイル\object</Filter>
+    </ClInclude>
+    <ClInclude Include="polygon2D.h">
+      <Filter>ヘッダー ファイル\object\primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="delegate_t.h">
+      <Filter>ヘッダー ファイル\manager</Filter>
+    </ClInclude>
+    <ClInclude Include="gameover.h">
+      <Filter>ヘッダー ファイル\manager\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="gameclear.h">
+      <Filter>ヘッダー ファイル\manager\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="billboard.h">
+      <Filter>ヘッダー ファイル\object\primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="ray.h">
+      <Filter>ヘッダー ファイル\util\calc</Filter>
+    </ClInclude>
+    <ClInclude Include="directX.h">
+      <Filter>ヘッダー ファイル\manager\base</Filter>
+    </ClInclude>
+    <ClInclude Include="directXSubDrawer.h">
+      <Filter>ヘッダー ファイル\manager\base</Filter>
+    </ClInclude>
+    <ClInclude Include="main.h">
+      <Filter>ヘッダー ファイル\manager\base</Filter>
+    </ClInclude>
+    <ClInclude Include="manager.h">
+      <Filter>ヘッダー ファイル\manager\base</Filter>
+    </ClInclude>
+    <ClInclude Include="sceneTransition.h">
+      <Filter>ヘッダー ファイル\manager\transition</Filter>
+    </ClInclude>
+    <ClInclude Include="circleTransition.h">
+      <Filter>ヘッダー ファイル\manager\transition</Filter>
+    </ClInclude>
+    <ClInclude Include="timer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="number.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="objectLine.h">
+      <Filter>ヘッダー ファイル\object\primitive</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="vec3math.inl">
+      <Filter>ヘッダー ファイル\util\calc</Filter>
+    </None>
+    <None Include="vec2math.inl">
+      <Filter>ヘッダー ファイル\util\calc</Filter>
+    </None>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,445 @@
+//==================================================================================
+// 
+// D3DXVECTOR2,3の計算関連関数をまとめたインラインファイル [vec3math.inl]
+// Author : TENMA SAITO
+// Date   : 2026/5/16
+// 
+//==================================================================================
+//**********************************************************************************
+// *** D3DXVECTOR3計算関連名前空間の定義 ***
+//**********************************************************************************
+namespace Vec3
+{
+	constexpr float OX_EPSILON = 0.000001f;		// 浮動小数による判定誤差防止
+
+	//==================================================================================
+	// --- 3次元ベクトルの長さ取得処理 ---
+	//==================================================================================
+	__forceinline float Length(const D3DXVECTOR3 &vec)
+	{
+		return sqrtf((vec.x * vec.x) + (vec.y * vec.y) + (vec.z * vec.z));
+	}
+
+	//==================================================================================
+	// --- 3次元ベクトルの長さ取得処理 (2点間指定) ---
+	//==================================================================================
+	__forceinline float Length(const D3DXVECTOR3 &To, const D3DXVECTOR3 &From)
+	{
+		return Length(To - From);
+	}
+
+	//==================================================================================
+	// --- 3次元ベクトルの長さの2乗取得処理 ---
+	//==================================================================================
+	__forceinline float LengthSq(const D3DXVECTOR3 &vec)
+	{
+		return (vec.x * vec.x) + (vec.y * vec.y) + (vec.z * vec.z);
+	}
+
+	//==================================================================================
+	// --- 3次元ベクトルの長さの2乗取得処理 (2点間指定) ---
+	//==================================================================================
+	__forceinline float LengthSq(const D3DXVECTOR3 &To, const D3DXVECTOR3 &From)
+	{
+		return LengthSq(To - From);
+	}
+
+	//==================================================================================
+	// --- 3次元ベクトル同士の内積処理 ---
+	//==================================================================================
+	__forceinline float Dot(const D3DXVECTOR3 &vec1, const D3DXVECTOR3 &vec2)
+	{
+		return (vec1.x * vec2.x) + (vec1.y * vec2.y) + (vec1.z * vec2.z);
+	}
+
+	//==================================================================================
+	// --- 3次元ベクトル同士の垂直判定処理 ---
+	//==================================================================================
+	__forceinline bool IsVertical(const D3DXVECTOR3 &vec1, const D3DXVECTOR3 &vec2)
+	{
+		return (Cross(vec1, vec2) == VECTOR3_NULL) ? true : false;
+	}
+
+	//==================================================================================
+	// --- 3次元ベクトル同士の平行判定処理 ---
+	//==================================================================================
+	__forceinline bool IsParallel(const D3DXVECTOR3 &vec1, const D3DXVECTOR3 &vec2)
+	{
+		return (Dot(vec1, vec2) == 0.0f) ? true : false;
+	}
+
+	//==================================================================================
+	// --- 三角形の内側判定処理 ---
+	//==================================================================================
+	__forceinline bool IsInsideTriangle(const D3DXVECTOR3 &pos,
+		const D3DXVECTOR3 *pVtx,
+		const bool bInverse)
+	{
+		D3DXVECTOR3 aVecLine[3];			// 三角形の内側判定に使う境界線ベクトル
+		D3DXVECTOR3 aVecToPos[3];			// 各頂点とのベクトル
+		float aVecPos[3];		// 外積結果
+
+		// nullptrなら無視
+		if (pVtx == nullptr) return false;
+
+		// 境界線ベクトルを求める
+		aVecLine[0] = pVtx[1] - pVtx[0];
+		aVecLine[1] = pVtx[2] - pVtx[1];
+		aVecLine[2] = pVtx[0] - pVtx[2];
+
+		// 各頂点とのベクトルを求める
+		aVecToPos[0] = pos - pVtx[0];
+		aVecToPos[1] = pos - pVtx[1];
+		aVecToPos[2] = pos - pVtx[2];
+
+		// 外積を求める
+		aVecPos[0] = Cross(aVecLine[0], aVecToPos[0]).y;
+		aVecPos[1] = Cross(aVecLine[1], aVecToPos[1]).y;
+		aVecPos[2] = Cross(aVecLine[2], aVecToPos[2]).y;
+
+		// 判定結果を返す
+		if (bInverse == false)
+		{ // 判定の反転無しの場合、内側ならtrue
+			return (aVecPos[0] > 0 && aVecPos[1] > 0 && aVecPos[2] > 0);
+		}
+		else
+		{ // 判定の反転有りの場合,外側ならtrue
+			return (aVecPos[0] < 0 && aVecPos[1] < 0 && aVecPos[2] < 0);
+		}
+	}
+
+	//==================================================================================
+	// --- カメラの横幅の内側判定処理 ---
+	//==================================================================================
+	__forceinline bool IsInsideViewOfBeside(const D3DXVECTOR3 &pos,
+		const D3DXVECTOR3 &posV,
+		const D3DXVECTOR3 &posR,
+		const float fovy)
+	{
+		D3DXVECTOR3 vecView = posR - posV;		// 視線ベクトル
+		D3DXVECTOR3 vecToPos = pos - posV;		// 判定する点へのベクトル
+		float fLengthToPos = 0.0f;		// 判定点へのベクトルの長さ
+		float fTheta = 0.0f;	// 基準値
+		float fCos = 0.0f;		// 結果
+
+		// 縦幅は関係ない為、0でクリア
+		vecView.y = 0.0f;
+		vecToPos.y = 0.0f;
+
+		// ベクトルを正規化
+		vecView = Normalize(vecView);
+		vecToPos = Normalize(vecToPos);
+
+		// 基準値を求める
+		fTheta = cosf(fovy);
+
+		// 視野内にいるか確かめる
+		fCos = Dot(vecToPos, vecView);
+		if (fCos >= fTheta)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	//==================================================================================
+	// --- カメラの縦幅の内側判定処理 ---
+	//==================================================================================
+	__forceinline bool IsInsideViewOfVertical(const D3DXVECTOR3 &pos,
+		const D3DXVECTOR3 &posV,
+		const D3DXVECTOR3 &posR,
+		const float fovy)
+	{
+		D3DXVECTOR3 vecView = posR - posV;		// 視線ベクトル
+		D3DXVECTOR3 vecToPos = pos - posV;		// 判定する点へのベクトル
+		float fLengthToPos = 0.0f;		// 判定点へのベクトルの長さ
+		float fTheta = 0.0f;	// 基準値
+		float fCos = 0.0f;		// 結果
+
+		// 横幅は関係ない為、0でクリア
+		vecView.x = 0.0f;
+		vecToPos.x = 0.0f;
+
+		// ベクトルを正規化
+		vecView = Normalize(vecView);
+		vecToPos = Normalize(vecToPos);
+
+		// 基準値を求める
+		fTheta = cosf(fovy);
+
+		// 視野内にいるか確かめる
+		fCos = Dot(vecToPos, vecView);
+		if (fCos >= fTheta)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	//==================================================================================
+	// --- XZから求まる三角形のY座標の取得処理 ---
+	//==================================================================================
+	__forceinline float Height(const D3DXVECTOR3 &pos,
+		const D3DXVECTOR3 &vtx,
+		const D3DXVECTOR3 &nor)
+	{
+		float fHeight = 0.0f;		// 計算結果
+
+		// 法線が垂直な場合スキップ
+		if (nor.y == 0.0f) return fHeight;
+
+		// 高さを求めて結果を返す
+		fHeight = vtx.y - (((pos.x - vtx.x) * nor.x + (pos.z - vtx.z) * nor.z) / nor.y);
+		return fHeight;
+	}
+
+	//==================================================================================
+	// --- 法線ベクトルの計算処理 ---
+	//==================================================================================
+	__forceinline D3DXVECTOR3 Nor(const D3DXVECTOR3 &origin,
+		const D3DXVECTOR3 *pVtx,
+		const bool bInverse)
+	{
+		D3DXVECTOR3 aVec[2];	// 各頂点の境界線ベクトル
+		D3DXVECTOR3 nor;		// 頂点の法線
+
+		// 各境界線ベクトルを求める
+		aVec[0] = pVtx[0] - origin;
+		aVec[1] = pVtx[1] - origin;
+
+		// 法線を各ベクトルから求める
+		if (bInverse == false)
+		{ // 法線ベクトルを逆で求めない場合
+			D3DXVec3Cross(&nor, &aVec[0], &aVec[1]);
+		}
+		else
+		{ // 法線ベクトルを逆で求める場合
+			D3DXVec3Cross(&nor, &aVec[1], &aVec[0]);
+		}
+
+		// 法線を正規化
+		D3DXVec3Normalize(&nor, &nor);
+		return nor;
+	}
+
+	//==================================================================================
+	// --- 3次元ベクトル同士の外積処理 ---
+	//==================================================================================
+	__forceinline D3DXVECTOR3 Cross(const D3DXVECTOR3 &vec1, const D3DXVECTOR3 &vec2)
+	{
+		D3DXVECTOR3 closs;		// 外積結果
+
+		// 外積を求める
+		closs.x = (vec1.y * vec2.z) - (vec1.z * vec2.y);
+		closs.y = (vec1.z * vec2.x) - (vec1.x * vec2.z);
+		closs.z = (vec1.x * vec2.y) - (vec1.y * vec2.x);
+
+		return closs;
+	}
+
+	//==================================================================================
+	// --- 3次元ベクトルの正規化処理 ---
+	//==================================================================================
+	__forceinline D3DXVECTOR3 Normalize(const D3DXVECTOR3 &vec)
+	{
+		float fLength;			// ベクトルの長さ
+
+		// ベクトルの長さを取得
+		fLength = Length(vec);
+
+		// ベクトルの長さで正規化
+		return D3DXVECTOR3(vec.x / fLength, vec.y / fLength, vec.z / fLength);
+	}
+
+	//==================================================================================
+	// --- 3次元ベクトルの線形補間処理 ---
+	//==================================================================================
+	__forceinline D3DXVECTOR3 Lerp(const D3DXVECTOR3 &start,
+		const D3DXVECTOR3 &end,
+		const float t)
+	{
+		D3DXVECTOR3 vec;		// 線形補間後のベクトル
+
+		// 二点間の差分を求める
+		vec = end - start;
+
+		// 補間後の値を返す
+		return start + (vec * t);
+	}
+
+	//==================================================================================
+	// --- 2点間の間の取得処理 ---
+	//==================================================================================
+	__forceinline D3DXVECTOR3 Middle(const D3DXVECTOR3 &p1, const D3DXVECTOR3 &p2)
+	{
+		// 線形補間で求める
+		return Lerp(p1, p2, 0.5f);
+	}
+
+	//==================================================================================
+	// --- 3次元単位ベクトル処理 ---
+	//==================================================================================
+	__forceinline D3DXVECTOR3 Direction(const D3DXVECTOR3 &To, const D3DXVECTOR3 &From)
+	{
+		return Normalize(To - From);
+	}
+
+	//==================================================================================
+	// --- 角度の3次元単位ベクトル取得処理 ---
+	//==================================================================================
+	__forceinline D3DXVECTOR3 Direction(const D3DXVECTOR3 &angle)
+	{
+		// 球面座標を返す
+		return D3DXVECTOR3(sinf(angle.y) * sinf(angle.x), cosf(angle.x), cosf(angle.y) * sinf(angle.x));
+	}
+
+	//==================================================================================
+	// --- ランダムな3次元単位ベクトル取得処理 ---
+	//==================================================================================
+	__forceinline D3DXVECTOR3 Random(void)
+	{
+		float fTheta = (D3DX_PI * 2) * (float)rand() / RAND_MAX;	// ランダムな角度1
+		float fPhi = (D3DX_PI * 2) * (float)rand() / RAND_MAX;		// ランダムな角度2
+
+		// 球面座標を返す
+		return D3DXVECTOR3(sinf(fPhi) * sinf(fTheta), cosf(fPhi), cosf(fPhi) * sinf(fTheta));
+	}
+
+	//==================================================================================
+	// --- 3次元ベクトルの範囲内矯正処理 ---
+	//==================================================================================
+	__forceinline D3DXVECTOR3 Clamp(const D3DXVECTOR3 &vec,
+		const D3DXVECTOR3 &min,
+		const D3DXVECTOR3 &max)
+	{
+		D3DXVECTOR3 clamp;		// クランプ後の値
+
+		// 最大値と最小値でクランプした値を代入
+		clamp.x = (vec.x < min.x) ? min.x : ((vec.x > max.x) ? max.x : vec.x);
+		clamp.y = (vec.y < min.y) ? min.y : ((vec.y > max.y) ? max.y : vec.y);
+		clamp.z = (vec.z < min.z) ? min.z : ((vec.z > max.z) ? max.z : vec.z);
+
+		return clamp;
+	}
+
+	//==================================================================================
+	// --- 角度の修正処理 ---
+	//==================================================================================
+	__forceinline D3DXVECTOR3 FixedRotation(const D3DXVECTOR3 &rot)
+	{
+		D3DXVECTOR3 fixed;		// 修正後の角度
+		auto fixedRot = [](float fRot) -> float
+		{ // 角度の修正式
+			if (fRot > D3DX_PI)
+			{ // 角度がPIを超えたとき
+				return fRot - DOUBLE_PI;
+			}
+			else if (fRot <= -D3DX_PI)
+			{ // 角度が-PIを以下になった時
+				return fRot + DOUBLE_PI;
+			}
+			else
+			{ // 変更の必要なし
+				return fRot;
+			}
+		};
+
+		// 各軸を修正
+		fixed.x = fixedRot(rot.x);
+		fixed.y = fixedRot(rot.y);
+		fixed.z = fixedRot(rot.z);
+
+		return fixed;
+	}
+
+	//==================================================================================
+	// --- 球面上の座標取得処理 ---
+	//==================================================================================
+	__forceinline D3DXVECTOR3 Arc(const float fRadius,
+		const float fTheta,
+		const float fPhi,
+		const D3DXVECTOR3 &offset)
+	{
+		D3DXVECTOR3 pos = offset;		// 円弧上の座標
+
+		// 角度と半径から求めた値を加算
+		pos.x += (sinf(fPhi) * sinf(fTheta)) * fRadius;
+		pos.y += cosf(fPhi) * fRadius;
+		pos.z += (sinf(fPhi) * cosf(fTheta)) * fRadius;
+
+		return pos;
+	}
+
+	//==================================================================================
+	// --- 指定した値の代入処理 ---
+	//==================================================================================
+	__forceinline D3DXVECTOR3 &Fill(D3DXVECTOR3 &rVec, const float fValue)
+	{
+		// VECTOR3に値を埋める
+		rVec = D3DXVECTOR3(fValue, fValue, fValue);
+
+		return rVec;
+	}
+
+	//==================================================================================
+	// --- 指定した値で埋めたVECTOR3取得処理 ---
+	//==================================================================================
+	__forceinline D3DXVECTOR3 Fill(const float fValue)
+	{
+		// VECTOR3に値を埋めて、返す
+		return D3DXVECTOR3(fValue, fValue, fValue);
+	}
+
+	//==================================================================================
+	// --- ラジアンへの変換処理 ---
+	//==================================================================================
+	__forceinline D3DXVECTOR3 ToRadian(const D3DXVECTOR3 &degree, const bool bFixed)
+	{
+		D3DXVECTOR3 radian;		// 変換後の角度
+
+		// ラジアン変換
+		radian.x = D3DXToRadian(degree.x);
+		radian.y = D3DXToRadian(degree.y);
+		radian.z = D3DXToRadian(degree.z);
+
+		// 元から角度が修正されているか確認
+		if (bFixed == false)
+		{ // 修正されていなければ、角度を修正
+			radian = FixedRotation(radian);
+		}
+
+		return radian;
+	}
+
+	//==================================================================================
+	// --- 360°への変換処理 ---
+	//==================================================================================
+	__forceinline D3DXVECTOR3 ToDegree(const D3DXVECTOR3 &radian, const bool bFixed)
+	{
+		D3DXVECTOR3 fixedRadian = radian;		// 修正後の角度
+		D3DXVECTOR3 degree = radian;			// 変換後の角度
+
+		// 元から角度が修正されているか確認
+		if (bFixed == false)
+		{ // 修正されていなければ、角度を修正
+			fixedRadian = FixedRotation(radian);
+		}
+
+		// 360°変換
+		degree.x = D3DXToDegree(fixedRadian.x);
+		degree.y = D3DXToDegree(fixedRadian.y);
+		degree.z = D3DXToDegree(fixedRadian.z);
+
+		return degree;
+	}
+
+	//==================================================================================
+	// --- VECTOR2への変換処理処理 ---
+	//==================================================================================
+	__forceinline D3DXVECTOR2 ToVector2(const D3DXVECTOR3 &vec)
+	{
+		return D3DXVECTOR2(vec.x, vec.y);
+	}
+}
