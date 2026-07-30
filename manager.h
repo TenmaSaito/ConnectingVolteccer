@@ -66,12 +66,13 @@ public:
 	HRESULT SetMode(const CScene::MODE modeNext);
 	CScene::MODE GetMode(void) const { return m_pScene->GetMode(); }
 	void SetTransition(const CScene::MODE modeNext);
-	template<class T> inline T *GetScene(void) const;
+	template<class T> T *GetScene(void) const;
 	CScene *GetScene(void) const { return m_pScene; }
 	HWND GetWindowHandle(void) const { return m_hWnd; }
 
 	static CManager *GetInstance(void);
 	static LPDIRECT3DDEVICE9 GetDeviceByInstance(void);
+	template<class T> static T *GetSceneByInstance(void);
 
 private:
 	CManager();
@@ -98,12 +99,26 @@ private:
 //==================================================================================
 // --- キャスト後シーン取得処理 ---
 //==================================================================================
-template<class T> inline T *CManager::GetScene(void) const
+template<class T> T *CManager::GetScene(void) const
 {
 	T *pScene = nullptr;		// キャスト先
 
 	// シーンのポインタをキャスト
 	pScene = static_cast<T*>(m_pScene);
+	NULLPOINTER_ASSERT(pScene);
+
+	return pScene;
+}
+
+//==================================================================================
+// --- シーン取得処理省略版 ---
+//==================================================================================
+template<class T> T *CManager::GetSceneByInstance(void)
+{
+	T *pScene = nullptr;		// キャスト先
+
+	// シーンのポインタをキャスト
+	pScene = static_cast<T *>(CManager::GetInstance()->m_pScene);
 	NULLPOINTER_ASSERT(pScene);
 
 	return pScene;

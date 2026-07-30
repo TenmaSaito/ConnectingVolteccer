@@ -34,24 +34,29 @@ public:
 		TYPE_MAX
 	} TYPE;
 
-	static CBuilding *Create(const TYPE type, const D3DXVECTOR3 &position = VECTOR3_NULL,
+	static CBuilding *Create(const TYPE type,
+		const D3DXVECTOR3 &position = VECTOR3_NULL,
 		const D3DXVECTOR3 &vecQua = VECTOR3_NULL,
 		const float fAngle = 0.0f);
 
-	CBuilding();
+	static CBuilding *Create(const TYPE type,
+		const D3DXVECTOR3 &position = VECTOR3_NULL);
+
+	CBuilding(const TYPE type, const int nPriority = DEFAULT_OBJ_PRIORITY);
 	~CBuilding();
 
 	HRESULT Init(const D3DXVECTOR3 &position,
 		const D3DXVECTOR3 &vecQua,
-		const float fAngle, 
-		const D3DXMATRIX *pMtxParent);
+		const float fAngle);
+	HRESULT Init(const D3DXVECTOR3 &position);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
 
 private:
-	//static const char *m_apBulidingPath[TYPE_MAX];		// 各建物のパス
+	static const char *m_apBulidingPath[TYPE_MAX];		// 各建物のパス
 	const CUtilityPole *m_pNearPole;		// 最も近い電柱
 	bool m_bHitByPlayerCamRay;				// プレイヤーカメラとのレイ判定
+	TYPE m_buildingType;					// 建物の種類
 };
 #endif
