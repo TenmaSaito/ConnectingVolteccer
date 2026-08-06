@@ -64,6 +64,8 @@ public:
 	void SetEnableSelect(const bool bEnable);
 	ICON GetIconType(void) const { return m_enableType; }
 	bool IsSelected(void) const { return m_bSelected; }
+	void SetEnableElectriced(const bool bEnable) { m_bElectriced = bEnable; }
+	bool IsElectriced(void) const { return m_bElectriced; }
 
 private:
 	CUtilityPole *m_apPole[MAX_CONNECT_POLE];		// 電線でつながっている電柱へのポインタ

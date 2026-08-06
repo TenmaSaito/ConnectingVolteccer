@@ -102,6 +102,10 @@ HRESULT CElectricCurrent::Init(CUtilityPole *pStart,
 	// 雷エフェクトを生成
 	m_pThunder = CThunderEffect::Create(THUNDER_MIN, THUNDER_MAX, &m_mtxWorld);
 
+	// 電流が流れたため電柱のフラグを立てる
+	pStart->SetEnableElectriced(true);
+	pEnd->SetEnableElectriced(true);
+
 	return S_OK;
 }
 

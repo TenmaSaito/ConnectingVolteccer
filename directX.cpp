@@ -21,7 +21,6 @@
 CDirectX::CDirectX()
 { // メンバ変数をクリア
 	m_bThreadLoop = false;
-	m_bComplete = false;
 }
 
 //==================================================================================
@@ -38,8 +37,8 @@ void CDirectX::DirectXProc(HINSTANCE hInstance, HWND hWnd, BOOL bWindowed)
 {
 	CManager *pManager = nullptr;		// マネージャへのポインタ
 	DWORD dwCurrentTime;			// 現在時刻
-	DWORD dwExecLastTimeUpdate;		// 最後に処理した時刻
-	DWORD dwExecLastTimeDraw;		// 最後に処理した時刻
+	DWORD dwExecLastTimeUpdate;		// 最後にUpdateした時刻
+	DWORD dwExecLastTimeDraw;		// 最後にDrawした時刻
 	DWORD dwFrameCount;				// フレームカウント
 	DWORD dwFPSLastTime;			// 最後にFPSを計測した時刻
 
@@ -76,7 +75,7 @@ void CDirectX::DirectXProc(HINSTANCE hInstance, HWND hWnd, BOOL bWindowed)
 					dwFrameCount = 0;						// フレームカウントをクリア
 				}
 
-				if ((dwCurrentTime - dwExecLastTimeUpdate) >= (1000 / UPDATE_FRAMERATE))
+				if ((dwCurrentTime - dwExecLastTimeUpdate) >= static_cast<DWORD>(1000 / UPDATE_FRAMERATE))
 				{ // 60分の1秒経過
 					dwExecLastTimeUpdate = dwCurrentTime;			// 処理開始時刻[現在時刻]を保存
 
@@ -106,9 +105,6 @@ void CDirectX::DirectXProc(HINSTANCE hInstance, HWND hWnd, BOOL bWindowed)
 
 	// マネージャの終了処理
 	pManager->Uninit();
-
-	// スレッド完了フラグを立てる
-	m_bComplete.store(true, std::memory_order_release);
 }
 
 //==================================================================================

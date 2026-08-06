@@ -46,19 +46,21 @@ CObjectXQuaternion *CObjectXQuaternion::Create(const char *pXFileName,
 // --- コンストラクタ ---
 //==================================================================================
 CObjectXQuaternion::CObjectXQuaternion(const int nPriority) : CObject(nPriority)
-{
-	// メンバ変数をクリア
+{ // メンバ変数をクリア
 	m_pMesh = nullptr;
 	m_pBuffMat = nullptr;
 	m_pIdx = nullptr;
 	m_pMtxParent = nullptr;
 	m_dwNumMat = 0;
 	m_pos = VECTOR3_NULL;
+	m_scale = VECTOR3_ONE;
 	m_vecQua = VECTOR3_NULL;
 	m_fAngle = 0.0f;
 	m_vtxMin = VECTOR3_NULL;
 	m_vtxMax = VECTOR3_NULL;
 	m_bHitByPlayerCamRay = false;
+	m_bCalcMatrix = false;
+	D3DXMatrixIdentity(&m_mtxWorld);
 	D3DXQuaternionIdentity(&m_qua);
 	strcpy(m_aFileName, "");
 
@@ -181,7 +183,6 @@ void CObjectXQuaternion::Update(void)
 			&fLength,
 			nullptr,
 			nullptr);
-
 	}
 
 	m_bHitByPlayerCamRay = (bResult) ? true : false;
@@ -192,21 +193,34 @@ void CObjectXQuaternion::Update(void)
 //==================================================================================
 void CObjectXQuaternion::Draw(void)
 {
-	CManager* pManager = CManager::GetInstance();			// マネージャーへのポインタ
-	CRenderer* pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
+	CManager *pManager = CManager::GetInstance();			// マネージャーへのポインタ
+	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
-	CTexture* pTexture = CTexture::GetInstance();			// テクスチャへのポインタ
+	CTexture *pTexture = CTexture::GetInstance();			// テクスチャへのポインタ
 	D3DMATERIAL9 matDef;				// 現在のマテリアル保存用
-	D3DXMATERIAL* pMat = nullptr;		// マテリアルデータへのポインタ
+	D3DXMATERIAL *pMat = nullptr;		// マテリアルデータへのポインタ
 
 	// ワールドマトリックスの初期化
 	D3DXMatrixIdentity(&m_mtxWorld);
 
-	// クォータニオンによるマトリックス計算
-	Mtx::CalcWorld(&m_mtxWorld,
-		m_pMtxParent,
-		m_pos,
-		m_qua);
+	if (m_scale == VECTOR3_ONE)
+	{ // スケーリングを行わないクォータニオンによるマトリックス計算
+		Mtx::CalcWorld(&m_mtxWorld,
+			m_pMtxParent,
+			m_pos,
+			m_qua);
+	}
+	else
+	{ // スケーリング含むクォータニオンによるマトリックス計算
+		Mtx::CalcWorld(&m_mtxWorld,
+			m_pMtxParent,
+			m_scale,
+			m_pos,
+			m_qua);
+	}
+
+	// マトリックスが計算されたためフラグを立てる
+	m_bCalcMatrix = true;
 
 	//  ワールドマトリックスの設定
 	pDevice->SetTransform(D3DTS_WORLD, &m_mtxWorld);
@@ -260,9 +274,21 @@ void CObjectXQuaternion::Draw(void)
 //==================================================================================
 // --- 絶対座標の取得処理 ---
 //==================================================================================
-D3DXVECTOR3 CObjectXQuaternion::GetWorldPosition(void) const
+D3DXVECTOR3 CObjectXQuaternion::GetWorldPosition(void)
 {
 	D3DXVECTOR3 posWorld;		// 変換後の位置
+
+	if (m_bCalcMatrix == false)
+	{ // もしマトリックスが計算されていなければ、マトリックスを計算
+		Mtx::CalcWorld(&m_mtxWorld,
+			m_pMtxParent,
+			m_scale,
+			m_pos,
+			m_qua);
+
+		// 計算フラグを立てる
+		m_bCalcMatrix = true;
+	}
 
 	// 位置を変換
 	D3DXVec3TransformCoord(&posWorld, &m_pos, &m_mtxWorld);

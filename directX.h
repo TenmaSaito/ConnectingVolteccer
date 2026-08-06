@@ -30,10 +30,8 @@ public:
 
 	void DirectXProc(HINSTANCE hInstance, HWND hWnd, BOOL bWindowed);
 	void Quit(void);
-	std::atomic_bool *IsComplete(void) { return &m_bComplete; }
 
 private:
 	std::atomic_bool m_bThreadLoop;		// スレッドループフラグ
-	std::atomic_bool m_bComplete;		// DirectXのスレッド終了の完了フラグ
 };
 #endif

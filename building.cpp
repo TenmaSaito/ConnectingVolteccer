@@ -12,6 +12,14 @@
 #include "manager.h"
 #include "game.h"
 #include "planet.h"
+#include "utilityPole.h"
+#include "vec3math.h"
+#include "effect.h"
+
+//**********************************************************************************
+// *** マクロ定義 ***
+//**********************************************************************************
+#define SCALE_VALUE		(1.0f / 15.0f)		// 線形補間の増減値
 
 //**********************************************************************************
 // *** 静的メンバ変数 ***
@@ -36,7 +44,8 @@ CBuilding *CBuilding::Create(const TYPE type,
 
 	switch (type)
 	{ // 建物の種類で場合分け
-	default:
+	default:		// 特段処理の無いただの建物
+		pBuilding = new CBuilding(type);
 		break;
 	}
 
@@ -58,7 +67,8 @@ CBuilding *CBuilding::Create(const TYPE type, const D3DXVECTOR3 &position)
 
 	switch (type)
 	{ // 建物の種類で場合分け
-	default:
+	default:		// 特段処理の無いただの建物
+		pBuilding = new CBuilding(type);
 		break;
 	}
 
@@ -78,7 +88,13 @@ CBuilding::CBuilding(const TYPE type, const int nPriority)
 { // メンバ変数のクリア
 	m_pNearPole = nullptr;
 	m_bHitByPlayerCamRay = false;
+	m_bFind = false;
+	m_fLerp = 0.0f;
+	m_fValue = 0.0f;
 	m_buildingType = type;
+
+	// タイプ設定
+	SetType(CObject::TYPE_BUILDING);
 }
 
 //==================================================================================
@@ -104,6 +120,9 @@ HRESULT CBuilding::Init(const D3DXVECTOR3 &position,
 
 	// 親を惑星に設定
 	SetParent(pPlanet->GetMatrix());
+
+	// 増減値を設定
+	m_fValue = SCALE_VALUE;
 
 	return S_OK;
 }
@@ -135,6 +154,9 @@ HRESULT CBuilding::Init(const D3DXVECTOR3 &position)
 	// 親を惑星に設定
 	SetParent(pPlanet->GetMatrix());
 
+	// 増減値を設定
+	m_fValue = SCALE_VALUE;
+
 	return S_OK;
 }
 
@@ -151,6 +173,34 @@ void CBuilding::Uninit(void)
 //==================================================================================
 void CBuilding::Update(void) 
 { // TODO : ここに将来電柱に電気が通ったらずんずん動く処理を書く
+	if (m_bFind == false)
+	{ // 最も近い電柱を探す
+		FindUtilityPole();
+
+		m_bFind = true;
+	}
+	
+	if (m_pNearPole != nullptr)
+	{ // 電柱が存在するなら判定
+		if (m_pNearPole->IsElectriced())
+		{ // 既に電柱に電流が流れている場合
+			D3DXVECTOR3 scale = *GetScale();		// スケールの値
+
+			// スケール値を変化
+			m_fLerp += m_fValue;
+			if (m_fLerp >= 1.0f || m_fLerp <= 0.0f)
+			{ // 補間用変数が0,1の範囲を超えたら、変化量を反転
+				m_fValue *= -1;
+			}
+
+			scale.x *= (m_fValue > 0) ? 1.01f : 0.99f;
+			scale.y *= (m_fValue > 0) ? 0.99f : 1.01f;
+
+			SetScale(scale);
+		}
+	}
+
+	CObjectXQuaternion::Update();
 }
 
 //==================================================================================
@@ -159,4 +209,41 @@ void CBuilding::Update(void)
 void CBuilding::Draw(void) 
 { // 親クラスの描画
 	CObjectXQuaternion::Draw();
+}
+
+//==================================================================================
+// --- 最も近い電柱の検索処理 ---
+//==================================================================================
+void CBuilding::FindUtilityPole(void)
+{
+	CObject *pObject = CObject::GetTop(UTILITYPOLE_PRIORITY);		// 最初のオブジェクト
+	float fLengthMin = 10000.0f;			// 現状最も近い電柱との距離
+	D3DXVECTOR3 pos;		// 建物のワールド座標
+
+	// 座標をマトリックスでワールド座標に変換
+	pos = GetWorldPosition();
+
+	while (pObject != nullptr)
+	{ // オブジェクトを走査
+		CObject *pObjectNext = pObject->GetNext();			// 次のオブジェクトへのポインタ
+
+		if (pObject->GetType() == CObject::TYPE_POLE)
+		{ // もしオブジェクトが電柱であれば、ポインタをキャスト
+			CUtilityPole *pPole = static_cast<CUtilityPole*>(pObject);
+
+			// 電柱のワールド座標を求める
+			D3DXVECTOR3 posPole;	// 電柱のワールド座標
+			posPole = pPole->GetWorldPosition();
+
+			// 距離を計算
+			float fLength = Vec3::Length(posPole, pos);
+			if (fLength < fLengthMin)
+			{ // もし前回の距離よりも近いなら、ポインタ保存 + 距離更新
+				fLengthMin = fLength;
+				m_pNearPole = pPole;
+			}
+		}
+
+		pObject = pObjectNext;		// ポインタ更新
+	}
 }

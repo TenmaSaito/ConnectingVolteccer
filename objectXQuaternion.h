@@ -34,7 +34,9 @@ public:
 	void Draw(void);
 	void SetPosition(const D3DXVECTOR3 &position) { m_pos = position; }
 	const D3DXVECTOR3 *GetPosition(void) const { return &m_pos; }
-	D3DXVECTOR3 GetWorldPosition(void) const;
+	D3DXVECTOR3 GetWorldPosition(void);
+	void SetScale(const D3DXVECTOR3 &scale) { m_scale = scale; }
+	const D3DXVECTOR3 *GetScale(void) const { return &m_scale; }
 	void SetVecQua(const D3DXVECTOR3 &vecQua) { m_vecQua = vecQua; }
 	const D3DXVECTOR3 *GetVecQua(void) const { return &m_vecQua; }
 	void SetAngle(const float fAngle);
@@ -61,6 +63,7 @@ private:
 	DWORD m_dwNumMat;				// マテリアルの数
 	D3DXVECTOR3 m_vtxMin, m_vtxMax;	// モデルの各最大最小頂点の位置
 	D3DXVECTOR3 m_pos;				// 位置
+	D3DXVECTOR3 m_scale;			// サイズ
 	D3DXVECTOR3 m_vecQua;			// 任意軸
 	float m_fAngle;					// 軸回転
 	D3DXQUATERNION m_qua;			// クォータニオン
@@ -68,5 +71,6 @@ private:
 	const D3DXMATRIX *m_pMtxParent;	// 親のワールドマトリックス
 	char m_aFileName[MAX_PATH];		// ファイル名
 	bool m_bHitByPlayerCamRay;		// プレイヤーカメラとのレイ判定
+	bool m_bCalcMatrix;				// マトリックスが一度でも計算されたかを示すフラグ
 };
 #endif

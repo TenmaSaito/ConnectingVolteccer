@@ -257,8 +257,6 @@ void CPlayer::InputMoving(void)
 	int nFrameBleand = 0;							// ブレンド時間
 	bool bMove = true;			// 動いたか
 
-	pPlayerCam->GetRayToScreen(Vec3::ToVector2(pManager->GetInputMouse()->GetPositionInClient()));
-
 	if (pKeyboard->GetPress(DIK_W))
 	{ // Wを押したとき
 		if (pKeyboard->GetPress(DIK_A))
@@ -534,6 +532,9 @@ void CPlayer::InputPole(void)
 				m_pRidingPole, 
 				pPoleSelected);
 			pLasso->SetParent(pPlanet->GetMatrix());
+
+			// カメラの角度に合わせて、モデルの目標角度を求める！
+			m_rotDest.y = (pPlayerCam->GetRotate()->y + D3DX_PI);
 		}
 
 		// カメラを投げ縄フォーカスに変更

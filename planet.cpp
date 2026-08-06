@@ -80,6 +80,16 @@ HRESULT CPlanet::Init(void)
 
 	// 任意軸設定
 	m_vecQua = Vec3::Direction(VECTOR3_NULL, D3DXVECTOR3(1.0f, 0.0f, 0.0f));
+
+	// マトリックスを初期化
+	D3DXMatrixIdentity(&m_mtxWorld);
+
+	// クォータニオンによる角度計算
+	D3DXMatrixRotationQuaternion(&m_mtxWorld, &m_qua);
+
+	// 位置計算
+	Mtx::CalcPosition(&m_mtxWorld, m_pos);
+
 	return S_OK;
 }
 

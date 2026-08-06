@@ -52,11 +52,17 @@ public:
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
+	TYPE GetType(void) const { return m_buildingType; }
 
 private:
+	void FindUtilityPole(void);
+
 	static const char *m_apBulidingPath[TYPE_MAX];		// 各建物のパス
 	const CUtilityPole *m_pNearPole;		// 最も近い電柱
 	bool m_bHitByPlayerCamRay;				// プレイヤーカメラとのレイ判定
-	TYPE m_buildingType;					// 建物の種類
+	bool m_bFind;				// 検索
+	float m_fLerp;				// 線形補間用変数
+	float m_fValue;				// 補間時の変化量
+	TYPE m_buildingType;		// 建物の種類
 };
 #endif

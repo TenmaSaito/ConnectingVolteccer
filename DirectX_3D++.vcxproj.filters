@@ -97,6 +97,12 @@
     <Filter Include="ヘッダー ファイル\manager\transition">
       <UniqueIdentifier>{2b980ffe-5a8f-4436-ac14-236f884e229a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\object\building">
+      <UniqueIdentifier>{0901b3d3-f721-4b2a-b480-8e9c8c5200f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\object\building">
+      <UniqueIdentifier>{b968e625-83cb-4395-a8a9-c52aacef8e6a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="model.cpp">
@@ -183,15 +189,6 @@
     <ClCompile Include="thunderEffect.cpp">
       <Filter>ソース ファイル\object\effect</Filter>
     </ClCompile>
-    <ClCompile Include="utilityPole.cpp">
-      <Filter>ソース ファイル\object</Filter>
-    </ClCompile>
-    <ClCompile Include="electricalCable.cpp">
-      <Filter>ソース ファイル\object</Filter>
-    </ClCompile>
-    <ClCompile Include="electricCurrent.cpp">
-      <Filter>ソース ファイル\object</Filter>
-    </ClCompile>
     <ClCompile Include="efffect.cpp">
       <Filter>ソース ファイル\object\effect</Filter>
     </ClCompile>
@@ -212,9 +209,6 @@
     </ClCompile>
     <ClCompile Include="util.cpp">
       <Filter>ソース ファイル\util</Filter>
-    </ClCompile>
-    <ClCompile Include="planet.cpp">
-      <Filter>ソース ファイル\object</Filter>
     </ClCompile>
     <ClCompile Include="objectXQuaternion.cpp">
       <Filter>ソース ファイル\object\primitive</Filter>
@@ -279,9 +273,6 @@
     <ClCompile Include="circleTransition.cpp">
       <Filter>ソース ファイル\manager\transition</Filter>
     </ClCompile>
-    <ClCompile Include="building.cpp">
-      <Filter>ソース ファイル\object</Filter>
-    </ClCompile>
     <ClCompile Include="timer.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -290,6 +281,21 @@
     </ClCompile>
     <ClCompile Include="objectLine.cpp">
       <Filter>ソース ファイル\object\primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="building.cpp">
+      <Filter>ソース ファイル\object\building</Filter>
+    </ClCompile>
+    <ClCompile Include="utilityPole.cpp">
+      <Filter>ソース ファイル\object\building</Filter>
+    </ClCompile>
+    <ClCompile Include="electricalCable.cpp">
+      <Filter>ソース ファイル\object\building</Filter>
+    </ClCompile>
+    <ClCompile Include="electricCurrent.cpp">
+      <Filter>ソース ファイル\object\effect</Filter>
+    </ClCompile>
+    <ClCompile Include="planet.cpp">
+      <Filter>ソース ファイル\object\building</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -377,20 +383,11 @@
     <ClInclude Include="cpu.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="electricalCable.h">
-      <Filter>ヘッダー ファイル\object</Filter>
-    </ClInclude>
     <ClInclude Include="thunderEffect.h">
       <Filter>ヘッダー ファイル\object\effect</Filter>
     </ClInclude>
     <ClInclude Include="sparkEffect.h">
       <Filter>ヘッダー ファイル\object\effect</Filter>
-    </ClInclude>
-    <ClInclude Include="utilityPole.h">
-      <Filter>ヘッダー ファイル\object</Filter>
-    </ClInclude>
-    <ClInclude Include="electricCurrent.h">
-      <Filter>ヘッダー ファイル\object</Filter>
     </ClInclude>
     <ClInclude Include="meshField.h">
       <Filter>ヘッダー ファイル\object\mesh</Filter>
@@ -418,9 +415,6 @@
     </ClInclude>
     <ClInclude Include="util.h">
       <Filter>ヘッダー ファイル\util</Filter>
-    </ClInclude>
-    <ClInclude Include="planet.h">
-      <Filter>ヘッダー ファイル\object</Filter>
     </ClInclude>
     <ClInclude Include="objectXQuaternion.h">
       <Filter>ヘッダー ファイル\object</Filter>
@@ -454,9 +448,6 @@
     </ClInclude>
     <ClInclude Include="textureRenderer.h">
       <Filter>ヘッダー ファイル\manager\render</Filter>
-    </ClInclude>
-    <ClInclude Include="building.h">
-      <Filter>ヘッダー ファイル\object</Filter>
     </ClInclude>
     <ClInclude Include="meshSphere.h">
       <Filter>ヘッダー ファイル\object\mesh</Filter>
@@ -508,6 +499,21 @@
     </ClInclude>
     <ClInclude Include="objectLine.h">
       <Filter>ヘッダー ファイル\object\primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="building.h">
+      <Filter>ヘッダー ファイル\object\building</Filter>
+    </ClInclude>
+    <ClInclude Include="electricCurrent.h">
+      <Filter>ヘッダー ファイル\object\effect</Filter>
+    </ClInclude>
+    <ClInclude Include="electricalCable.h">
+      <Filter>ヘッダー ファイル\object\building</Filter>
+    </ClInclude>
+    <ClInclude Include="utilityPole.h">
+      <Filter>ヘッダー ファイル\object\building</Filter>
+    </ClInclude>
+    <ClInclude Include="planet.h">
+      <Filter>ヘッダー ファイル\object\building</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

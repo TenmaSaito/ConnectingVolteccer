@@ -250,8 +250,7 @@ bool CFileStream::IsInStream(void) const
 // --- EOFの確認処理 ---
 //==================================================================================
 bool CFileStream::IsEoF(void) const
-{
-	// ファイルのオープン確認
+{ // ファイルのオープン確認
 	if (IsOpen() == false)
 	{ // ファイルが開かれていなければ、EOF扱い
 		return true;
@@ -422,7 +421,7 @@ bool CFileStream::IsOpenOutStream(void) const
 //==================================================================================
 bool CFileStream::CheckFileInStream(void) const
 {
-	if (IsOpen() == false)
+	if (IsOpenInStream() == false)
 	{ // ファイルが開かれていなければ、失敗
 		return false;
 	}
@@ -451,7 +450,7 @@ bool CFileStream::CheckFileInStream(void) const
 //==================================================================================
 bool CFileStream::CheckFileOutStream(void) const
 {
-	if (IsOpen() == false)
+	if (IsOpenOutStream() == false)
 	{ // ファイルが開かれていなければ、失敗
 		return false;
 	}

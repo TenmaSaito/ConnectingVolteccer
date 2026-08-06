@@ -111,7 +111,7 @@ void CGame::Update(void)
 		// ファイル名作成
 		filePath = "data/";
 		filePath += aTime;
-		filePath += ".txt";
+		filePath += ".bin";
 
 		CMap::GetInstance()->Save(filePath.c_str());
 	}
@@ -170,5 +170,5 @@ void CGame::Start(void)
 	NULLPOINTER_ASSERT(m_pPlanet);
 
 	// マップ読み込み
-	CMap::GetInstance()->Load("data/2026-07-24-10-18-18.txt");
+	CMap::GetInstance()->Load("data/2026-07-30-12-30-30.bin");
 }

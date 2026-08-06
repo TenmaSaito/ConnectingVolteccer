@@ -24,20 +24,32 @@ namespace Mtx
 	D3DXMATRIX *CalcPosition(D3DXMATRIX *pMtx, const D3DXVECTOR3 &position);
 	D3DXMATRIX *CalcRotation(D3DXMATRIX *pMtx, const D3DXVECTOR3 &rotation);
 	D3DXMATRIX *CalcRotation(D3DXMATRIX *pMtx, const D3DXQUATERNION &quaternion);
+	D3DXMATRIX *CalcScale(D3DXMATRIX *pMtx, const D3DXVECTOR3 &scale);
+
 	D3DXMATRIX *CalcWorld(D3DXMATRIX *pMtx, 
 		const D3DXVECTOR3 &position, 
 		const D3DXVECTOR3 &rotation);
+
 	D3DXMATRIX *CalcWorld(D3DXMATRIX *pMtx, 
 		const D3DXVECTOR3 &position, 
 		const D3DXQUATERNION &quaternion);
+
 	D3DXMATRIX *CalcWorld(D3DXMATRIX *pMtx,
 		const D3DXMATRIX *pParent, 
 		const D3DXVECTOR3 &position,
 		const D3DXVECTOR3 &rotation);
+
 	D3DXMATRIX *CalcWorld(D3DXMATRIX *pMtx,
 		const D3DXMATRIX *pParent, 
 		const D3DXVECTOR3 &position,
 		const D3DXQUATERNION &quaternion);
+
+	D3DXMATRIX *CalcWorld(D3DXMATRIX *pMtx,
+		const D3DXMATRIX *pParent,
+		const D3DXVECTOR3 &scale,
+		const D3DXVECTOR3 &position,
+		const D3DXQUATERNION &quaternion);
+
 	D3DXMATRIX *CreateShadow(const D3DXMATRIX *pMtxWorld,
 		const D3DXVECTOR3 &pos, 
 		const D3DXVECTOR3 &nor,

@@ -77,6 +77,25 @@ D3DXMATRIX *Mtx::CalcRotation(D3DXMATRIX *pMtx, const D3DXQUATERNION &quaternion
 }
 
 //==================================================================================
+// --- スケーリングによるマトリックス計算処理 ---
+//==================================================================================
+D3DXMATRIX *Mtx::CalcScale(D3DXMATRIX *pMtx, const D3DXVECTOR3 &scale)
+{
+	// 出力先がnullptrならnullptrを返す
+	if (pMtx == nullptr) return nullptr;
+
+	D3DXMATRIX MtxScale;		// 計算用変数
+
+	// マトリックス計算
+	D3DXMatrixScaling(&MtxScale, scale.x, scale.y, scale.z);
+
+	// マトリックスを掛け合わせる
+	D3DXMatrixMultiply(pMtx, pMtx, &MtxScale);
+
+	return pMtx;
+}
+
+//==================================================================================
 // --- ワールドマトリックスの計算処理 ---
 //==================================================================================
 D3DXMATRIX *Mtx::CalcWorld(D3DXMATRIX *pMtx, const D3DXVECTOR3 &position, const D3DXVECTOR3 &rotation)
@@ -149,6 +168,37 @@ D3DXMATRIX *Mtx::CalcWorld(D3DXMATRIX *pMtx,
 {
 	// 出力先がnullptrならnullptrを返す
 	if (pMtx == nullptr) return nullptr;
+
+	// 位置のマトリックス計算
+	CalcPosition(pMtx, position);
+
+	// 角度のマトリックス計算
+	CalcRotation(pMtx, quaternion);
+
+	if (pParent != nullptr)
+	{ // 親マトリックスへのポインタがnullptrではない場合
+		// 親マトリックスと掛け合わせる
+		D3DXMatrixMultiply(pMtx, pMtx, pParent);
+	}
+
+	// 計算後のマトリックスへのポインタを返す
+	return pMtx;
+}
+
+//==================================================================================
+// --- 親マトリックスを持つワールドマトリックスの計算処理 (Scaling + Quaternion) ---
+//==================================================================================
+D3DXMATRIX *Mtx::CalcWorld(D3DXMATRIX *pMtx,
+	const D3DXMATRIX *pParent,
+	const D3DXVECTOR3 &scale,
+	const D3DXVECTOR3 &position,
+	const D3DXQUATERNION &quaternion)
+{
+	// 出力先がnullptrならnullptrを返す
+	if (pMtx == nullptr) return nullptr;
+
+	// スケーリングのマトリックス計算
+	CalcScale(pMtx, scale);
 
 	// 位置のマトリックス計算
 	CalcPosition(pMtx, position);

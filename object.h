@@ -50,6 +50,7 @@ public:
 		TYPE_MESHFIELD,		// メッシュフィールド
 		TYPE_MESHSPHERE,	// メッシュスフィア
 		TYPE_XMODEL,		// Xモデル
+		TYPE_BUILDING,		// 建物
 		TYPE_MAX
 	} TYPE;
 
