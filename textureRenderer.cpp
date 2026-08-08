@@ -141,7 +141,7 @@ void CTextureRenderer::Update(void)
 //==================================================================================
 // --- レンダリングターゲット変更処理 ---
 //==================================================================================
-void CTextureRenderer::BeginRenderer(const D3DXVECTOR3 &posV, const D3DXVECTOR3 &posR, const D3DXVECTOR3 &vecU)
+void CTextureRenderer::BeginRenderer(const Vector3 &posV, const Vector3 &posR, const Vector3 &vecU)
 {
 
 }

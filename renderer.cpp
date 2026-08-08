@@ -193,10 +193,10 @@ HRESULT CRenderer::Init(HWND hWnd, BOOL bWindow)
 	// 頂点バッファをロック
 	m_pVtxBuffMT->Lock(0, 0, (void**)&pVtx, 0);
 
-	pVtx[0].pos = D3DXVECTOR3(-FEEDBACK_SIZE, -FEEDBACK_SIZE, 0.0f);
-	pVtx[1].pos = D3DXVECTOR3(SCREEN_WIDTH + FEEDBACK_SIZE, -FEEDBACK_SIZE, 0.0f);
-	pVtx[2].pos = D3DXVECTOR3(-FEEDBACK_SIZE, SCREEN_HEIGHT + FEEDBACK_SIZE, 0.0f);
-	pVtx[3].pos = D3DXVECTOR3(SCREEN_WIDTH + FEEDBACK_SIZE, SCREEN_HEIGHT + FEEDBACK_SIZE, 0.0f);
+	pVtx[0].pos = Vector3(-FEEDBACK_SIZE, -FEEDBACK_SIZE, 0.0f);
+	pVtx[1].pos = Vector3(SCREEN_WIDTH + FEEDBACK_SIZE, -FEEDBACK_SIZE, 0.0f);
+	pVtx[2].pos = Vector3(-FEEDBACK_SIZE, SCREEN_HEIGHT + FEEDBACK_SIZE, 0.0f);
+	pVtx[3].pos = Vector3(SCREEN_WIDTH + FEEDBACK_SIZE, SCREEN_HEIGHT + FEEDBACK_SIZE, 0.0f);
 
 	// 座標変換用変数設定
 	pVtx[0].rhw = 1.0f;
@@ -211,10 +211,10 @@ HRESULT CRenderer::Init(HWND hWnd, BOOL bWindow)
 	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, FEEDBACK_ALPHA);
 
 	// テクスチャ座標設定
-	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(1.0f, 0.0f);
-	pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
-	pVtx[3].tex = D3DXVECTOR2(1.0f, 1.0f);
+	pVtx[0].tex = Vector2(0.0f, 0.0f);
+	pVtx[1].tex = Vector2(1.0f, 0.0f);
+	pVtx[2].tex = Vector2(0.0f, 1.0f);
+	pVtx[3].tex = Vector2(1.0f, 1.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuffMT->Unlock();
@@ -370,12 +370,12 @@ void CRenderer::SetDefaultTarget(void)
 //==================================================================================
 // --- レンダリングターゲット変更処理 ---
 //==================================================================================
-void CRenderer::ChangeTarget(const D3DXVECTOR3 &posV,
-	const D3DXVECTOR3 &posR,
-	const D3DXVECTOR3 &vecU,
+void CRenderer::ChangeTarget(const Vector3 &posV,
+	const Vector3 &posR,
+	const Vector3 &vecU,
 	const D3DVIEWPORT9 *pViewport)
 {
-	D3DXMATRIX mtxProj, mtxView;	// ビュー・プロジェクションマトリックス
+	Matrix mtxProj, mtxView;	// ビュー・プロジェクションマトリックス
 	const D3DVIEWPORT9 *pViewportMT = &m_viewportMT;		// 設定するビューポートへのポインタ
 	float fAspect;					// アスペクト比
 
@@ -431,10 +431,10 @@ void CRenderer::DrawFeedBack(void)
 	// 頂点バッファをロック
 	m_pVtxBuffMT->Lock(0, 0, (void**)&pVtx, 0);
 
-	pVtx[0].pos = D3DXVECTOR3(-FEEDBACK_SIZE, -FEEDBACK_SIZE, 0.0f);
-	pVtx[1].pos = D3DXVECTOR3(SCREEN_WIDTH + FEEDBACK_SIZE, -FEEDBACK_SIZE, 0.0f);
-	pVtx[2].pos = D3DXVECTOR3(-FEEDBACK_SIZE, SCREEN_HEIGHT + FEEDBACK_SIZE, 0.0f);
-	pVtx[3].pos = D3DXVECTOR3(SCREEN_WIDTH + FEEDBACK_SIZE, SCREEN_HEIGHT + FEEDBACK_SIZE, 0.0f);
+	pVtx[0].pos = Vector3(-FEEDBACK_SIZE, -FEEDBACK_SIZE, 0.0f);
+	pVtx[1].pos = Vector3(SCREEN_WIDTH + FEEDBACK_SIZE, -FEEDBACK_SIZE, 0.0f);
+	pVtx[2].pos = Vector3(-FEEDBACK_SIZE, SCREEN_HEIGHT + FEEDBACK_SIZE, 0.0f);
+	pVtx[3].pos = Vector3(SCREEN_WIDTH + FEEDBACK_SIZE, SCREEN_HEIGHT + FEEDBACK_SIZE, 0.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuffMT->Unlock();
@@ -464,10 +464,10 @@ void CRenderer::DrawScreen(void)
 	// 頂点バッファをロック
 	m_pVtxBuffMT->Lock(0, 0, (void**)&pVtx, 0);
 
-	pVtx[0].pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-	pVtx[1].pos = D3DXVECTOR3(SCREEN_WIDTH, 0.0f, 0.0f);
-	pVtx[2].pos = D3DXVECTOR3(0.0f, SCREEN_HEIGHT, 0.0f);
-	pVtx[3].pos = D3DXVECTOR3(SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f);
+	pVtx[0].pos = Vector3(0.0f, 0.0f, 0.0f);
+	pVtx[1].pos = Vector3(SCREEN_WIDTH, 0.0f, 0.0f);
+	pVtx[2].pos = Vector3(0.0f, SCREEN_HEIGHT, 0.0f);
+	pVtx[3].pos = Vector3(SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuffMT->Unlock();

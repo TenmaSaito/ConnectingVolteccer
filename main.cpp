@@ -14,7 +14,6 @@
 //**********************************************************************************
 #define CLASS_NAME			"AppClass"				// ウィンドウクラスの名前
 #define WINDOW_NAME			"Connecting VoltTackle"	// キャプションに表示される名前
-#define _					[[maybe_unused]] auto _	// 未使用変数
 
 //**********************************************************************************
 // *** プロトタイプ宣言 ***
@@ -56,8 +55,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hInstancePrev, LPSTR lpCmdLine
 
 	// クライアント領域を指定のサイズに調整
 	AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, FALSE);
-
-	_ = rand();
 
 	// ウィンドウの生成
 	hWnd = CreateWindowEx(

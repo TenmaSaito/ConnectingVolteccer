@@ -1,6 +1,6 @@
 //==================================================================================
 // 
-// D3DXVECTOR3の計算関連関数をまとめたヘッダーファイル [vec3math.h]
+// Vector3の計算関連関数をまとめたヘッダーファイル [vec3math.h]
 // Author : TENMA SAITO
 // Date   : 2026/5/16
 // 
@@ -19,42 +19,88 @@
 #define VEC3_INLINE					// 各関数をインライン展開するか
 
 //**********************************************************************************
-// *** D3DXVECTOR3計算関連名前空間 ***
+// *** Vector3計算関連名前空間 ***
 //**********************************************************************************
 namespace Vec3
 {
 	//******************************************************************************
+	// *** 3軸列挙 ***
+	//******************************************************************************
+	enum class Axis : char
+	{
+		X,		// X軸
+		Y,		// Y軸
+		Z,		// Z軸
+		MAX
+	};
+
+	// 範囲チェック用
+	template<Axis axis>
+	concept IsTrueAxis = (axis != Axis::MAX);
+
+	// 変数版
+	template<Axis axis>
+	inline constexpr bool IsTrueAxis_v = IsTrueAxis<axis>;
+
+	//******************************************************************************
+	// *** 軸列挙 (複数軸有り) ***
+	//******************************************************************************
+	enum class AxisEx : char
+	{
+		X = static_cast<char>(Axis::X),		// X軸
+		Y = static_cast<char>(Axis::Y),		// Y軸
+		Z = static_cast<char>(Axis::Z),		// Z軸
+		XY,		// X + Y軸
+		XZ,		// X + Z軸
+		YZ,		// Y + Z軸
+		XYZ,	// XYZ軸
+		MAX
+	};
+
+	// 範囲チェック用
+	template<AxisEx axisEx>
+	concept IsTrueAxisEx = (axisEx != AxisEx::MAX);
+
+	// 変数版
+	template<AxisEx axisEx>
+	inline constexpr bool IsTrueAxisEx_v = IsTrueAxisEx<axisEx>;
+
+	//******************************************************************************
 	// *** プロトタイプ宣言 ***
 	//******************************************************************************
-	float Length(const D3DXVECTOR3 &vec);
-	float Length(const D3DXVECTOR3 &To, const D3DXVECTOR3 &From);
-	float LengthSq(const D3DXVECTOR3 &vec);
-	float LengthSq(const D3DXVECTOR3 &To, const D3DXVECTOR3 &From);
-	float Dot(const D3DXVECTOR3 &vec1, const D3DXVECTOR3 &vec2);
-	bool IsVertical(const D3DXVECTOR3 &vec1, const D3DXVECTOR3 &vec2);
-	bool IsParallel(const D3DXVECTOR3 &vec1, const D3DXVECTOR3 &vec2);
-	bool IsInsideTriangle(const D3DXVECTOR3 &pos, const D3DXVECTOR3 *pVtx, const bool bInverse = false);
-	bool IsInsideViewOfBeside(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &posV, const D3DXVECTOR3 &posR, const float fovy);
-	bool IsInsideViewOfVertical(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &posV, const D3DXVECTOR3 &posR, const float fovy);
-	float Height(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &vtx, const D3DXVECTOR3 &nor);
-	D3DXVECTOR3 Nor(const D3DXVECTOR3 &origin, const D3DXVECTOR3 *pVtx, const bool bInverse = false);
-	D3DXVECTOR3 Cross(const D3DXVECTOR3 &vec1, const D3DXVECTOR3 &vec2);
-	D3DXVECTOR3 Normalize(const D3DXVECTOR3 &vec);
-	D3DXVECTOR3 Lerp(const D3DXVECTOR3 &start, const D3DXVECTOR3 &end, const float t);
-	D3DXVECTOR3 Middle(const D3DXVECTOR3 &p1, const D3DXVECTOR3 &p2);
-	D3DXVECTOR3 Direction(const D3DXVECTOR3 &To, const D3DXVECTOR3 &From);
-	D3DXVECTOR3 Direction(const D3DXVECTOR3 &angle);
-	bool Intersect(const LPD3DXBASEMESH pMesh, const D3DXVECTOR3 &pos, const D3DXVECTOR3 &ray, 
-		const float *pLength, const DWORD *pFaceIndex = nullptr, const D3DXVECTOR2 *pUV = nullptr);
-	D3DXVECTOR3 Random(void);
-	D3DXVECTOR3 Clamp(const D3DXVECTOR3 &vec, const D3DXVECTOR3 &min, const D3DXVECTOR3 &max);
-	D3DXVECTOR3 FixedRotation(const D3DXVECTOR3 &rot);
-	D3DXVECTOR3 Arc(const float fRadius, const float fTheta, const float fPhi, const D3DXVECTOR3 &offset = VECTOR3_NULL);
-	D3DXVECTOR3 &Fill(D3DXVECTOR3 &rVec, const float fValue);
-	D3DXVECTOR3 Fill(const float fValue);
-	D3DXVECTOR3 ToRadian(const D3DXVECTOR3 &degree, const bool bFixed = false);
-	D3DXVECTOR3 ToDegree(const D3DXVECTOR3 &radian, const bool bFixed = false);
-	D3DXVECTOR2 ToVector2(const D3DXVECTOR3 &vec);
+	float Length(const Vector3 &vec);
+	float Length(const Vector3 &To, const Vector3 &From);
+	float LengthSq(const Vector3 &vec);
+	float LengthSq(const Vector3 &To, const Vector3 &From);
+	float Dot(const Vector3 &vec1, const Vector3 &vec2);
+	bool IsVertical(const Vector3 &vec1, const Vector3 &vec2);
+	bool IsParallel(const Vector3 &vec1, const Vector3 &vec2);
+	bool IsInsideTriangle(const Vector3 &pos, const Vector3 *pVtx, const bool bInverse = false);
+	bool IsInsideViewOfBeside(const Vector3 &pos, const Vector3 &posV, const Vector3 &posR, const float fovy);
+	bool IsInsideViewOfVertical(const Vector3 &pos, const Vector3 &posV, const Vector3 &posR, const float fovy);
+	float Height(const Vector3 &pos, const Vector3 &vtx, const Vector3 &nor);
+	Vector3 Nor(const Vector3 &origin, const Vector3 *pVtx, const bool bInverse = false);
+	Vector3 Cross(const Vector3 &vec1, const Vector3 &vec2);
+	Vector3 Normalize(const Vector3 &vec);
+	Vector3 Lerp(const Vector3 &start, const Vector3 &end, const float t);
+	Vector3 Middle(const Vector3 &p1, const Vector3 &p2);
+	Vector3 Direction(const Vector3 &To, const Vector3 &From);
+	Vector3 Direction(const Vector3 &angle);
+	bool Intersect(const LPD3DXBASEMESH pMesh, const Vector3 &pos, const Vector3 &ray, 
+		const float *pLength, const DWORD *pFaceIndex = nullptr, const Vector2 *pUV = nullptr);
+	Vector3 Random(void);
+	Vector3 Clamp(const Vector3 &vec, const Vector3 &min, const Vector3 &max);
+	Vector3 FixedRotation(const Vector3 &rot);
+	Vector3 Arc(const float fRadius, const float fTheta, const float fPhi, const Vector3 &offset = VECTOR3_NULL);
+	Vector3 &Fill(Vector3 &rVec, const float fValue);
+	Vector3 Fill(const float fValue);
+	Vector3 ToRadian(const Vector3 &degree, const bool bFixed = false);
+	Vector3 ToDegree(const Vector3 &radian, const bool bFixed = false);
+	Vector2 ToVector2(const Vector3 &vec, const Axis less = Axis::Z);
+	void AssignAxis(Vector3 &vec, const Axis axis, const float fValue);
+	float GetAxis(Vector3 &vec, const Axis axis);
+	AxisEx ToAxisEx(const Axis axis);
+	Axis ToAxis(const AxisEx axisEx);
 }
 
 #ifdef VEC3_INLINE

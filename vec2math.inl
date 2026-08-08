@@ -1,13 +1,13 @@
 //==================================================================================
 // 
-// D3DXVECTOR2,3の計算関連関数をまとめたインラインファイル [vec2math.inl]
+// Vector2,3の計算関連関数をまとめたインラインファイル [vec2math.inl]
 // Author : TENMA SAITO
 // Date   : 2026/5/16
 // 
 //==================================================================================
 
 //**********************************************************************************
-// *** D3DXVECTOR2計算関連名前空間 ***
+// *** Vector2計算関連名前空間 ***
 //**********************************************************************************
 namespace Vec2
 {
@@ -16,7 +16,7 @@ namespace Vec2
 	//==================================================================================
 	// --- 2次元ベクトルの長さ取得処理 ---
 	//==================================================================================
-	__forceinline float Length(const D3DXVECTOR2 &vec)
+	__forceinline float Length(const Vector2 &vec)
 	{
 		return sqrtf((vec.x * vec.x) + (vec.y * vec.y));
 	}
@@ -24,7 +24,7 @@ namespace Vec2
 	//==================================================================================
 	// --- 2次元ベクトルの長さ取得処理 (2点間指定) ---
 	//==================================================================================
-	__forceinline float Length(const D3DXVECTOR2 &To, const D3DXVECTOR2 &From)
+	__forceinline float Length(const Vector2 &To, const Vector2 &From)
 	{
 		return Length(To - From);
 	}
@@ -32,7 +32,7 @@ namespace Vec2
 	//==================================================================================
 	// --- 2次元ベクトルの長さの2乗取得処理 ---
 	//==================================================================================
-	__forceinline float LengthSq(const D3DXVECTOR2 &vec)
+	__forceinline float LengthSq(const Vector2 &vec)
 	{
 		return (vec.x * vec.x) + (vec.y * vec.y);
 	}
@@ -40,7 +40,7 @@ namespace Vec2
 	//==================================================================================
 	// --- 2次元ベクトルの長さの二乗取得処理 (2点間指定) ---
 	//==================================================================================
-	__forceinline float LengthSq(const D3DXVECTOR2 &To, const D3DXVECTOR2 &From)
+	__forceinline float LengthSq(const Vector2 &To, const Vector2 &From)
 	{
 		return LengthSq(To - From);
 	}
@@ -48,7 +48,7 @@ namespace Vec2
 	//==================================================================================
 	// --- 2次元ベクトル同士の内積処理 ---
 	//==================================================================================
-	__forceinline float Dot(const D3DXVECTOR2 &vec1, const D3DXVECTOR2 &vec2)
+	__forceinline float Dot(const Vector2 &vec1, const Vector2 &vec2)
 	{
 		return (vec1.x * vec2.x) + (vec1.y * vec2.y);
 	}
@@ -56,7 +56,7 @@ namespace Vec2
 	//==================================================================================
 	// --- 2次元ベクトル同士の外積処理 ---
 	//==================================================================================
-	__forceinline float Cross(const D3DXVECTOR2 &vec1, const D3DXVECTOR2 &vec2)
+	__forceinline float Cross(const Vector2 &vec1, const Vector2 &vec2)
 	{
 		return (vec1.x * vec2.y) - (vec1.y * vec2.x);
 	}
@@ -64,7 +64,7 @@ namespace Vec2
 	//==================================================================================
 	// --- 2次元ベクトル同士の垂直判定処理 ---
 	//==================================================================================
-	__forceinline bool IsVertical(const D3DXVECTOR2 &vec1, const D3DXVECTOR2 &vec2)
+	__forceinline bool IsVertical(const Vector2 &vec1, const Vector2 &vec2)
 	{
 		float fDot;		// 内積結果
 
@@ -78,7 +78,7 @@ namespace Vec2
 	//==================================================================================
 	// --- 2次元ベクトル同士の平行判定処理 ---
 	//==================================================================================
-	__forceinline bool IsParallel(const D3DXVECTOR2 &vec1, const D3DXVECTOR2 &vec2)
+	__forceinline bool IsParallel(const Vector2 &vec1, const Vector2 &vec2)
 	{
 		float fCross;		// 外積結果
 
@@ -92,7 +92,7 @@ namespace Vec2
 	//==================================================================================
 	// --- スクリーン内にいるかの判定処理 ---
 	//==================================================================================
-	__forceinline bool IsInScreen(const D3DXVECTOR2 &pos)
+	__forceinline bool IsInScreen(const Vector2 &pos)
 	{
 		// スクリーン内にいるかを判定
 		if (pos.x < 0 || pos.x > SCREEN_WIDTH
@@ -109,7 +109,7 @@ namespace Vec2
 	//==================================================================================
 	// --- 2次元ベクトルの正規化処理 ---
 	//==================================================================================
-	__forceinline D3DXVECTOR2 Normalize(const D3DXVECTOR2 &vec)
+	__forceinline Vector2 Normalize(const Vector2 &vec)
 	{
 		float fLength;			// ベクトルの長さ
 
@@ -117,15 +117,15 @@ namespace Vec2
 		fLength = Length(vec);
 
 		// ベクトルの長さで正規化
-		return D3DXVECTOR2(vec.x / fLength, vec.y / fLength);
+		return Vector2(vec.x / fLength, vec.y / fLength);
 	}
 
 	//==================================================================================
 	// --- 2次元ベクトルの線形補間処理 ---
 	//==================================================================================
-	__forceinline D3DXVECTOR2 Lerp(const D3DXVECTOR2 &start, const D3DXVECTOR2 &end, const float fT)
+	__forceinline Vector2 Lerp(const Vector2 &start, const Vector2 &end, const float fT)
 	{
-		D3DXVECTOR2 vec;		// 線形補間後のベクトル
+		Vector2 vec;		// 線形補間後のベクトル
 
 		// 2点間の差分を求める
 		vec = end - start;
@@ -137,7 +137,7 @@ namespace Vec2
 	//==================================================================================
 	// --- 2点間の間の取得処理 ---
 	//==================================================================================
-	__forceinline D3DXVECTOR2 Middle(const D3DXVECTOR2 &p1, const D3DXVECTOR2 &p2)
+	__forceinline Vector2 Middle(const Vector2 &p1, const Vector2 &p2)
 	{
 		// 線形補間で求める
 		return Lerp(p1, p2, 0.5f);
@@ -146,15 +146,15 @@ namespace Vec2
 	//==================================================================================
 	// --- 角度の2次元単位ベクトル取得処理 ---
 	//==================================================================================
-	__forceinline D3DXVECTOR2 Direction(const float fAngle)
+	__forceinline Vector2 Direction(const float fAngle)
 	{
-		return D3DXVECTOR2(sinf(fAngle), cosf(fAngle));
+		return Vector2(sinf(fAngle), cosf(fAngle));
 	}
 
 	//==================================================================================
 	// --- 角度の取得処理 ---
 	//==================================================================================
-	__forceinline float Direction(const D3DXVECTOR2 &To, const D3DXVECTOR2 &From)
+	__forceinline float Direction(const Vector2 &To, const Vector2 &From)
 	{
 		return atan2f(To.x - From.x, To.y - From.y);
 	}
@@ -162,19 +162,19 @@ namespace Vec2
 	//==================================================================================
 	// --- ランダムな2次元単位ベクトル取得処理 ---
 	//==================================================================================
-	__forceinline D3DXVECTOR2 Random(void)
+	__forceinline Vector2 Random(void)
 	{
 		float fAngle = (float)rand() / RAND_MAX;		// ランダムな角度
 
-		return D3DXVECTOR2(sinf(fAngle), cosf(fAngle));
+		return Vector2(sinf(fAngle), cosf(fAngle));
 	}
 
 	//==================================================================================
 	// --- 2次元ベクトルの範囲内矯正処理 ---
 	//==================================================================================
-	__forceinline D3DXVECTOR2 Clamp(const D3DXVECTOR2 &vec, const D3DXVECTOR2 &min, const D3DXVECTOR2 &max)
+	__forceinline Vector2 Clamp(const Vector2 &vec, const Vector2 &min, const Vector2 &max)
 	{
-		D3DXVECTOR2 clamp;		// クランプ後の値
+		Vector2 clamp;		// クランプ後の値
 
 		// 最大値と最小値でクランプした値を代入
 		clamp.x = (vec.x < min.x) ? min.x
@@ -188,9 +188,9 @@ namespace Vec2
 	//==================================================================================
 	// --- 角度の修正処理 ---
 	//==================================================================================
-	__forceinline D3DXVECTOR2 FixedRotation(const D3DXVECTOR2 &rot)
+	__forceinline Vector2 FixedRotation(const Vector2 &rot)
 	{
-		D3DXVECTOR2 fixed;		// 修正後の角度
+		Vector2 fixed;		// 修正後の角度
 
 		// X軸を修正
 		fixed.x = (rot.x > D3DX_PI) ? rot.x - D3DX_PI * 2.0f :
@@ -208,9 +208,9 @@ namespace Vec2
 	//==================================================================================
 	// --- 円弧上の座標取得処理 ---
 	//==================================================================================
-	__forceinline D3DXVECTOR2 Arc(const float fRadius, const float fRadian, const D3DXVECTOR2 &offset)
+	__forceinline Vector2 Arc(const float fRadius, const float fRadian, const Vector2 &offset)
 	{
-		D3DXVECTOR2 pos = offset;		// 円弧上の座標
+		Vector2 pos = offset;		// 円弧上の座標
 
 		// 角度と半径から求めた値を加算
 		pos.x += sinf(fRadian) * fRadius;
@@ -222,10 +222,10 @@ namespace Vec2
 	//==================================================================================
 	// --- 指定した値の代入処理 ---
 	//==================================================================================
-	__forceinline D3DXVECTOR2 &Fill(D3DXVECTOR2 &rVec, const float fValue)
+	__forceinline Vector2 &Fill(Vector2 &rVec, const float fValue)
 	{
 		// VECTOR2に値を埋める
-		rVec = D3DXVECTOR2(fValue, fValue);
+		rVec = Vector2(fValue, fValue);
 
 		return rVec;
 	}
@@ -233,27 +233,27 @@ namespace Vec2
 	//==================================================================================
 	// --- 指定した値で埋めたVECTOR3取得処理 ---
 	//==================================================================================
-	__forceinline D3DXVECTOR2 Fill(const float fValue)
+	__forceinline Vector2 Fill(const float fValue)
 	{
 		// VECTOR2に値を埋めて、返す
-		return D3DXVECTOR2(fValue, fValue);
+		return Vector2(fValue, fValue);
 	}
 
 	//==================================================================================
 	// --- 半径から正方形サイズへの変換取得処理 ---
 	//==================================================================================
-	__forceinline D3DXVECTOR2 ToSquareSize(const float fRadius)
+	__forceinline Vector2 ToSquareSize(const float fRadius)
 	{
 		// 半径から正方形サイズを求めて返す
-		return D3DXVECTOR2(fRadius * 2.0f, fRadius * 2.0f);
+		return Vector2(fRadius * 2.0f, fRadius * 2.0f);
 	}
 
 	//==================================================================================
 	// --- ラジアンへの変換処理 ---
 	//==================================================================================
-	__forceinline D3DXVECTOR2 ToRadian(const D3DXVECTOR2 &degree, const bool bFixed)
+	__forceinline Vector2 ToRadian(const Vector2 &degree, const bool bFixed)
 	{
-		D3DXVECTOR2 radian;		// 変換後の角度
+		Vector2 radian;		// 変換後の角度
 
 		// ラジアン変換
 		radian.x = D3DXToRadian(degree.x);
@@ -271,10 +271,10 @@ namespace Vec2
 	//==================================================================================
 	// --- 360°への変換処理 ---
 	//==================================================================================
-	__forceinline D3DXVECTOR2 ToDegree(const D3DXVECTOR2 &radian, const bool bFixed)
+	__forceinline Vector2 ToDegree(const Vector2 &radian, const bool bFixed)
 	{
-		D3DXVECTOR2 fixedRadian = radian;		// 修正後の角度
-		D3DXVECTOR2 degree = radian;			// 変換後の角度
+		Vector2 fixedRadian = radian;		// 修正後の角度
+		Vector2 degree = radian;			// 変換後の角度
 
 		// 元から角度が修正されているか確認
 		if (bFixed == false)
@@ -292,8 +292,8 @@ namespace Vec2
 	//==================================================================================
 	// --- VECTOR3への変換処理処理 ---
 	//==================================================================================
-	__forceinline D3DXVECTOR3 ToVector3(const D3DXVECTOR2 &vec, const float fZ)
+	__forceinline Vector3 ToVector3(const Vector2 &vec, const float fZ)
 	{
-		return D3DXVECTOR3(vec.x, vec.y, fZ);
+		return Vector3(vec.x, vec.y, fZ);
 	}
 }

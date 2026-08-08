@@ -78,7 +78,7 @@ public:
 	bool GetRelease(const KEY key, const int nPadID = 0);
 	bool GetRepeat(const KEY key, const int nWaitPress, const int nInterval, const int nPadID = 0);
 	bool GetStick(const STICK stick, const float fRange, const int nPadID = 0);
-	bool GetStick(const STICK stick, D3DXVECTOR3 *pOut, const int nPadID = 0);
+	bool GetStick(const STICK stick, Vector3 *pOut, const int nPadID = 0);
 
 private:
 	//******************************************************************************

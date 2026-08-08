@@ -26,12 +26,12 @@
 //==================================================================================
 // --- 生成処理 ---
 //==================================================================================
-CSparkEffect *CSparkEffect::Create(const D3DXVECTOR3 &pos,
-	const D3DXVECTOR3 &rot,
+CSparkEffect *CSparkEffect::Create(const Vector3 &pos,
+	const Vector3 &rot,
 	const float fSpeed,
 	const int nLife,
-	const D3DXVECTOR3 &min,
-	const D3DXVECTOR3 &max)
+	const Vector3 &min,
+	const Vector3 &max)
 {
 	CSparkEffect *pSpark = NULL;		// 生成したオブジェクトへのポインタ
 
@@ -78,17 +78,17 @@ CSparkEffect::~CSparkEffect()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CSparkEffect::Init(const D3DXVECTOR3 &pos,
-	const D3DXVECTOR3 &rot,
+HRESULT CSparkEffect::Init(const Vector3 &pos,
+	const Vector3 &rot,
 	const float fSpeed,
 	const int nLife,
-	const D3DXVECTOR3 &min,
-	const D3DXVECTOR3 &max)
+	const Vector3 &min,
+	const Vector3 &max)
 {
 	CTexture *pTexture = CTexture::GetInstance();		// テクスチャへのポインタ
 	D3DXCOLOR col = Color::GetColor(Color::COLOR_YELLOW);	// 色
 	VERTEX_3D *pVtx = nullptr;		// 頂点へのポインタ
-	D3DXMATRIX mtxParentTemp;		// 都度生成される疑似的な親マトリックス
+	Matrix mtxParentTemp;		// 都度生成される疑似的な親マトリックス
 
 	// オービットの最大最小値を設定
 	m_fMinWidth = 0.5f;
@@ -120,7 +120,7 @@ HRESULT CSparkEffect::Init(const D3DXVECTOR3 &pos,
 	D3DXMatrixMultiply(&m_mtxWorld, &m_mtxWorld, &mtxParentTemp);
 
 	// オービットを生成
-	m_pOrbit = CMeshOrbit3D::Create(&m_mtxWorld, D3DXVECTOR3(10.0f, 0.0f, 0.0f), D3DXVECTOR3(-10.0f, 0.0f, 0.0f));
+	m_pOrbit = CMeshOrbit3D::Create(&m_mtxWorld, Vector3(10.0f, 0.0f, 0.0f), Vector3(-10.0f, 0.0f, 0.0f));
 	if (m_pOrbit == nullptr)
 	{ // 生成失敗
 		return E_FAIL;
@@ -167,13 +167,13 @@ void CSparkEffect::Update(void)
 	float fWidth = pRand->Generate(m_fMinWidth, m_fMaxWidth);		// オービットの幅
 
 	// 親の座標を更新
-	m_posParent += Vec3::Direction(m_rotParent + D3DXVECTOR3(1.0f, 0.0f, 0.0f)) * m_fSpeed;
+	m_posParent += Vec3::Direction(m_rotParent + Vector3(1.0f, 0.0f, 0.0f)) * m_fSpeed;
 
 	// 座標を更新
 	m_pos.x = CRand::GetInstance()->Generate(m_min.x, m_max.x) * 2;
 
 	// オフセットを更新
-	m_pOrbit->SetOffset(D3DXVECTOR3(fWidth * 0.5f, 0.0f, 0.0f), D3DXVECTOR3(-fWidth * 0.5f, 0.0f, 0.0f));
+	m_pOrbit->SetOffset(Vector3(fWidth * 0.5f, 0.0f, 0.0f), Vector3(-fWidth * 0.5f, 0.0f, 0.0f));
 
 	// 寿命を減少させる
 	m_nLife--;
@@ -188,7 +188,7 @@ void CSparkEffect::Update(void)
 //==================================================================================
 void CSparkEffect::Draw(void)
 {
-	D3DXMATRIX mtxParentTemp;		// 都度生成される疑似的な親マトリックス
+	Matrix mtxParentTemp;		// 都度生成される疑似的な親マトリックス
 
 	// マトリックスの初期化
 	D3DXMatrixIdentity(&m_mtxWorld);

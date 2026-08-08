@@ -116,7 +116,7 @@ int CXFile::Resister(const char *pXFileName, const bool bCopy)
 	// 頂点の最大、最小値を取得
 	for (int nCntVtx = 0; nCntVtx < nNumVtx; nCntVtx++)
 	{
-		D3DXVECTOR3 vtx = *(D3DXVECTOR3*)pVtxBuff;	// 頂点座標の代入
+		Vector3 vtx = *(Vector3*)pVtxBuff;	// 頂点座標の代入
 
 		// 最小値を取得
 		pData->vtxMin.x = (pData->vtxMin.x > vtx.x) ? vtx.x : pData->vtxMin.x;

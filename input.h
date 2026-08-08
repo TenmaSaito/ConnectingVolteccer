@@ -86,8 +86,8 @@ public:
 	bool GetPress(const int nKey);
 	bool GetTrigger(const int nKey);
 	bool GetRelease(const int nKey);
-	D3DXVECTOR3 GetPositionInScreen(void);
-	D3DXVECTOR3 GetPositionInClient(void);
+	Vector3 GetPositionInScreen(void);
+	Vector3 GetPositionInClient(void);
 
 private:
 	DIMOUSESTATE2 m_CurrentMouseState;		// ƒ}ƒEƒX‚Ì“ü—Íî•ñ

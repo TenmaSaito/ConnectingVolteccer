@@ -24,12 +24,12 @@
 class CTitleCamera : public CCamera
 {
 public:
-	static CTitleCamera *Create(const D3DXVECTOR3 &posV, const D3DXVECTOR3 &posR);
+	static CTitleCamera *Create(const Vector3 &posV, const Vector3 &posR);
 
 	CTitleCamera();
 	~CTitleCamera();
 
-	void Init(const D3DXVECTOR3 &rot, const float fLength);
+	void Init(const Vector3 &rot, const float fLength);
 	void Uninit(void);
 	void Update(void);
 	void SetCamera(void);

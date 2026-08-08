@@ -56,11 +56,9 @@ CPlanet::CPlanet()
 { // メンバ変数のクリア
 	m_pos = VECTOR3_NULL;
 	m_vecQua = VECTOR3_NULL;
-	m_vecQuaDest = VECTOR3_NULL;
 	D3DXQuaternionIdentity(&m_qua);
 	m_fAngle = 0.0f;
 	m_nIdxModel = -1;
-	m_pFocusLasso = nullptr;
 }
 
 //==================================================================================
@@ -79,7 +77,7 @@ HRESULT CPlanet::Init(void)
 	m_nIdxModel = CXFile::GetInstance()->Resister("data/MODEL/sphere000.x");
 
 	// 任意軸設定
-	m_vecQua = Vec3::Direction(VECTOR3_NULL, D3DXVECTOR3(1.0f, 0.0f, 0.0f));
+	m_vecQua = Vec3::Direction(VECTOR3_NULL, Vector3(1.0f, 0.0f, 0.0f));
 
 	// マトリックスを初期化
 	D3DXMatrixIdentity(&m_mtxWorld);
@@ -109,38 +107,34 @@ void CPlanet::Update(void)
 	CManager *pManager = CManager::GetInstance();					// マネージャーへのポインタ
 	CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();		// キーボードへのポインタ
 	CPlayer *pPlayer = pManager->GetScene<CGame>()->GetPlayer();	// プレイヤーへのポインタ
-	D3DXQUATERNION quaMove;				// 計算先
+	Quaternion quaMove;				// 計算先
 	float fVecRot = 0.0f;				// 回転時の計算用変数
 	float fSpeed = 0.0f;				// 回転速度
 
-	if (m_pFocusLasso == nullptr)
-	{ // プレイヤーフォーカス
-		// プレイヤーの角度を取得
-		fVecRot = pPlayer->GetRotationDest()->y;
+	// プレイヤーのY軸の角度を取得
+	fVecRot = pPlayer->GetRotationDest()->y;
 
-		// プレイヤーの移動量を速度に変換
-		fSpeed = Vec3::Length(*pPlayer->GetMove()) * RESIST_PLAYERSPEED;
+	// プレイヤーの移動量を速度に変換
+	fSpeed = Vec3::Length(*pPlayer->GetMove()) * RESIST_PLAYERSPEED;
 
-		// 90°右に回す
-		fVecRot += HALF_PI;
+	// 90°右に回す
+	fVecRot += HALF_PI;
 
-		// ベクトルを求める
-		m_vecQuaOld = m_vecQua;
-		m_vecQua = Vec2::ToVector3(Vec2::Direction(Util::FixedRotation(fVecRot)));
-		m_vecQua.z = m_vecQua.y;
-		m_vecQua.y = 0.0f;
+	// ベクトルを求める
+	m_vecQua = Vec2::ToVector3(Vec2::Direction(Util::FixedRotation(fVecRot)));
+	m_vecQua.z = m_vecQua.y;
+	m_vecQua.y = 0.0f;
 
-		// クォータニオンを初期化
-		D3DXQuaternionIdentity(&quaMove);
+	// クォータニオンを初期化
+	D3DXQuaternionIdentity(&quaMove);
 
-		// クォータニオンを設定
-		D3DXQuaternionRotationAxis(&quaMove,
-			&m_vecQua,
-			fSpeed);
+	// クォータニオンを設定
+	D3DXQuaternionRotationAxis(&quaMove,
+		&m_vecQua,
+		fSpeed);
 
-		// クォータニオンを適用
-		m_qua = m_qua * quaMove;
-	}
+	// クォータニオンを適用
+	m_qua = m_qua * quaMove;
 }
 
 //==================================================================================
@@ -193,12 +187,4 @@ void CPlanet::Draw(void)
 
 	// 保存していたマテリアルを戻す
 	pDevice->SetMaterial(&matDef);
-}
-
-//==================================================================================
-// --- 回転のフォーカス変更処理 ---
-//==================================================================================
-void CPlanet::SetFocusLasso(const CLasso *pLasso)
-{
-	m_pFocusLasso = pLasso;
 }

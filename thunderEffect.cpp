@@ -27,9 +27,9 @@
 //==================================================================================
 // --- 生成処理 ---
 //==================================================================================
-CThunderEffect *CThunderEffect::Create(const D3DXVECTOR3 &min,
-	const D3DXVECTOR3 &max,
-	const D3DXMATRIX *pMtxParent)
+CThunderEffect *CThunderEffect::Create(const Vector3 &min,
+	const Vector3 &max,
+	const Matrix *pMtxParent)
 {
 	CThunderEffect *pThunder = NULL;		// 生成したオブジェクトへのポインタ
 
@@ -73,9 +73,9 @@ CThunderEffect::~CThunderEffect()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CThunderEffect::Init(const D3DXVECTOR3 &min,
-	const D3DXVECTOR3 &max,
-	const D3DXMATRIX *pMtxParent)
+HRESULT CThunderEffect::Init(const Vector3 &min,
+	const Vector3 &max,
+	const Matrix *pMtxParent)
 {
 	CTexture *pTexture = CTexture::GetInstance();		// テクスチャへのポインタ
 	VERTEX_3D *pVtx = nullptr;		// 頂点へのポインタ
@@ -97,7 +97,7 @@ HRESULT CThunderEffect::Init(const D3DXVECTOR3 &min,
 	D3DXMatrixMultiply(&m_mtxWorld, &m_mtxWorld, pMtxParent);
 
 	// オービットを生成
-	m_pOrbit = CMeshOrbit3D::Create(&m_mtxWorld, D3DXVECTOR3(10.0f, 0.0f, 0.0f), D3DXVECTOR3(-10.0f, 0.0f, 0.0f), 10);
+	m_pOrbit = CMeshOrbit3D::Create(&m_mtxWorld, Vector3(10.0f, 0.0f, 0.0f), Vector3(-10.0f, 0.0f, 0.0f), 10);
 	if (m_pOrbit == nullptr)
 	{ // 生成失敗
 		return E_FAIL;
@@ -156,9 +156,9 @@ void CThunderEffect::Update(void)
 	m_pos.x = pRand->Generate(m_min.x, m_max.x);
 
 	// オフセットを更新
-	m_pOrbit->SetOffset(D3DXVECTOR3(fWidth * 0.5f, 0.0f, 0.0f), D3DXVECTOR3(-fWidth * 0.5f, 0.0f, 0.0f));
+	m_pOrbit->SetOffset(Vector3(fWidth * 0.5f, 0.0f, 0.0f), Vector3(-fWidth * 0.5f, 0.0f, 0.0f));
 
-	D3DXVECTOR3 posSpark;
+	Vector3 posSpark;
 
 	// 自身の位置を取得
 	D3DXVec3TransformCoord(&posSpark, &m_pos, m_pMtxParent);
@@ -166,7 +166,7 @@ void CThunderEffect::Update(void)
 	if (pRand->Generate(0, 100) > 60)
 	{ // スパークエフェクトを生成
 		CSparkEffect::Create(posSpark,
-			D3DXVECTOR3(0.0f, pRand->Generate(0.0f, DOUBLE_PI), 0.0f),
+			Vector3(0.0f, pRand->Generate(0.0f, DOUBLE_PI), 0.0f),
 			pRand->Generate(3.0f, 6.0f), 
 			pRand->Generate(5, 10));
 	}

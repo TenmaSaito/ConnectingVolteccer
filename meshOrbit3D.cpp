@@ -16,9 +16,9 @@
 //==================================================================================
 // --- メッシュオービット3Dの作成 ---
 //==================================================================================
-CMeshOrbit3D *CMeshOrbit3D::Create(const D3DXMATRIX *pMtxParent,
-	const D3DXVECTOR3 &offset1,
-	const D3DXVECTOR3 &offset2,
+CMeshOrbit3D *CMeshOrbit3D::Create(const Matrix *pMtxParent,
+	const Vector3 &offset1,
+	const Vector3 &offset2,
 	const int nNumOrbit)
 {
 	CMeshOrbit3D* pMeshOrbit3D = nullptr;		// 生成したメッシュオービット3Dへのポインタ
@@ -68,8 +68,8 @@ CMeshOrbit3D::~CMeshOrbit3D()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CMeshOrbit3D::Init(const D3DXVECTOR3 &offset1,
-	const D3DXVECTOR3 &offset2, 
+HRESULT CMeshOrbit3D::Init(const Vector3 &offset1,
+	const Vector3 &offset2, 
 	const int nNumOrbit)
 {
 	HRESULT hr = S_OK;		// 処理判定
@@ -94,9 +94,9 @@ HRESULT CMeshOrbit3D::Init(const D3DXVECTOR3 &offset1,
 	{ // ロック成功
 		for (int nCntVtx = 0; nCntVtx < nNumVtx; nCntVtx++)
 		{ // 頂点バッファを更新
-			pVtx[nCntVtx].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+			pVtx[nCntVtx].nor = Vector3(0.0f, 1.0f, 0.0f);
 			pVtx[nCntVtx].col = Constant::White;
-			pVtx[nCntVtx].tex = D3DXVECTOR2(static_cast<float>((nCntVtx % 4) / 2), static_cast<float>(nCntVtx % 2));
+			pVtx[nCntVtx].tex = Vector2(static_cast<float>((nCntVtx % 4) / 2), static_cast<float>(nCntVtx % 2));
 		}
 
 		// ロック解除
@@ -116,7 +116,7 @@ HRESULT CMeshOrbit3D::Init(const D3DXVECTOR3 &offset1,
 	}
 
 	// 頂点分の座標のバッファを確保
-	m_pPosition = new D3DXVECTOR3[nNumVtx];
+	m_pPosition = new Vector3[nNumVtx];
 	if (m_pPosition == nullptr) return E_FAIL;
 
 	// 初期化結果を返す
@@ -154,10 +154,10 @@ void CMeshOrbit3D::Draw(void)
 	LPDIRECT3DDEVICE9 pDevice = pManager->GetRenderer()->GetDevice();		// デバイスへのポインタ
 	VERTEX_3D *pVtx = nullptr;				// 頂点バッファへのポインタ
 	int nNumVtx = CMesh::GetVertexNum();	// 頂点数
-	D3DXMATRIX mtxWorld;		// ワールドマトリックス
+	Matrix mtxWorld;		// ワールドマトリックス
 
 	// 頂点をずらす
-	memmove(&m_pPosition[2], &m_pPosition[0], sizeof(D3DXVECTOR3) * (nNumVtx - 2));
+	memmove(&m_pPosition[2], &m_pPosition[0], sizeof(Vector3) * (nNumVtx - 2));
 
 	// 親マトリックスから頂点座標を求める
 	D3DXVec3TransformCoord(&m_pPosition[0], &m_aOffset[0], m_pMtxParent);
@@ -194,8 +194,8 @@ void CMeshOrbit3D::Draw(void)
 //==================================================================================
 // --- オフセットの設定処理 ---
 //==================================================================================
-void CMeshOrbit3D::SetOffset(const D3DXVECTOR3 &offset1,
-	const D3DXVECTOR3 &offset2)
+void CMeshOrbit3D::SetOffset(const Vector3 &offset1,
+	const Vector3 &offset2)
 {// オフセットの保存
 	m_aOffset[0] = offset1;
 	m_aOffset[1] = offset2;
@@ -204,7 +204,7 @@ void CMeshOrbit3D::SetOffset(const D3DXVECTOR3 &offset1,
 //==================================================================================
 // --- 親マトリックスの登録処理 ---
 //==================================================================================
-void CMeshOrbit3D::SetMtxParent(const D3DXMATRIX *pMtxParent)
+void CMeshOrbit3D::SetMtxParent(const Matrix *pMtxParent)
 { // マトリックスを登録し、位置を設定
 	VERTEX_3D *pVtx = nullptr;				// 頂点バッファへのポインタ
 
@@ -236,8 +236,8 @@ void CMeshOrbit3D::SetMtxParent(const D3DXMATRIX *pMtxParent)
 bool CMeshOrbit3D::IsFinish(const float fEpsilon) const
 {
 	int nNumVtx = CMesh::GetVertexNum();		// 頂点数
-	D3DXVECTOR3 midHead;		// 先端の中点
-	D3DXVECTOR3 midTerminal;	// 終端の中点
+	Vector3 midHead;		// 先端の中点
+	Vector3 midTerminal;	// 終端の中点
 	float fLength;				// 各中点間の距離
 
 	// 各端の中点を求める

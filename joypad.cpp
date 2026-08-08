@@ -172,11 +172,11 @@ bool CJoypad::GetStick(const STICK stick, const float fRange, const int nPadID)
 //==================================================================================
 // --- スティック取得処理 ---
 //==================================================================================
-bool CJoypad::GetStick(const STICK stick, D3DXVECTOR3 *pOut, const int nPadID)
+bool CJoypad::GetStick(const STICK stick, Vector3 *pOut, const int nPadID)
 {
 	// 省略用変数
 	XINPUT_GAMEPAD *pGamepad = &m_aJoypad[nPadID].joykeyState.Gamepad;		// ゲームパッドへのポインタ
-	D3DXVECTOR3 out = D3DXVECTOR3(0, 0, 0);		// 出力する変換先変数
+	Vector3 out = Vector3(0, 0, 0);		// 出力する変換先変数
 
 	// 出力先がNULLの場合、失敗
 	if (pOut == NULL) return false;

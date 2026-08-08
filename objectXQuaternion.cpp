@@ -23,8 +23,8 @@
 // --- オブジェクト3Dの生成処理 ---
 //==================================================================================
 CObjectXQuaternion *CObjectXQuaternion::Create(const char *pXFileName,
-	const D3DXVECTOR3 &pos, 
-	const D3DXVECTOR3 &vecQua, 
+	const Vector3 &pos, 
+	const Vector3 &vecQua, 
 	const float fAngle)
 {
 	CObjectXQuaternion *pObjectXQuaternion = NULL;		// 生成したオブジェクトへのポインタ
@@ -79,8 +79,8 @@ CObjectXQuaternion::~CObjectXQuaternion()
 // --- 初期化処理 ---
 //==================================================================================
 HRESULT CObjectXQuaternion::Init(const char* pXFileName, 
-	const D3DXVECTOR3 &pos, 
-	const D3DXVECTOR3 &vecQua, 
+	const Vector3 &pos, 
+	const Vector3 &vecQua, 
 	const float fAngle)
 { // Xファイル読み込み
 	LoadXFile(pXFileName);
@@ -106,8 +106,8 @@ HRESULT CObjectXQuaternion::Init(const char* pXFileName,
 // --- 初期化処理 (クォータニオン指定) ---
 //==================================================================================
 HRESULT CObjectXQuaternion::Init(const char *pXFileName, 
-	const D3DXVECTOR3 &pos,
-	const D3DXQUATERNION &qua)
+	const Vector3 &pos,
+	const Quaternion &qua)
 { // Xファイル読み込み
 	LoadXFile(pXFileName);
 
@@ -151,15 +151,15 @@ void CObjectXQuaternion::Uninit(void)
 void CObjectXQuaternion::Update(void)
 {
 	auto pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);
-	D3DXVECTOR3 posV = *pPlayerCam->GetPosV();
-	D3DXVECTOR3 posLocalV;
-	D3DXVECTOR3 ray = pPlayerCam->GetRay();
-	D3DXVECTOR3 posLocalRay;
-	D3DXVECTOR3 posWorld = GetWorldPosition();
+	Vector3 posV = *pPlayerCam->GetPosV();
+	Vector3 posLocalV;
+	Vector3 ray = pPlayerCam->GetRay();
+	Vector3 posLocalRay;
+	Vector3 posWorld = GetWorldPosition();
 	BOOL bResult = FALSE;
 	FLOAT fLength;
 	HRESULT hr;
-	D3DXMATRIX mtxInv;
+	Matrix mtxInv;
 
 	posWorld.y = posV.y;
 
@@ -274,9 +274,9 @@ void CObjectXQuaternion::Draw(void)
 //==================================================================================
 // --- 絶対座標の取得処理 ---
 //==================================================================================
-D3DXVECTOR3 CObjectXQuaternion::GetWorldPosition(void)
+Vector3 CObjectXQuaternion::GetWorldPosition(void)
 {
-	D3DXVECTOR3 posWorld;		// 変換後の位置
+	Vector3 posWorld;		// 変換後の位置
 
 	if (m_bCalcMatrix == false)
 	{ // もしマトリックスが計算されていなければ、マトリックスを計算
@@ -300,7 +300,7 @@ D3DXVECTOR3 CObjectXQuaternion::GetWorldPosition(void)
 //==================================================================================
 void CObjectXQuaternion::CaluQuaternion(void)
 {
-	D3DXQUATERNION quaMove;				// 計算先
+	Quaternion quaMove;				// 計算先
 
 	// クォータニオンを初期化
 	D3DXQuaternionIdentity(&quaMove);
@@ -334,7 +334,7 @@ void CObjectXQuaternion::SetAngle(const float fAngle)
 //==================================================================================
 void CObjectXQuaternion::AddAngle(const float fAngle)
 {
-	D3DXQUATERNION quaMove;		// クォータニオン
+	Quaternion quaMove;		// クォータニオン
 
 	// クォータニオンの設定処理
 	D3DXQuaternionRotationAxis(&quaMove,
@@ -402,7 +402,7 @@ HRESULT	CObjectXQuaternion::LoadXFile(const char* pXFileName)
 	// 頂点の最大、最小値を取得
 	for (int nCntVtx = 0; nCntVtx < nNumVtx; nCntVtx++)
 	{
-		D3DXVECTOR3 vtx = *(D3DXVECTOR3*)pVtxBuff;	// 頂点座標の代入
+		Vector3 vtx = *(Vector3*)pVtxBuff;	// 頂点座標の代入
 
 		// 最小値を取得
 		m_vtxMin.x = (m_vtxMin.x > vtx.x) ? vtx.x : m_vtxMin.x;

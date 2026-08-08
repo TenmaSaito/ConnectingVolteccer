@@ -17,11 +17,11 @@
 //==================================================================================
 // --- メッシュスフィアの作成 ---
 //==================================================================================
-CMeshSphere *CMeshSphere::Create(const D3DXVECTOR3 &pos,
+CMeshSphere *CMeshSphere::Create(const Vector3 &pos,
 	const float fRadius,
 	const int nNumXBlock,
 	const int nNumZBlock,
-	const D3DXVECTOR3 &vecQua,
+	const Vector3 &vecQua,
 	const float fAngle)
 {
 	CMeshSphere *pMeshSphere = nullptr;		// 生成したメッシュスフィアへのポインタ
@@ -70,11 +70,11 @@ CMeshSphere::~CMeshSphere()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CMeshSphere::Init(const D3DXVECTOR3 &pos,
+HRESULT CMeshSphere::Init(const Vector3 &pos,
 	const float fRadius,
 	const int nNumXBlock,
 	const int nNumZBlock,
-	const D3DXVECTOR3 &vecQua,
+	const Vector3 &vecQua,
 	const float fAngle)
 { // メンバ変数への代入
 	m_pos = pos;
@@ -153,7 +153,7 @@ void CMeshSphere::Draw(void)
 //==================================================================================
 void CMeshSphere::SetTop(VERTEX_3D *pVtx, WORD *pIdx)
 {
-	D3DXVECTOR3 pos = VECTOR3_NULL;		// 頂点座標
+	Vector3 pos = VECTOR3_NULL;		// 頂点座標
 	float fAngle = 0.0f;				// 円弧上の角度
 	float fIncreaseAngle = DOUBLE_PI / m_nNumXBlock;			// 増加する角度
 	float fDecreaseHeight = (m_fRadius * 2.0f) / m_nNumZBlock;	// 減少する高さ
@@ -200,7 +200,7 @@ void CMeshSphere::SetMiddle(VERTEX_3D *pVtx, WORD *pIdx)
 //==================================================================================
 void CMeshSphere::SetUnder(VERTEX_3D *pVtx, WORD *pIdx)
 {
-	D3DXVECTOR3 pos = VECTOR3_NULL;		// 頂点座標
+	Vector3 pos = VECTOR3_NULL;		// 頂点座標
 	int nIdxOffset = m_nNumIdx - (m_nNumXBlock + 2);			// インデックスのオフセット
 	float fAngle = 0.0f;				// 円弧上の角度
 	float fIncreaseAngle = DOUBLE_PI / m_nNumXBlock;			// 増加する角度

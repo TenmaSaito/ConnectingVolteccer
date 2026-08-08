@@ -52,7 +52,7 @@ CScene *CScene::Create(const MODE mode)
 //==================================================================================
 // --- モードの設定処理 (pOutに代入後初期化) ---
 //==================================================================================
-CScene *CScene::Create(const MODE mode, CScene **ppOut)
+CScene *CScene::Create(const MODE mode, std::unique_ptr<CScene> &rpOut)
 {
 	CScene *pScene = nullptr;		// 生成したシーン
 
@@ -76,10 +76,8 @@ CScene *CScene::Create(const MODE mode, CScene **ppOut)
 		break;
 	}
 
-	if (ppOut != nullptr)
-	{ // nullptrでは無ければ代入
-		*ppOut = pScene;
-	}
+	// ポインタ設定
+	rpOut.reset(pScene);
 
 	if (pScene != nullptr)
 	{ // 生成成功時、シーンの初期化

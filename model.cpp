@@ -18,8 +18,8 @@
 // --- オブジェクト3Dの生成処理 ---
 //==================================================================================
 CModel *CModel::Create(const char *pXFileName,
-	const D3DXVECTOR3 &pos, 
-	const D3DXVECTOR3& rot)
+	const Vector3 &pos, 
+	const Vector3& rot)
 {
 	CModel *pObject3D = NULL;		// 生成したオブジェクトへのポインタ
 
@@ -49,7 +49,7 @@ CModel::CModel()
 	m_pos = VECTOR3_NULL;
 	m_rot = VECTOR3_NULL;
 	m_pParent = nullptr;
-	ZeroMemory(&m_mtxWorld, sizeof(D3DXMATRIX));
+	ZeroMemory(&m_mtxWorld, sizeof(Matrix));
 }
 
 //==================================================================================
@@ -62,7 +62,7 @@ CModel::~CModel()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CModel::Init(const char *pXFileName, const D3DXVECTOR3 &pos, const D3DXVECTOR3 &rot)
+HRESULT CModel::Init(const char *pXFileName, const Vector3 &pos, const Vector3 &rot)
 {
 	CManager *pManager = CManager::GetInstance();			// マネージャーへのポインタ
 	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
@@ -146,7 +146,7 @@ void CModel::Draw(void)
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
 	D3DXMATERIAL *pMat = nullptr;		// マテリアルへのポインタ
 	D3DMATERIAL9 matDef;				// 現在のマテリアル保存用
-	D3DXMATRIX mtxParent;				// 親マトリックス
+	Matrix mtxParent;				// 親マトリックス
 
 	// ワールドマトリックスの初期化
 	D3DXMatrixIdentity(&m_mtxWorld);

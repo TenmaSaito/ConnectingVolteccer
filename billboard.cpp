@@ -18,7 +18,7 @@
 //==================================================================================
 // --- 生成処理 ---
 //==================================================================================
-CBillboard *CBillboard::Create(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size)
+CBillboard *CBillboard::Create(const Vector3 &pos, const Vector2 &size)
 {
 	CBillboard *pBillboard = new CBillboard;		// 生成したビルボード
 	NULLPOINTER_ASSERT(pBillboard);
@@ -55,7 +55,7 @@ CBillboard::~CBillboard()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CBillboard::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size)
+HRESULT CBillboard::Init(const Vector3 &pos, const Vector2 &size)
 {
 	VERTEX_3D *pVtx = NULL;		// 頂点情報へのポインタ
 	CRenderer *pRenderer = CManager::GetInstance()->GetRenderer();	// レンダラーへのポインタ
@@ -94,10 +94,10 @@ HRESULT CBillboard::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size)
 	pVtx[3].pos.z = 0.0f;
 
 	// 座標変換用変数設定
-	pVtx[0].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-	pVtx[1].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-	pVtx[2].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-	pVtx[3].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
+	pVtx[0].nor = Vector3(0.0f, 0.0f, -1.0f);
+	pVtx[1].nor = Vector3(0.0f, 0.0f, -1.0f);
+	pVtx[2].nor = Vector3(0.0f, 0.0f, -1.0f);
+	pVtx[3].nor = Vector3(0.0f, 0.0f, -1.0f);
 
 	// 頂点カラー設定
 	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
@@ -106,10 +106,10 @@ HRESULT CBillboard::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size)
 	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
-	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(1.0f, 0.0f);
-	pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
-	pVtx[3].tex = D3DXVECTOR2(1.0f, 1.0f);
+	pVtx[0].tex = Vector2(0.0f, 0.0f);
+	pVtx[1].tex = Vector2(1.0f, 0.0f);
+	pVtx[2].tex = Vector2(0.0f, 1.0f);
+	pVtx[3].tex = Vector2(1.0f, 1.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuff->Unlock();
@@ -142,7 +142,7 @@ void CBillboard::Draw(void)
 	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
 	CTexture *pTexture = CTexture::GetInstance();			// テクスチャへのポインタ
-	D3DXMATRIX mtxView;		// ビューマトリックス
+	Matrix mtxView;		// ビューマトリックス
 
 	/*** カメラのビューマトリックスを取得 ***/
 	pDevice->GetTransform(D3DTS_VIEW, &mtxView);
@@ -212,7 +212,7 @@ void CBillboard::BindTexture(const int nIdxTexture)
 //==================================================================================
 // --- サイズの設定処理 ---
 //==================================================================================
-void CBillboard::SetSize(const D3DXVECTOR2 &size)
+void CBillboard::SetSize(const Vector2 &size)
 {
 	VERTEX_3D *pVtx = NULL;		// 頂点情報へのポインタ
 

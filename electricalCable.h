@@ -41,22 +41,22 @@ public:
 	void Update(void);
 	void Draw(void);
 	void BindTexture(const int nIdxTexture) { m_nIdxTexture = nIdxTexture; }
-	void SetParent(const D3DXMATRIX *pMtxParent) { m_pMtxParent = pMtxParent; }
+	void SetParent(const Matrix *pMtxParent) { m_pMtxParent = pMtxParent; }
 
 private:
 	LPDIRECT3DVERTEXBUFFER9 m_pVtxBuff;		// 頂点バッファへのポインタ
 	int m_nIdxTexture;			// テクスチャインデックス
 	CUtilityPole *m_pStart;		// 電線の始点電柱
 	CUtilityPole *m_pEnd;		// 電線の終点電柱
-	D3DXVECTOR3 m_pos;			// 位置
+	Vector3 m_pos;			// 位置
 #ifndef ENABLE_QUATERNION
-	D3DXVECTOR3 m_rot;			// 角度
+	Vector3 m_rot;			// 角度
 #else
-	D3DXVECTOR3 m_vecQua;		// 任意軸
+	Vector3 m_vecQua;		// 任意軸
 	float m_fAngle;				// 軸角度
-	D3DXQUATERNION m_qua;		// クォータニオン
+	Quaternion m_qua;		// クォータニオン
 #endif
-	D3DXMATRIX m_mtxWorld;		// ワールドマトリックス
-	const D3DXMATRIX *m_pMtxParent;		// 親のワールドマトリックス
+	Matrix m_mtxWorld;		// ワールドマトリックス
+	const Matrix *m_pMtxParent;		// 親のワールドマトリックス
 };
 #endif

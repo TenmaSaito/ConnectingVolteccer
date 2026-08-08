@@ -20,9 +20,9 @@
 // --- オブジェクト3Dの生成処理 ---
 //==================================================================================
 CObject3D *CObject3D::Create(const bool bXYPlane, 
-	const D3DXVECTOR3 &pos,
-	const D3DXVECTOR3 &rot, 
-	const D3DXVECTOR2 &size)
+	const Vector3 &pos,
+	const Vector3 &rot, 
+	const Vector2 &size)
 {
 	CObject3D *pObject3D = nullptr;		// 生成したオブジェクトへのポインタ
 
@@ -66,9 +66,9 @@ CObject3D::~CObject3D()
 // --- 初期化処理 ---
 //==================================================================================
 HRESULT CObject3D::Init(const bool bXYPlane, 
-	const D3DXVECTOR3 &pos, 
-	const D3DXVECTOR3 &rot,
-	const D3DXVECTOR2 &size)
+	const Vector3 &pos, 
+	const Vector3 &rot,
+	const Vector2 &size)
 {
 	CRenderer *pRenderer = CManager::GetInstance()->GetRenderer();			// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();			// デバイスへのポインタ
@@ -119,10 +119,10 @@ HRESULT CObject3D::Init(const bool bXYPlane,
 		pVtx[3].pos.z = 0.0f;
 
 		// 座標変換用変数設定
-		pVtx[0].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-		pVtx[1].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-		pVtx[2].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-		pVtx[3].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
+		pVtx[0].nor = Vector3(0.0f, 0.0f, -1.0f);
+		pVtx[1].nor = Vector3(0.0f, 0.0f, -1.0f);
+		pVtx[2].nor = Vector3(0.0f, 0.0f, -1.0f);
+		pVtx[3].nor = Vector3(0.0f, 0.0f, -1.0f);
 	}
 	else
 	{ // XZ平面の作成ならZ値に設定
@@ -136,9 +136,9 @@ HRESULT CObject3D::Init(const bool bXYPlane,
 		pVtx[2].pos.z = m_pos.z - (m_size.y * 0.5f);
 		pVtx[3].pos.z = m_pos.z + (m_size.y * 0.5f);
 
-		D3DXVECTOR3 norA, norB;		// 0,3番目の頂点の法線
-		D3DXVECTOR3 norAB;			// 1,2番目の頂点の法線
-		D3DXVECTOR3 aVec[4];		// 各頂点の境界線ベクトル
+		Vector3 norA, norB;		// 0,3番目の頂点の法線
+		Vector3 norAB;			// 1,2番目の頂点の法線
+		Vector3 aVec[4];		// 各頂点の境界線ベクトル
 
 		// 各境界線ベクトルを求める
 		// 0 -> 1 & 0 -> 2
@@ -181,10 +181,10 @@ HRESULT CObject3D::Init(const bool bXYPlane,
 	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
-	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(1.0f, 0.0f);
-	pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
-	pVtx[3].tex = D3DXVECTOR2(1.0f, 1.0f);
+	pVtx[0].tex = Vector2(0.0f, 0.0f);
+	pVtx[1].tex = Vector2(1.0f, 0.0f);
+	pVtx[2].tex = Vector2(0.0f, 1.0f);
+	pVtx[3].tex = Vector2(1.0f, 1.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuff->Unlock();
@@ -276,7 +276,7 @@ void CObject3D::Draw(void)
 //==================================================================================
 // --- 位置の変更処理 ---
 //==================================================================================
-void CObject3D::SetPosition(const D3DXVECTOR3 &position)
+void CObject3D::SetPosition(const Vector3 &position)
 { // 位置の変更及び変更フラグを立てる
 	m_pos = position;
 	m_bDirty = true;
@@ -285,7 +285,7 @@ void CObject3D::SetPosition(const D3DXVECTOR3 &position)
 //==================================================================================
 // --- 角度の変更処理 ---
 //==================================================================================
-void CObject3D::SetRotation(const D3DXVECTOR3 &rotation)
+void CObject3D::SetRotation(const Vector3 &rotation)
 { // 角度の変更及び変更フラグを立てる
 	m_rot = rotation;
 	m_bDirty = true;
@@ -294,7 +294,7 @@ void CObject3D::SetRotation(const D3DXVECTOR3 &rotation)
 //==================================================================================
 // --- サイズの変更処理 ---
 //==================================================================================
-void CObject3D::SetSize(const D3DXVECTOR2& size)
+void CObject3D::SetSize(const Vector2& size)
 { // サイズの変更及び変更フラグを立てる
 	VERTEX_3D *pVtx = nullptr;		// 頂点情報へのポインタ
 
@@ -341,9 +341,9 @@ void CObject3D::SetSize(const D3DXVECTOR2& size)
 //==================================================================================
 // --- 高さ取得処理 ---
 //==================================================================================
-float CObject3D::GetHeight(const D3DXVECTOR3 &pos)
+float CObject3D::GetHeight(const Vector3 &pos)
 {
-	D3DXVECTOR3 aVtx[4];			// 各頂点の座標
+	Vector3 aVtx[4];			// 各頂点の座標
 	float fHeight = 0.0f;	// 計算結果
 
 	for (int nCntVtx = 0; nCntVtx < 4; nCntVtx++)
@@ -353,8 +353,8 @@ float CObject3D::GetHeight(const D3DXVECTOR3 &pos)
 
 	if (Vec3::IsInsideTriangle(pos, &aVtx[0]))
 	{ // もし三角形の内側にいたら
-		D3DXVECTOR3 vec1, vec2;		// 各頂点間のベクトル
-		D3DXVECTOR3 nor;			// 法線ベクトル
+		Vector3 vec1, vec2;		// 各頂点間のベクトル
+		Vector3 nor;			// 法線ベクトル
 
 		// 各ベクトルを求める
 		vec1 = aVtx[1] - aVtx[0];
@@ -369,8 +369,8 @@ float CObject3D::GetHeight(const D3DXVECTOR3 &pos)
 	}
 	else if (Vec3::IsInsideTriangle(pos, &aVtx[1], true))
 	{ // もし三角形の内側にいたら
-		D3DXVECTOR3 vec1, vec2;		// 各頂点間のベクトル
-		D3DXVECTOR3 nor;			// 法線ベクトル
+		Vector3 vec1, vec2;		// 各頂点間のベクトル
+		Vector3 nor;			// 法線ベクトル
 
 		// 各ベクトルを求める
 		vec1 = aVtx[1] - aVtx[3];

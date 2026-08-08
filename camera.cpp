@@ -65,7 +65,7 @@ CCamera::~CCamera()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-void CCamera::Init(const D3DXVECTOR3 &posV)
+void CCamera::Init(const Vector3 &posV)
 {
 	{ // メンバ変数を初期化
 		D3DXMatrixIdentity(&m_mtxProjection);
@@ -76,7 +76,7 @@ void CCamera::Init(const D3DXVECTOR3 &posV)
 
 	{ // 視点・上方向ベクトル・ビューポートを設定
 		m_posV = posV;
-		m_vecU = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+		m_vecU = Vector3(0.0f, 1.0f, 0.0f);
 		m_vp = DEFAULT_VP;
 	}
 }
@@ -151,7 +151,7 @@ void CCamera::SetCamera(void)
 //==================================================================================
 // --- カメラの内外判定処理 ---
 //==================================================================================
-bool CCamera::IsVisible(const D3DXVECTOR3 &pos)
+bool CCamera::IsVisible(const Vector3 &pos)
 {
 	bool bBeside = false;		// 横判定
 	bool bVertical = false;		// 縦判定
@@ -170,7 +170,7 @@ bool CCamera::IsVisible(const D3DXVECTOR3 &pos)
 //==================================================================================
 // --- カメラのレイ取得処理 ---
 //==================================================================================
-D3DXVECTOR3 CCamera::GetRay(void) const
+Vector3 CCamera::GetRay(void) const
 {
 	return Vec3::Direction(m_posR, m_posV);
 }
@@ -178,15 +178,15 @@ D3DXVECTOR3 CCamera::GetRay(void) const
 //==================================================================================
 // --- カメラからスクリーン上の座標へのレイ取得処理 ---
 //==================================================================================
-D3DXVECTOR3 CCamera::GetRayToScreen(const D3DXVECTOR2 &screenPos)
+Vector3 CCamera::GetRayToScreen(const Vector2 &screenPos)
 {
 	CManager *pManager = CManager::GetInstance();			// マネージャへのポインタ
 	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
 	D3DVIEWPORT9 vp;		// ビューポート
-	D3DXMATRIX mtxVp, mtxView, mtxProj;				// ビューポート行列, ビュー行列, プロジェクション行列
-	D3DXMATRIX mtxVpInv, mtxViewInv, mtxProjInv;	// ビューポート逆行列, ビュー逆行列, プロジェクション逆行列
-	D3DXVECTOR3 from, to;	// レイベクトルの始点、終点
+	Matrix mtxVp, mtxView, mtxProj;				// ビューポート行列, ビュー行列, プロジェクション行列
+	Matrix mtxVpInv, mtxViewInv, mtxProjInv;	// ビューポート逆行列, ビュー逆行列, プロジェクション逆行列
+	Vector3 from, to;	// レイベクトルの始点、終点
 
 	// ビューポート行列を初期化
 	D3DXMatrixIdentity(&mtxVp);
@@ -199,8 +199,8 @@ D3DXVECTOR3 CCamera::GetRayToScreen(const D3DXVECTOR2 &screenPos)
 	pDevice->GetTransform(D3DTS_PROJECTION, &mtxProj);
 
 	// レイベクトルの始点, 終点を設定
-	from = D3DXVECTOR3(screenPos.x, screenPos.y, 0.0f);
-	to = D3DXVECTOR3(screenPos.x, screenPos.y, 1.0f);
+	from = Vector3(screenPos.x, screenPos.y, 0.0f);
+	to = Vector3(screenPos.x, screenPos.y, 1.0f);
 
 	// 行列計算
 	mtxVp._11 = static_cast<float>(vp.Width) / 2.0f;

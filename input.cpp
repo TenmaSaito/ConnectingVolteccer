@@ -379,7 +379,7 @@ bool CInputMouse::GetRelease(const int nKey)
 //==================================================================================
 // --- マウスのスクリーン座標取得処理 ---
 //==================================================================================
-D3DXVECTOR3 CInputMouse::GetPositionInScreen(void)
+Vector3 CInputMouse::GetPositionInScreen(void)
 {
 	POINT position = {};		// マウスの座標
 
@@ -390,18 +390,18 @@ D3DXVECTOR3 CInputMouse::GetPositionInScreen(void)
 		m_pDevice->Acquire();
 	}
 	
-	return D3DXVECTOR3(static_cast<float>(position.x), static_cast<float>(position.y), 0.0f);
+	return Vector3(static_cast<float>(position.x), static_cast<float>(position.y), 0.0f);
 }
 
 //==================================================================================
 // --- マウスのクライアント座標取得処理 ---
 //==================================================================================
-D3DXVECTOR3 CInputMouse::GetPositionInClient(void)
+Vector3 CInputMouse::GetPositionInClient(void)
 {
 	HWND hWnd = CManager::GetInstance()->GetWindowHandle();		// ウィンドウハンドルを取得
 	RECT rectCurrent;	// スクリーンの大きさ
 	POINT position;		// マウスの座標
-	D3DXVECTOR3 posCursor;		// ウィンドウ上のマウス座標
+	Vector3 posCursor;		// ウィンドウ上のマウス座標
 
 	// マウスのスクリーン座標を取得
 	if (GetCursorPos(&position) != TRUE)
@@ -422,7 +422,7 @@ D3DXVECTOR3 CInputMouse::GetPositionInClient(void)
 	posCursor.y = SCREEN_HEIGHT * ((float)position.y / (rectCurrent.bottom - rectCurrent.top));
 
 	// 座標を正規化
-	posCursor = Vec3::Clamp(posCursor, VECTOR3_NULL, D3DXVECTOR3(SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0.0f));
+	posCursor = Vec3::Clamp(posCursor, VECTOR3_NULL, Vector3(SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0.0f));
 
 	return posCursor;
 }

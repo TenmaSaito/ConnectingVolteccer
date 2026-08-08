@@ -17,21 +17,14 @@
 #include "joypad.h"
 #include "playerCamera.h"
 #include "debugproc.h"
-#include "object3D.h"
 #include "meshField.h"
 #include "matrix.h"
 #include "filestream.h"
 #include "motion.h"
-#include "meshOrbit3D.h"
-#include "thunderEffect.h"
-#include "effect.h"
-#include "grassland.h"
 #include "utilityPole.h"
 #include "map.h"
 #include "planet.h"
-#include "objectXQuaternion.h"
 #include "ray.h"
-#include "electricalCable.h"
 #include "util.h"
 #include "lasso.h"
 #include "vec2math.h"
@@ -39,6 +32,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <regex>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -48,8 +42,8 @@
 #define STICK_DEADZONE		(0.05f)		// 動いたと感知するデッドゾーン
 #define RESIST_POW			(0.25f)		// 摩擦
 #define RIDE_LENGTH			(120.0f)	// 電柱に乗れる距離
-#define PLAYERCAM_DEFROT	D3DXVECTOR3(0.0f, 0.0f, -0.4f)		// デフォルトのカメラ角度
-#define PLAYERCAM_RIDINGROT	D3DXVECTOR3(0.0f, 0.0f, -1.16f)		// 電柱に乗っているときのカメラ角度
+#define PLAYERCAM_DEFROT	Vector3(0.0f, 0.0f, -0.4f)		// デフォルトのカメラ角度
+#define PLAYERCAM_RIDINGROT	Vector3(0.0f, 0.0f, -1.16f)		// 電柱に乗っているときのカメラ角度
 #define PLAYERCAM_LEN			(1000.0f)		// プレイヤーのカメラの距離
 #define PLAYERCAM_RIDING_LEN	(250.0f)		// 電柱に乗っているときのカメラの距離
 #define ENABLE_RAY_PLAYER_TO_POLE		// プレイヤーから投げ縄を投げられる電柱へのレイの表示
@@ -57,7 +51,7 @@
 //==================================================================================
 // --- 生成処理 ---
 //==================================================================================
-CPlayer *CPlayer::Create(const char *pXFileName, const D3DXVECTOR3 &pos, const D3DXVECTOR3 &rot)
+CPlayer *CPlayer::Create(const char *pXFileName, const Vector3 &pos, const Vector3 &rot)
 {
 	CPlayer *pPlayer = new CPlayer;		// 生成したオブジェクトへのポインタ
 	NULLPOINTER_ASSERT(pPlayer);
@@ -67,6 +61,29 @@ CPlayer *CPlayer::Create(const char *pXFileName, const D3DXVECTOR3 &pos, const D
 		pPlayer->Init(pXFileName, pos, rot);
 	}
 
+#pragma region std::regex test
+#if 0
+	constexpr const char *floatRegex = R"([-+]?[0-9]*\.?[0-9]+)";
+	char aStr[] = "1.0, 3.14, 1.00";
+	std::regex rotRegex(floatRegex);
+	std::cregex_iterator regIter(std::cbegin(aStr), std::cend(aStr), rotRegex);
+	std::cregex_iterator end;
+	std::cmatch result;
+	Vector3 rotReg;
+	int n = 0;
+
+	while (regIter != end)
+	{
+		auto &&result = *regIter;
+		float fValue = static_cast<float>(std::atof(result.str().c_str()));
+
+		Vec3::InAxis(rotReg, static_cast<Vec3::Axis>(n), fValue);
+		n++;
+		regIter++;
+	}
+#endif
+#pragma endregion
+
 	return pPlayer;
 }
 
@@ -75,8 +92,6 @@ CPlayer *CPlayer::Create(const char *pXFileName, const D3DXVECTOR3 &pos, const D
 //==================================================================================
 CPlayer::CPlayer(const int nPriority) : CObject(nPriority)
 { // メンバ変数をクリア
-	memset(m_apModel, 0, sizeof(m_apModel));
-	memset(m_aModelPath, 0, sizeof(m_aModelPath));
 	m_pos = VECTOR3_NULL;
 	m_offset = VECTOR3_NULL;
 	m_move = VECTOR3_NULL;
@@ -85,6 +100,8 @@ CPlayer::CPlayer(const int nPriority) : CObject(nPriority)
 	m_pMotion = nullptr;
 	m_pThunderEffect = nullptr;
 	m_pRidingPole = nullptr;
+	m_pPoleNext = nullptr;
+	m_bShotLasso = false;
 
 	// タイプ設定
 	SetType(TYPE_PLAYER);
@@ -100,7 +117,7 @@ CPlayer::~CPlayer()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CPlayer::Init(const char *pFileName, const D3DXVECTOR3 &pos, const D3DXVECTOR3 &rot)
+HRESULT CPlayer::Init(const char *pFileName, const Vector3 &pos, const Vector3 &rot)
 {
 	// 引数の値を保存
 	m_pos = pos;
@@ -108,7 +125,7 @@ HRESULT CPlayer::Init(const char *pFileName, const D3DXVECTOR3 &pos, const D3DXV
 	m_rot = rot;
 
 	// モーションを生成
-	m_pMotion = new CMotion;
+	m_pMotion = std::make_unique<CMotion>();
 	NULLPOINTER_ASSERT(m_pMotion);
 
 	if (m_pMotion == nullptr) return E_FAIL;		// 生成失敗
@@ -151,16 +168,14 @@ void CPlayer::Uninit(void)
 
 		// モデルの破棄 + 終了処理
 		m_apModel[nCntModel]->Uninit();
-		delete m_apModel[nCntModel];
-		m_apModel[nCntModel] = nullptr;
+		m_apModel[nCntModel].reset();
 	}
 	
 	// モーションの破棄
 	if (m_pMotion != nullptr)
 	{ // 存在すれば破棄+終了処理
 		m_pMotion->Uninit();
-		delete m_pMotion;
-		m_pMotion = nullptr;
+		m_pMotion.reset();
 	}
 
 	// 自分自身を破棄
@@ -214,7 +229,7 @@ void CPlayer::Draw(void)
 	D3DXMatrixIdentity(&m_mtxWorld);
 
 	// ワールドマトリックスの設定
-	const D3DXMATRIX *pMtxParent = (m_pRidingPole == nullptr) ? nullptr : m_pRidingPole->GetMatrix();
+	const Matrix *pMtxParent = (m_pRidingPole == nullptr) ? nullptr : m_pRidingPole->GetMatrix();
 	Mtx::CalcWorld(&m_mtxWorld, pMtxParent, m_pos, m_rot);
 
 	//  ワールドマトリックスの設定
@@ -250,9 +265,9 @@ void CPlayer::InputMoving(void)
 	CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();		// キーボードへのポインタ
 	CJoypad *pJoypad = pManager->GetJoypad();						// ジョイパッドへのポインタ
 	CCamera *pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);	// プレイヤーカメラへのポインタ
-	const D3DXVECTOR3 *pCameraRot = pPlayerCam->GetRotate();		// カメラの角度
-	D3DXVECTOR3 move = m_move;						// 代入予定の移動量
-	D3DXVECTOR3 stick = VECTOR3_NULL;				// ジョイパッドのスティック入力
+	const Vector3 *pCameraRot = pPlayerCam->GetRotate();		// カメラの角度
+	Vector3 move = m_move;						// 代入予定の移動量
+	Vector3 stick = VECTOR3_NULL;				// ジョイパッドのスティック入力
 	MOTIONTYPE type = MOTIONTYPE_NEUTRAL;			// モーションタイプ
 	int nFrameBleand = 0;							// ブレンド時間
 	bool bMove = true;			// 動いたか
@@ -425,10 +440,10 @@ void CPlayer::InputPole(void)
 	CManager *pManager = CManager::GetInstance();					// マネージャーへのポインタ
 	CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();		// キーボードへのポインタ
 	CJoypad *pJoypad = pManager->GetJoypad();						// ジョイパッドへのポインタ
-	CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera *>(CCamera::GetCamera(CCamera::TYPE_PLAYER));
+	CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera*>(CCamera::GetCamera(CCamera::TYPE_PLAYER));
 
 	// プレイヤーの行動
-	if (pKeyboard->GetTrigger(DIK_BACK) || pJoypad->GetTrigger(CJoypad::KEY_A))
+	if ((pKeyboard->GetTrigger(DIK_BACK) || pJoypad->GetTrigger(CJoypad::KEY_A)) && !m_bShotLasso)
 	{ // 押された場合
 		if (m_pRidingPole == nullptr)
 		{ // 電柱に載っていない場合
@@ -444,8 +459,8 @@ void CPlayer::InputPole(void)
 				{ // もしオブジェクトが電柱であれば、ポインタをキャスト
 					CUtilityPole *pPole = static_cast<CUtilityPole *>(pObject);
 
-					D3DXVECTOR3 posPole;			// マトリックスのキャスト用
-					D3DXVECTOR3 pos = m_pos;		// マトリックスのキャスト用
+					Vector3 posPole;			// マトリックスのキャスト用
+					Vector3 pos = m_pos;		// マトリックスのキャスト用
 
 					// 各座標をマトリックスでワールド座標に変換
 					D3DXVec3TransformCoord(&pos, &pos, &m_mtxWorld);
@@ -489,7 +504,10 @@ void CPlayer::InputPole(void)
 		}
 	}
 
-	if ((pKeyboard->GetTrigger(DIK_RETURN) || pJoypad->GetTrigger(CJoypad::KEY_B)) && m_pRidingPole != nullptr)
+	if ((pKeyboard->GetTrigger(DIK_RETURN)
+		|| pJoypad->GetTrigger(CJoypad::KEY_B)) 
+		&& m_pRidingPole != nullptr
+		&& m_bShotLasso == false)
 	{ // 投げ縄を飛ばす
 		CObject *pObject = CObject::GetTop(UTILITYPOLE_PRIORITY);		// 最初のオブジェクト
 		CUtilityPole *pPoleSelected = nullptr;		// 最も近い電柱へのポインタ
@@ -514,7 +532,7 @@ void CPlayer::InputPole(void)
 
 		CGame *pGame = pManager->GetScene<CGame>();		// ゲームシーンへのポインタ
 		auto pPlanet = pGame->GetPlanet();				// 惑星へのポインタ
-		D3DXVECTOR3 vecQua;		// 任意軸
+		Vector3 vecQua;		// 任意軸
 		float fAngle;			// 角度
 
 		// クォータニオンから軸と角度を求める
@@ -528,17 +546,17 @@ void CPlayer::InputPole(void)
 		// 選ばれた電柱が存在すれば
 		if (pPoleSelected)
 		{ // 投げ縄生成
-			CLasso *pLasso = CLasso::Create(D3DXVECTOR3(0.0f, m_offset.y + m_pRidingPole->GetVtxMax()->y, 0.0f),
+			CLasso *pLasso = CLasso::Create(Vector3(0.0f, m_offset.y + m_pRidingPole->GetVtxMax()->y, 0.0f),
 				m_pRidingPole, 
 				pPoleSelected);
 			pLasso->SetParent(pPlanet->GetMatrix());
 
 			// カメラの角度に合わせて、モデルの目標角度を求める！
 			m_rotDest.y = (pPlayerCam->GetRotate()->y + D3DX_PI);
-		}
 
-		// カメラを投げ縄フォーカスに変更
-		//pPlayerCam->SetFocus(CPlayerCamera::FOCUS_RIDING);
+			// 投げ縄を投げた為フラグを立てる
+			m_bShotLasso = true;
+		}
 	}
 }
 
@@ -550,7 +568,7 @@ void CPlayer::InputMap(void)
 	CManager *pManager = CManager::GetInstance();					// マネージャーへのポインタ
 	CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();		// キーボードへのポインタ
 	CMap *pMap = CMap::GetInstance();						// マップへのポインタ
-	D3DXVECTOR3 pos = D3DXVECTOR3(0.0f, m_pos.y, 0.0f);		// 設置位置
+	Vector3 pos = Vector3(0.0f, m_pos.y, 0.0f);		// 設置位置
 
 	if (pKeyboard->GetTrigger(DIK_1))
 	{ // 建物0生成
@@ -622,10 +640,68 @@ void CPlayer::UpdatePole(void)
 {
 	if (m_pRidingPole != nullptr)
 	{ // 電柱に乗っている場合
+		if (m_pPoleNext != nullptr)
+		{ // 次に移動するべき電柱がある場合
+			CPlanet *pPlanet = CManager::GetSceneByInstance<CGame>()->GetPlanet();
+			
+			// 惑星から各電柱の座標を求め、内積を求める
+			// 内積の角度分、次の電柱への角度へ回転させる
+			
+			// ※ 絶対座標
+			Vector3 planetToRiding = VECTOR3_NULL;		// 惑星からプレイヤーの乗っている電柱へのベクトル
+			Vector3 planetToNext = VECTOR3_NULL;		// 惑星から次に乗る予定の電柱へのベクトル
+			Vector3 vecQua = VECTOR3_NULL;				// 任意軸ベクトル
+			Vector3 ridingWorldPos = m_pRidingPole->GetWorldPosition();		// 乗っている電柱の絶対座標
+			Vector3 nextWorldPos = m_pPoleNext->GetWorldPosition();			// 次に乗る予定の電柱の絶対座標
+
+			// ベクトルを求める
+			planetToRiding = Vec3::Direction(ridingWorldPos, *pPlanet->GetPosition());
+			CRay(*pPlanet->GetPosition(), planetToRiding, 10000.0f).Draw();
+
+			planetToNext = Vec3::Direction(nextWorldPos, *pPlanet->GetPosition());
+			CRay(*pPlanet->GetPosition(), planetToNext, 10000.0f).Draw();
+
+			// ベクトルから内積計算
+			float fDot = Vec3::Dot(planetToRiding, planetToNext);
+			
+			float fRadian = std::acosf(std::clamp(fDot, -1.0f, 1.0f));
+
+			// 乗っている電柱から次に乗る電柱へのベクトルを計算して向きを求める
+			float fAngle = Vec2::Direction(Vec3::ToVector2(nextWorldPos, Vec3::Axis::Y),
+				Vec3::ToVector2(ridingWorldPos, Vec3::Axis::Y));
+
+			fAngle += HALF_PI;
+			fAngle = Util::FixedRotation(fAngle);
+
+			vecQua = Vec2::ToVector3(Vec2::Direction(fAngle));
+			vecQua.z = vecQua.y;
+			vecQua.y = 0.0f;
+			CRay(m_offset + Vector3(0.0f, 100.0f, 0.0f), vecQua, 1000.0f).Draw();
+
+			Quaternion quaPlus;		// 加算するクォータニオン
+
+			// クォータニオンを初期化
+			D3DXQuaternionIdentity(&quaPlus);
+
+			// クォータニオンを生成
+			D3DXQuaternionRotationAxis(&quaPlus,
+				&vecQua,
+				-fRadian);
+
+			// クォータニオンを加算
+			pPlanet->AddQuaternion(quaPlus);
+
+			// その電柱に乗り移る
+			m_pRidingPole = m_pPoleNext;
+
+			m_bShotLasso = false;
+			m_pPoleNext = nullptr;
+		}
+
 		CCamera *pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);		// プレイヤーカメラへのポインタ
 		CObject *pObject = CObject::GetTop(UTILITYPOLE_PRIORITY);		// 最初のオブジェクト
-		D3DXVECTOR3 vecCam = VECTOR3_NULL;				// カメラの方向ベクトル
-		D3DXVECTOR3 vecPlayerToPole = VECTOR3_NULL;		// プレイヤーから電柱への方向ベクトル
+		Vector3 vecCam = VECTOR3_NULL;				// カメラの方向ベクトル
+		Vector3 vecPlayerToPole = VECTOR3_NULL;		// プレイヤーから電柱への方向ベクトル
 		float fLengthMin = RIDE_LENGTH;			// 現状最も近い電柱との距離
 		CUtilityPole *pPoleNear = nullptr;		// 最も画面の中心に近い電柱へのポインタ
 		float fDotMax = 0.0f;					// 内積の最小値
@@ -643,8 +719,8 @@ void CPlayer::UpdatePole(void)
 			if (pObject->GetType() == CObject::TYPE_POLE)
 			{ // もしオブジェクトが電柱であれば、ポインタをキャスト
 				CUtilityPole *pPole = static_cast<CUtilityPole *>(pObject);
-				D3DXVECTOR3 posPole = VECTOR3_NULL;	// マトリックスのキャスト用
-				D3DXVECTOR3 pos = VECTOR3_NULL;		// マトリックスのキャスト用
+				Vector3 posPole = VECTOR3_NULL;	// マトリックスのキャスト用
+				Vector3 pos = VECTOR3_NULL;		// マトリックスのキャスト用
 				CRay ray;				// プレイヤーから電柱への光線
 				float fDot = 0.0f;		// 内積結果
 
@@ -846,8 +922,8 @@ void CPlayer::LoadPartsData(CFileStream *pFile, const int nCntModel)
 	char aStr[MAX_PATH] = {};			// パース用文字列
 	int nIdxParent = -1;				// 親モデルのインデックス
 	int nIdxModel = -1;					// モデルのインデックス
-	D3DXVECTOR3 pos = VECTOR3_NULL;		// オフセット位置
-	D3DXVECTOR3 rot = VECTOR3_NULL;		// 角度
+	Vector3 pos = VECTOR3_NULL;		// オフセット位置
+	Vector3 rot = VECTOR3_NULL;		// 角度
 
 	while (1)
 	{ // 読み込みループ
@@ -862,13 +938,13 @@ void CPlayer::LoadPartsData(CFileStream *pFile, const int nCntModel)
 			{ // 読み込み終了 + モデルの作成
 				if (nIdxModel >= 0 && nIdxModel < MAX_PLAYER_MODEL_PATH)
 				{ // インデックスが範囲内の場合作成
-					m_apModel[nCntModel] = CModel::Create(&m_aModelPath[nIdxModel][0],
+					m_apModel[nCntModel].reset(CModel::Create(&m_aModelPath[nIdxModel][0],
 						pos,
-						rot);
+						rot));
 
 					if (nIdxParent != -1)
 					{ // 生成したモデルに親マトリックスを設定
-						m_apModel[nCntModel]->SetParent(m_apModel[nIdxParent]);
+						m_apModel[nCntModel]->SetParent(m_apModel[nIdxParent].get());
 					}
 				}
 
@@ -886,7 +962,7 @@ void CPlayer::LoadPartsData(CFileStream *pFile, const int nCntModel)
 			{ // オフセット座標読み込み
 				LoadData(aStr, "%f %f %f", &pos.x, &pos.y, &pos.z);
 			}
-			else if (strstr(aStr, "INDEX") != nullptr)
+			else if (strstr(aStr, "ROT") != nullptr)
 			{ // 角度読み込み
 				LoadData(aStr, "%f %f %f", &rot.x, &rot.y, &rot.z);
 			}

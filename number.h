@@ -22,20 +22,20 @@ public:
 	CNumber();
 	~CNumber();
 
-	static CNumber *Create(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int nValue);
+	static CNumber *Create(const Vector3 &pos, const Vector2 &size, const int nValue);
 
 	HRESULT Init(void);
-	HRESULT Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int nValue);
+	HRESULT Init(const Vector3 &pos, const Vector2 &size, const int nValue);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
-	void SetPosition(const D3DXVECTOR3 &position);
-	D3DXVECTOR3 GetPosition(void) const { return m_pos; }
-	void SetRotation(const D3DXVECTOR3 &rotation);
-	D3DXVECTOR3 GetRotation(void) const { return m_rot; }
-	void SetPositionAndRotation(const D3DXVECTOR3 &position, const D3DXVECTOR3 &rotation);
-	void SetSize(const D3DXVECTOR2 &size);
-	D3DXVECTOR2 GetSize(void) const { return m_size; }
+	void SetPosition(const Vector3 &position);
+	Vector3 GetPosition(void) const { return m_pos; }
+	void SetRotation(const Vector3 &rotation);
+	Vector3 GetRotation(void) const { return m_rot; }
+	void SetPositionAndRotation(const Vector3 &position, const Vector3 &rotation);
+	void SetSize(const Vector2 &size);
+	Vector2 GetSize(void) const { return m_size; }
 	float GetLength(void) const { return m_fLength; }
 	void SetNumber(const int nNumber);
 	int GetNumber(void) const { return m_nNumber; }
@@ -43,9 +43,9 @@ public:
 
 private:
 	LPDIRECT3DVERTEXBUFFER9 m_pVtxBuff;			// 頂点バッファ
-	D3DXVECTOR3 m_pos;		// オブジェクトの位置
-	D3DXVECTOR3 m_rot;		// オブジェクトの角度
-	D3DXVECTOR2 m_size;		// オブジェクトのサイズ
+	Vector3 m_pos;		// オブジェクトの位置
+	Vector3 m_rot;		// オブジェクトの角度
+	Vector2 m_size;		// オブジェクトのサイズ
 	float m_fLength;		// 対角線の長さ
 	float m_fAngle;			// 対角線の角度
 	int m_nNumber;			// 値

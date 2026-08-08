@@ -102,7 +102,7 @@ HRESULT CManager::Init(const HINSTANCE hInstance, const HWND hWnd, const BOOL bW
 	if (m_pRenderer == nullptr)
 	{ // レンダラーがNULLの場合
 		// レンダラーを生成
-		m_pRenderer = new CRenderer;
+		m_pRenderer = std::make_unique<CRenderer>();
 		if (m_pRenderer == nullptr)
 		{ // 生成失敗
 			MessageBox(hWnd, "レンダラーの生成に失敗しました！", "Failed", MB_ICONERROR);
@@ -122,7 +122,7 @@ HRESULT CManager::Init(const HINSTANCE hInstance, const HWND hWnd, const BOOL bW
 	if (m_pCapture == nullptr)
 	{ // もしまだ生成されていないなら
 		// キャプチャオブジェクトを生成
-		m_pCapture = new CWindowCapture;
+		m_pCapture = std::make_unique<CWindowCapture>();
 		if (m_pCapture == nullptr)
 		{ // 生成失敗
 			MessageBox(hWnd, "キャプチャオブジェクトの生成に失敗しました！", "Failed", MB_ICONERROR);
@@ -142,7 +142,7 @@ HRESULT CManager::Init(const HINSTANCE hInstance, const HWND hWnd, const BOOL bW
 	if (m_pInputKeyboard == nullptr)
 	{ // もしまだ生成されていないなら
 		// キーボードを生成
-		m_pInputKeyboard = new CInputKeyboard;
+		m_pInputKeyboard = std::make_unique<CInputKeyboard>();
 		if (m_pInputKeyboard == nullptr)
 		{ // 生成失敗
 			MessageBox(hWnd, "キーボードの生成に失敗しました！", "Failed", MB_ICONERROR);
@@ -162,7 +162,7 @@ HRESULT CManager::Init(const HINSTANCE hInstance, const HWND hWnd, const BOOL bW
 	if (m_pInputMouse == nullptr)
 	{ // もしまだ生成されていないなら
 		// マウスを生成
-		m_pInputMouse = new CInputMouse;
+		m_pInputMouse = std::make_unique<CInputMouse>();
 		if (m_pInputMouse == nullptr)
 		{ // 生成失敗
 			MessageBox(hWnd, "マウスの生成に失敗しました！", "Failed", MB_ICONERROR);
@@ -182,7 +182,7 @@ HRESULT CManager::Init(const HINSTANCE hInstance, const HWND hWnd, const BOOL bW
 	if (m_pJoypad == nullptr)
 	{ // もしまだ生成されていないなら
 		// ジョイパッドを生成
-		m_pJoypad = new CJoypad;
+		m_pJoypad = std::make_unique<CJoypad>();
 		if (m_pJoypad == nullptr)
 		{ // 生成失敗
 			MessageBox(hWnd, "ジョイパッドの生成に失敗しました！", "Failed", MB_ICONERROR);
@@ -197,7 +197,7 @@ HRESULT CManager::Init(const HINSTANCE hInstance, const HWND hWnd, const BOOL bW
 	if (m_pDebugProc == nullptr)
 	{ // もしまだ生成されていないなら
 		// デバッグ表示を生成
-		m_pDebugProc = new CDebugProc;
+		m_pDebugProc = std::make_unique<CDebugProc>();
 		if (m_pDebugProc == nullptr)
 		{ // 生成失敗
 			MessageBox(hWnd, "デバッグ表示の生成に失敗しました！", "Failed", MB_ICONERROR);
@@ -217,7 +217,7 @@ HRESULT CManager::Init(const HINSTANCE hInstance, const HWND hWnd, const BOOL bW
 	if (m_pSound == nullptr)
 	{ // もしまだ生成されていないなら
 		// サウンドを生成
-		m_pSound = new CSound;
+		m_pSound = std::make_unique<CSound>();
 		if (m_pSound == nullptr)
 		{ // 生成失敗
 			MessageBox(hWnd, "サウンドの生成に失敗しました！", "Failed", MB_ICONERROR);
@@ -234,11 +234,11 @@ HRESULT CManager::Init(const HINSTANCE hInstance, const HWND hWnd, const BOOL bW
 	}
 
 	// ライトの生成
-	m_pLight = new CLight;
+	m_pLight = std::make_unique<CLight>();
 	m_pLight->Init();
 
 	// 遷移演出の作成
-	m_pTransition = new CCircleTransition;
+	m_pTransition = std::make_unique<CCircleTransition>();
 	m_pTransition->Init();
 
 	// テクスチャの読み込み
@@ -272,80 +272,70 @@ void CManager::Uninit(void)
 	if (m_pScene != nullptr)
 	{ // NULLではなかった場合破棄
 		m_pScene->Uninit();
-		delete m_pScene;
-		m_pScene = nullptr;
+		m_pScene.reset();
 	}
 
 	// 遷移オブジェクトの破棄
 	if (m_pTransition != nullptr)
 	{ // NULLではなかった場合破棄
 		m_pTransition->Uninit();
-		delete m_pTransition;
-		m_pTransition = nullptr;
+		m_pTransition.reset();
 	}
 
 	// ライトオブジェクトの破棄
 	if (m_pLight != nullptr)
 	{ // NULLではなかった場合破棄
 		m_pLight->Uninit();
-		delete m_pLight;
-		m_pLight = nullptr;
+		m_pLight.reset();
 	}
 
 	// サウンドオブジェクトの破棄
 	if (m_pSound != nullptr)
 	{ // NULLではなかった場合破棄
 		m_pSound->Uninit();
-		delete m_pSound;
-		m_pSound = nullptr;
+		m_pSound.reset();
 	}
 
 	// デバッグ表示オブジェクトの破棄
 	if (m_pDebugProc != nullptr)
 	{ // NULLではなかった場合破棄
 		m_pDebugProc->Uninit();
-		delete m_pDebugProc;
-		m_pDebugProc = nullptr;
+		m_pDebugProc.reset();
 	}
 
 	// ジョイパッドオブジェクトの破棄
 	if (m_pJoypad != nullptr)
 	{ // NULLではなかった場合破棄
 		m_pJoypad->Uninit();
-		delete m_pJoypad;
-		m_pJoypad = nullptr;
+		m_pJoypad.reset();
 	}
 
 	// マウスオブジェクトの破棄
 	if (m_pInputMouse != nullptr)
 	{ // NULLではなかった場合破棄
 		m_pInputMouse->Uninit();
-		delete m_pInputMouse;
-		m_pInputMouse = nullptr;
+		m_pInputMouse.reset();
 	}
 
 	// キーボードオブジェクトの破棄
 	if (m_pInputKeyboard != nullptr)
 	{ // NULLではなかった場合破棄
 		m_pInputKeyboard->Uninit();
-		delete m_pInputKeyboard;
-		m_pInputKeyboard = nullptr;
+		m_pInputKeyboard.reset();
 	}
 
 	// キャプチャオブジェクトの破棄
 	if (m_pCapture != nullptr)
 	{ // NULLではなかった場合破棄
 		m_pCapture->Uninit();
-		delete m_pCapture;
-		m_pCapture = nullptr;
+		m_pCapture.reset();
 	}
 
 	// レンダラーオブジェクトの破棄
 	if (m_pRenderer != nullptr)
 	{ // NULLではなかった場合破棄
 		m_pRenderer->Uninit();
-		delete m_pRenderer;
-		m_pRenderer = nullptr;
+		m_pRenderer.reset();
 	}
 }
 
@@ -416,8 +406,7 @@ HRESULT CManager::SetMode(const CScene::MODE modeNext)
 	if (m_pScene != nullptr)
 	{ // シーンが生成されていれば、終了処理
 		m_pScene->Uninit();
-		delete m_pScene;
-		m_pScene = nullptr;
+		m_pScene.reset();
 	}
 
 	// 全オブジェクトの破棄
@@ -427,7 +416,7 @@ HRESULT CManager::SetMode(const CScene::MODE modeNext)
 	CCamera::ReleaseAll();
 
 	// シーンの生成
-	CScene::Create(modeNext, &m_pScene);
+	CScene::Create(modeNext, m_pScene);
 	NULLPOINTER_ASSERT(m_pScene);
 
 	return (m_pScene == nullptr) ? E_FAIL : S_OK;

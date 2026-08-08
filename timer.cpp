@@ -17,14 +17,14 @@
 // *** マクロ定義 ***
 //**********************************************************************************
 #define INIT_POS		VECTOR3_NULL		// 初期位置
-#define INIT_SIZE		D3DXVECTOR2(50, 65)	// 初期サイズ
+#define INIT_SIZE		Vector2(50, 65)	// 初期サイズ
 #define INIT_TIME		(0)					// 初期タイマー
 #define INIT_NUM		(MAX_TIMERNUM)		// 初期数値数
 
 //==================================================================================
 // --- 生成処理 ---
 //==================================================================================
-CTimer *CTimer::Create(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int nNumNumber)
+CTimer *CTimer::Create(const Vector3 &pos, const Vector2 &size, const int nNumNumber)
 {
 	CTimer *pTimer;		// 生成したタイマーへのポインタ
 
@@ -50,7 +50,7 @@ CTimer *CTimer::Create(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const in
 //==================================================================================
 // --- 生成処理 ---
 //==================================================================================
-CTimer *CTimer::Create(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int nNumNumber, const int nTime)
+CTimer *CTimer::Create(const Vector3 &pos, const Vector2 &size, const int nNumNumber, const int nTime)
 {
 	CTimer *pTimer;		// 生成したタイマーへのポインタ
 
@@ -98,8 +98,8 @@ CTimer::~CTimer()
 //==================================================================================
 HRESULT CTimer::Init(void)
 {
-	D3DXVECTOR2 numSize;			// 数値1個当たりのサイズ
-	D3DXVECTOR3 pos = INIT_POS;		// 初期位置
+	Vector2 numSize;			// 数値1個当たりのサイズ
+	Vector3 pos = INIT_POS;		// 初期位置
 
 	// 変数を初期化
 	m_nTime = INIT_TIME;
@@ -118,7 +118,7 @@ HRESULT CTimer::Init(void)
 	for (int nCntNumber = 0; nCntNumber < m_nNumTime; nCntNumber++)
 	{
 		CNumber* pNumber = nullptr;			// 生成した数値オブジェクトへのポインタ
-		D3DXVECTOR3 posCreate = pos;	// 生成位置
+		Vector3 posCreate = pos;	// 生成位置
 
 		// 生成位置(X座標)を修正
 		posCreate.x = pos.x + (numSize.x * nCntNumber);
@@ -138,9 +138,9 @@ HRESULT CTimer::Init(void)
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CTimer::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int nNumNumber)
+HRESULT CTimer::Init(const Vector3 &pos, const Vector2 &size, const int nNumNumber)
 {
-	D3DXVECTOR2 numSize;	// 数値1個当たりのサイズ
+	Vector2 numSize;	// 数値1個当たりのサイズ
 
 	// 引数を保存
 	m_nTime = INIT_TIME;
@@ -159,7 +159,7 @@ HRESULT CTimer::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int 
 	for (int nCntNumber = 0; nCntNumber < m_nNumTime; nCntNumber++)
 	{
 		CNumber *pNumber = nullptr;		// 生成した数値オブジェクトへのポインタ
-		D3DXVECTOR3 posCreate;			// 生成位置
+		Vector3 posCreate;			// 生成位置
 
 		// 生成位置を計算
 		posCreate.x = pos.x + (numSize.x * nCntNumber) + (numSize.x * 0.5f);
@@ -185,9 +185,9 @@ HRESULT CTimer::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int 
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CTimer::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int nNumNumber, const int nTime)
+HRESULT CTimer::Init(const Vector3 &pos, const Vector2 &size, const int nNumNumber, const int nTime)
 {
-	D3DXVECTOR2 numSize;	// 数値1個当たりのサイズ
+	Vector2 numSize;	// 数値1個当たりのサイズ
 	int *pNumValue;			// 各桁の数値
 
 	// 引数を保存
@@ -216,7 +216,7 @@ HRESULT CTimer::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int 
 	for (int nCntNumber = 0; nCntNumber < m_nNumTime; nCntNumber++)
 	{
 		CNumber *pNumber = nullptr;		// 生成した数値オブジェクトへのポインタ
-		D3DXVECTOR3 posCreate;			// 生成位置
+		Vector3 posCreate;			// 生成位置
 
 		// 生成位置(X座標)を修正
 		posCreate.x = pos.x + (numSize.x * nCntNumber) + (numSize.x * 0.5f);

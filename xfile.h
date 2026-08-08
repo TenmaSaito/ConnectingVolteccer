@@ -32,7 +32,7 @@ public:
 		LPD3DXBUFFER pBuffMat;		// マテリアルへのポインタ
 		int *pIdx;					// テクスチャインデックスの配列
 		DWORD dwNumMat;				// マテリアルの数
-		D3DXVECTOR3 vtxMin, vtxMax;	// モデルの各最大最小頂点の位置
+		Vector3 vtxMin, vtxMax;	// モデルの各最大最小頂点の位置
 	};
 
 	CXFile();

@@ -32,9 +32,9 @@ public:
 	CLasso();
 	~CLasso();
 
-	static CLasso *Create(const D3DXVECTOR3 &pos, CUtilityPole *pStart, CUtilityPole *pEnd);
+	static CLasso *Create(const Vector3 &pos, CUtilityPole *pStart, CUtilityPole *pEnd);
 
-	HRESULT Init(const D3DXVECTOR3 &pos, CUtilityPole *pStart, CUtilityPole *pEnd);
+	HRESULT Init(const Vector3 &pos, CUtilityPole *pStart, CUtilityPole *pEnd);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);

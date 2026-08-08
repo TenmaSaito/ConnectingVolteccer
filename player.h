@@ -13,6 +13,7 @@
 //**********************************************************************************
 #include "object.h"
 #include <stdio.h>
+#include <memory>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -53,25 +54,28 @@ public:
 	} MOTIONTYPE;
 
 	static CPlayer *Create(const char *pFilename,
-		const D3DXVECTOR3 &pos,
-		const D3DXVECTOR3 &rot);
+		const Vector3 &pos,
+		const Vector3 &rot);
 
 	CPlayer(const int nPriority = DEFAULT_PLAYER_PRIORITY);
 	~CPlayer();
 
 	HRESULT Init(const char *pFilename,
-		const D3DXVECTOR3 &pos,
-		const D3DXVECTOR3 &rot);
+		const Vector3 &pos,
+		const Vector3 &rot);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
-	const D3DXVECTOR3 *GetPosition(void) const { return &m_pos; }
-	const D3DXVECTOR3 *GetRotation(void) const { return &m_rot; }
-	const D3DXVECTOR3 *GetRotationDest(void) const { return &m_rotDest; }
-	const D3DXVECTOR3 *GetOffset(void) const { return &m_offset; }
-	const D3DXVECTOR3 *GetMove(void) const { return &m_move; }
-	const D3DXMATRIX *GetMatrix(void) const { return &m_mtxWorld; }
+	const Vector3 *GetPosition(void) const { return &m_pos; }
+	const Vector3 *GetRotation(void) const { return &m_rot; }
+	const Vector3 *GetRotationDest(void) const { return &m_rotDest; }
+	const Vector3 *GetOffset(void) const { return &m_offset; }
+	const Vector3 *GetMove(void) const { return &m_move; }
+	const Matrix *GetMatrix(void) const { return &m_mtxWorld; }
 	CUtilityPole *GetRidingPole(void) const { return m_pRidingPole; }
+	bool IsShotLasso(void) const { return m_bShotLasso; }
+	void SetLassoComplete(void) { m_bShotLasso = false; }
+	void ChangeRidingPole(CUtilityPole *pNext) { m_pPoleNext = pNext; }
 
 private:
 	void InputAction(void);
@@ -90,18 +94,20 @@ private:
 	bool DeleteComment(char *pStr);
 	template<class... Args> void LoadData(const char *pStr, const char *pFormat, Args... args);
 
-	D3DXVECTOR3 m_pos;		// 位置
-	D3DXVECTOR3 m_offset;	// オフセット保存用
-	D3DXVECTOR3 m_move;		// 移動量
-	D3DXVECTOR3 m_rot;		// 角度
-	D3DXVECTOR3 m_rotDest;	// 目標角度
-	D3DXMATRIX m_mtxWorld;	// ワールドマトリックス
-	CUtilityPole *m_pRidingPole;						// 乗っている電柱	
-	CModel *m_apModel[MAX_PLAYER_MODEL_NUM];			// モデル(パーツ)へのポインタ
+	Vector3 m_pos;		// 位置
+	Vector3 m_offset;	// オフセット保存用
+	Vector3 m_move;		// 移動量
+	Vector3 m_rot;		// 角度
+	Vector3 m_rotDest;	// 目標角度
+	Matrix m_mtxWorld;	// ワールドマトリックス
+	CUtilityPole *m_pRidingPole;		// 乗っている電柱	
+	CUtilityPole *m_pPoleNext;			// 次に乗る電柱	
+	std::unique_ptr<CModel> m_apModel[MAX_PLAYER_MODEL_NUM];		// モデル(パーツ)へのポインタ
+	std::unique_ptr<CMotion> m_pMotion;					// モーションへのポインタ
 	char m_aModelPath[MAX_PLAYER_MODEL_PATH][MAX_PATH];	// 各モデルのパス
 	int m_nNumModel;		// モデルの総数
-	CMotion *m_pMotion;		// モーションへのポインタ
 	CThunderEffect *m_pThunderEffect;		// 雷エフェクトへのポインタ
+	bool m_bShotLasso;						// 投げ縄を投げたか
 };
 
 //==================================================================================

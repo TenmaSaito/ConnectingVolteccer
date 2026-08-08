@@ -31,7 +31,7 @@
 //==================================================================================
 // --- 生成処理 (クォータニオン指定) ---
 //==================================================================================
-CLasso *CLasso::Create(const D3DXVECTOR3 &pos, 
+CLasso *CLasso::Create(const Vector3 &pos, 
 	CUtilityPole *pStart,
 	CUtilityPole *pEnd)
 {
@@ -65,7 +65,7 @@ CLasso::~CLasso()
 //==================================================================================
 // --- 初期化処理 (クォータニオン指定) ---
 //==================================================================================
-HRESULT CLasso::Init(const D3DXVECTOR3 &pos,
+HRESULT CLasso::Init(const Vector3 &pos,
 	CUtilityPole *pStart, 
 	CUtilityPole *pEnd)
 { // 体力を設定
@@ -113,7 +113,7 @@ void CLasso::Draw(void)
 //==================================================================================
 void CLasso::UpdateTransform(void)
 {
-	D3DXQUATERNION *pQuaLasso = GetQuaternionPtr();		// 現在のクォータニオン
+	Quaternion *pQuaLasso = GetQuaternionPtr();		// 現在のクォータニオン
 
 	// 球面線形補間を行う
 	D3DXQuaternionSlerp(pQuaLasso,
@@ -126,6 +126,12 @@ void CLasso::UpdateTransform(void)
 	if (m_fSlerpTime > 1.0f)
 	{ // 一定時間進んだら死亡
 		m_pStart->Connect(m_pEnd);
+
+		CPlayer *pPlayer = CManager::GetSceneByInstance<CGame>()->GetPlayer();
+
+		// 次に乗るべき電柱を設定
+		pPlayer->ChangeRidingPole(m_pEnd);
+
 		Uninit();
 	}
 }
@@ -140,7 +146,7 @@ void CLasso::Collision(void)
 	CUtilityPole *pPoleNear = nullptr;		// 最も近い電柱へのポインタ
 
 	// 投げ縄の現在位置表示
-	D3DXVECTOR3 pos;						// マトリックスのキャスト用
+	Vector3 pos;						// マトリックスのキャスト用
 	D3DXVec3TransformCoord(&pos, GetPosition(), GetMatrix());
 
 	while (pObject != nullptr)
@@ -151,7 +157,7 @@ void CLasso::Collision(void)
 		{ // もしオブジェクトが電柱であれば、ポインタをキャスト
 			CUtilityPole* pPole = static_cast<CUtilityPole*>(pObject);
 
-			D3DXVECTOR3 posPole;			// マトリックスのキャスト用
+			Vector3 posPole;			// マトリックスのキャスト用
 
 			// 各座標をマトリックスでワールド座標に変換
 			D3DXVec3TransformCoord(&posPole, pPole->GetPosition(), pPole->GetMatrix());

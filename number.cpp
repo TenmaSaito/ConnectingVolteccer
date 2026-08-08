@@ -23,7 +23,7 @@
 //==================================================================================
 // --- 数値オブジェクトの生成処理 (位置、サイズ、値指定) ---
 //==================================================================================
-CNumber *CNumber::Create(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int nValue)
+CNumber *CNumber::Create(const Vector3 &pos, const Vector2 &size, const int nValue)
 {
 	CNumber *pNumber = nullptr;		// 生成したオブジェクトへのポインタ
 
@@ -47,9 +47,9 @@ CNumber::CNumber()
 {
 	// メンバ変数をクリア
 	m_pVtxBuff = nullptr;
-	m_pos = D3DXVECTOR3(0, 0, 0);
-	m_rot = D3DXVECTOR3(0, 0, 0);
-	m_size = D3DXVECTOR2(0, 0);
+	m_pos = Vector3(0, 0, 0);
+	m_rot = Vector3(0, 0, 0);
+	m_size = Vector2(0, 0);
 	m_fLength = 0.0f;
 	m_fAngle = 0.0f;
 	m_nNumber = 0;
@@ -74,7 +74,7 @@ HRESULT CNumber::Init(void)
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
 
 	// サイズを初期化
-	m_size = D3DXVECTOR2(INIT_WIDTH, INIT_HEIGHT);
+	m_size = Vector2(INIT_WIDTH, INIT_HEIGHT);
 	m_nNumber = 0;
 
 	// 頂点バッファ作成
@@ -130,10 +130,10 @@ HRESULT CNumber::Init(void)
 	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
-	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(0.1f, 0.0f);
-	pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
-	pVtx[3].tex = D3DXVECTOR2(0.1f, 1.0f);
+	pVtx[0].tex = Vector2(0.0f, 0.0f);
+	pVtx[1].tex = Vector2(0.1f, 0.0f);
+	pVtx[2].tex = Vector2(0.0f, 1.0f);
+	pVtx[3].tex = Vector2(0.1f, 1.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuff->Unlock();
@@ -145,7 +145,7 @@ HRESULT CNumber::Init(void)
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CNumber::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int nNumber)
+HRESULT CNumber::Init(const Vector3 &pos, const Vector2 &size, const int nNumber)
 {
 	HRESULT hr;					// テクスチャ読み込みの判定
 	VERTEX_2D *pVtx = nullptr;		// 頂点情報へのポインタ
@@ -211,10 +211,10 @@ HRESULT CNumber::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int
 
 	// テクスチャ座標設定
 	int nUV = m_nNumber % 10;
-	pVtx[0].tex = D3DXVECTOR2(0.1f * nUV, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(0.1f * nUV + 0.1f, 0.0f);
-	pVtx[2].tex = D3DXVECTOR2(0.1f * nUV, 1.0f);
-	pVtx[3].tex = D3DXVECTOR2(0.1f * nUV + 0.1f, 1.0f);
+	pVtx[0].tex = Vector2(0.1f * nUV, 0.0f);
+	pVtx[1].tex = Vector2(0.1f * nUV + 0.1f, 0.0f);
+	pVtx[2].tex = Vector2(0.1f * nUV, 1.0f);
+	pVtx[3].tex = Vector2(0.1f * nUV + 0.1f, 1.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuff->Unlock();
@@ -269,7 +269,7 @@ void CNumber::Draw(void)
 //==================================================================================
 // --- 位置設定処理 ---
 //==================================================================================
-void CNumber::SetPosition(const D3DXVECTOR3 &position)
+void CNumber::SetPosition(const Vector3 &position)
 {
 	VERTEX_2D *pVtx = nullptr;		// 頂点情報へのポインタ
 
@@ -303,7 +303,7 @@ void CNumber::SetPosition(const D3DXVECTOR3 &position)
 //==================================================================================
 // --- 角度設定処理 ---
 //==================================================================================
-void CNumber::SetRotation(const D3DXVECTOR3 &rotation)
+void CNumber::SetRotation(const Vector3 &rotation)
 {
 	VERTEX_2D *pVtx = nullptr;		// 頂点情報へのポインタ
 
@@ -337,7 +337,7 @@ void CNumber::SetRotation(const D3DXVECTOR3 &rotation)
 //==================================================================================
 // --- 位置+角度の設定処理 ---
 //==================================================================================
-void CNumber::SetPositionAndRotation(const D3DXVECTOR3 &position, const D3DXVECTOR3 &rotation)
+void CNumber::SetPositionAndRotation(const Vector3 &position, const Vector3 &rotation)
 {
 	VERTEX_2D *pVtx = nullptr;		// 頂点情報へのポインタ
 
@@ -372,7 +372,7 @@ void CNumber::SetPositionAndRotation(const D3DXVECTOR3 &position, const D3DXVECT
 //==================================================================================
 // --- サイズ設定処理 ---
 //==================================================================================
-void CNumber::SetSize(const D3DXVECTOR2 &size)
+void CNumber::SetSize(const Vector2 &size)
 {
 	VERTEX_2D *pVtx = nullptr;		// 頂点情報へのポインタ
 
@@ -422,10 +422,10 @@ void CNumber::SetNumber(const int nValue)
 
 	// テクスチャ座標設定
 	int nUV = m_nNumber % 10;
-	pVtx[0].tex = D3DXVECTOR2(0.1f * nUV, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(0.1f * nUV + 0.1f, 0.0f);
-	pVtx[2].tex = D3DXVECTOR2(0.1f * nUV, 1.0f);
-	pVtx[3].tex = D3DXVECTOR2(0.1f * nUV + 0.1f, 1.0f);
+	pVtx[0].tex = Vector2(0.1f * nUV, 0.0f);
+	pVtx[1].tex = Vector2(0.1f * nUV + 0.1f, 0.0f);
+	pVtx[2].tex = Vector2(0.1f * nUV, 1.0f);
+	pVtx[3].tex = Vector2(0.1f * nUV + 0.1f, 1.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuff->Unlock();

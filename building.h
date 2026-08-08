@@ -35,20 +35,20 @@ public:
 	} TYPE;
 
 	static CBuilding *Create(const TYPE type,
-		const D3DXVECTOR3 &position = VECTOR3_NULL,
-		const D3DXVECTOR3 &vecQua = VECTOR3_NULL,
+		const Vector3 &position = VECTOR3_NULL,
+		const Vector3 &vecQua = VECTOR3_NULL,
 		const float fAngle = 0.0f);
 
 	static CBuilding *Create(const TYPE type,
-		const D3DXVECTOR3 &position = VECTOR3_NULL);
+		const Vector3 &position = VECTOR3_NULL);
 
 	CBuilding(const TYPE type, const int nPriority = DEFAULT_OBJ_PRIORITY);
 	~CBuilding();
 
-	HRESULT Init(const D3DXVECTOR3 &position,
-		const D3DXVECTOR3 &vecQua,
+	HRESULT Init(const Vector3 &position,
+		const Vector3 &vecQua,
 		const float fAngle);
-	HRESULT Init(const D3DXVECTOR3 &position);
+	HRESULT Init(const Vector3 &position);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);

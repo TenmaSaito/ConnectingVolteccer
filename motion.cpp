@@ -19,7 +19,6 @@ CMotion::CMotion()
 { // メンバ変数をクリア
 	ZeroMemory(m_aInfo, sizeof(m_aInfo));
 	m_nNumAll = 0;
-	m_ppModel = nullptr;
 	m_nNumModel = 0;
 	m_nType = 0;
 	m_bLoop = false;
@@ -77,10 +76,10 @@ void CMotion::Update(void)
 		float fRateKey = (float)m_nCounter / (float)pKeyInfo->nFrame;	// モーションカウンター / 再生フレーム数
 		KEY *pKey = &pKeyInfo->aKey[nCntModel];							// 現在のキー
 		KEY *pKeyNext = &pInfo->aKeyInfo[nNext].aKey[nCntModel];		// 次のキー
-		D3DXVECTOR3 diffPos = {};		// 位置の差分
-		D3DXVECTOR3 UpdatePos = {};		// 更新する位置
-		D3DXVECTOR3 diffRot = {};		// 角度の差分
-		D3DXVECTOR3 UpdateRot = {};		// 更新する角度
+		Vector3 diffPos = {};		// 位置の差分
+		Vector3 UpdatePos = {};		// 更新する位置
+		Vector3 diffRot = {};		// 角度の差分
+		Vector3 UpdateRot = {};		// 更新する角度
 
 		if (m_bBlend == false)
 		{ // ブレンド無しの場合
@@ -94,12 +93,12 @@ void CMotion::Update(void)
 		}
 		else
 		{ // ブレンドありの場合
-			D3DXVECTOR3 diffKeyPosCurrent = {};	// 現在のモーションの位置の差分
-			D3DXVECTOR3 diffKeyRotCurrent = {};	// 現在のモーションの角度の差分
-			D3DXVECTOR3 diffKeyPosBlend = {};	// ブレンドモーションの位置の差分
-			D3DXVECTOR3 diffKeyRotBlend = {};	// ブレンドモーションの角度の差分
-			D3DXVECTOR3 diffPosBlend = {};		// 位置の最終差分
-			D3DXVECTOR3 diffRotBlend = {};		// 角度の最終差分
+			Vector3 diffKeyPosCurrent = {};	// 現在のモーションの位置の差分
+			Vector3 diffKeyRotCurrent = {};	// 現在のモーションの角度の差分
+			Vector3 diffKeyPosBlend = {};	// ブレンドモーションの位置の差分
+			Vector3 diffKeyRotBlend = {};	// ブレンドモーションの角度の差分
+			Vector3 diffPosBlend = {};		// 位置の最終差分
+			Vector3 diffRotBlend = {};		// 角度の最終差分
 			float fRateKeyBlend = (float)m_nCounterMotionBlend / (float)pKeyBlendInfo->nFrame;		// モーションカウンター / 再生フレーム数
 			int nNextBlend = (m_nKeyBlend + 1) % pInfoBlend->nNumKey;					// 次のキーの値
 			KEY* pKeyNextBlend = &pInfoBlend->aKeyInfo[nNextBlend].aKey[nCntModel];		// 次のキー
@@ -192,7 +191,7 @@ void CMotion::SetInfo(const INFO info)
 //==================================================================================
 // --- モデルへのポインタの設定処理 ---
 //==================================================================================
-void CMotion::SetModel(CModel **ppModel, const int nNumModel)
+void CMotion::SetModel(ModelArray ppModel, const int nNumModel)
 { // 各変数を保存
 	m_ppModel = ppModel;
 	m_nNumModel = nNumModel;
@@ -265,10 +264,10 @@ void CMotion::SetByBlend(void)
 		float fRateKey = (float)m_nCounter / (float)pKeyInfo->nFrame;	// モーションカウンター / 再生フレーム数
 		KEY* pKey = &pKeyInfo->aKey[nCntModel];							// 現在のキー
 		KEY* pKeyNext = &pInfo->aKeyInfo[nNext].aKey[nCntModel];		// 次のキー
-		D3DXVECTOR3 diffPos = {};		// 位置の差分
-		D3DXVECTOR3 UpdatePos = {};		// 更新する位置
-		D3DXVECTOR3 diffRot = {};		// 角度の差分
-		D3DXVECTOR3 UpdateRot = {};		// 更新する角度
+		Vector3 diffPos = {};		// 位置の差分
+		Vector3 UpdatePos = {};		// 更新する位置
+		Vector3 diffRot = {};		// 角度の差分
+		Vector3 UpdateRot = {};		// 更新する角度
 
 		// 位置
 		diffPos = pKeyNext->pos - pKey->pos;			// 位置の差分

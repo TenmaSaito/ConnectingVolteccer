@@ -38,16 +38,16 @@ public:
 		STATE_MAX
 	} STATE;
 
-	static CPlayerCamera *Create(const D3DXVECTOR3 &rot,
-		const D3DXVECTOR3 &rotRiding,
+	static CPlayerCamera *Create(const Vector3 &rot,
+		const Vector3 &rotRiding,
 		const float fLengthPlayer,
 		const float fLengthRiding = DEFAULT_RIDING_LENGTH);
 
 	CPlayerCamera();
 	~CPlayerCamera();
 
-	void Init(const D3DXVECTOR3 &rot, 
-		const D3DXVECTOR3 &rotRiding, 
+	void Init(const Vector3 &rot, 
+		const Vector3 &rotRiding, 
 		const float fLengthPlayer, 
 		const float fLengthRiding);
 	void Uninit(void);
@@ -60,8 +60,8 @@ public:
 
 private:
 	const CPlayer *m_pPlayer;			// プレイヤーへのポインタ
-	D3DXVECTOR3 m_rotDefault;			// 通常のカメラ角度
-	D3DXVECTOR3 m_rotRidingDefault;		// 電柱登攀時の通常のカメラ角度
+	Vector3 m_rotDefault;			// 通常のカメラ角度
+	Vector3 m_rotRidingDefault;		// 電柱登攀時の通常のカメラ角度
 	float m_fLengthPlayer;		// プレイヤーとの距離
 	float m_fLengthRiding;		// 電柱登攀時の距離
 	STATE m_state;				// 現在の状態

@@ -45,7 +45,7 @@ CLight::~CLight()
 void CLight::Init(void)
 {
 	LPDIRECT3DDEVICE9 pDevice = CManager::GetDeviceByInstance();		// デバイスへのポインタ
-	D3DXVECTOR3 vecDir[3];			// ライトの方向ベクトル
+	Vector3 vecDir[3];			// ライトの方向ベクトル
 
 	// ライトの情報を初期化
 	memset(&m_aLight[0], 0, sizeof(m_aLight));
@@ -61,15 +61,15 @@ void CLight::Init(void)
 	m_aLight[2].Diffuse = D3DXCOLOR(0.3f, 0.3f, 0.3f, 1.0f);
 
 	// ライトの方向を設定
-	vecDir[0] = D3DXVECTOR3(0.0f, -0.8f, -0.4f);
+	vecDir[0] = Vector3(0.0f, -0.8f, -0.4f);
 	D3DXVec3Normalize(&vecDir[0], &vecDir[0]);
 	m_aLight[0].Direction = vecDir[0];
 
-	vecDir[1] = D3DXVECTOR3(-0.3f, 0.4f, 0.5f);
+	vecDir[1] = Vector3(-0.3f, 0.4f, 0.5f);
 	D3DXVec3Normalize(&vecDir[1], &vecDir[1]);
 	m_aLight[1].Direction = vecDir[1];
 
-	vecDir[2] = D3DXVECTOR3(0.2f, 0.1f, 0.1f);
+	vecDir[2] = Vector3(0.2f, 0.1f, 0.1f);
 	D3DXVec3Normalize(&vecDir[2], &vecDir[2]);
 	m_aLight[2].Direction = vecDir[2];
 
@@ -101,7 +101,7 @@ void CLight::Update(void)
 	auto pKeyboard = pManager->GetInputKeyboard();			// キーボードへのポインタ
 	auto pJoypad = pManager->GetJoypad();					// ジョイパッドへのポインタ
 	auto pProc = CManager::GetInstance()->GetDebugProc();		// デバッグ表示へのポインタ
-	D3DXVECTOR3 vecDir = m_aLight[m_nIdxLight].Direction;	// ライトの向き 
+	Vector3 vecDir = m_aLight[m_nIdxLight].Direction;	// ライトの向き 
 
 	if (pKeyboard->GetPress(DIK_LSHIFT))
 	{ // 左シフトを押している間ライティングモード

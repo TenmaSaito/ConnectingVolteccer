@@ -20,8 +20,8 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define THUNDER_MAX		(D3DXVECTOR3(40.0f, 0.0f, 0.0f))		// 雷エフェクトの最大値
-#define THUNDER_MIN		(D3DXVECTOR3(-40.0f, 0.0f, 0.0f))		// 雷エフェクトの最小値
+#define THUNDER_MAX		(Vector3(40.0f, 0.0f, 0.0f))		// 雷エフェクトの最大値
+#define THUNDER_MIN		(Vector3(-40.0f, 0.0f, 0.0f))		// 雷エフェクトの最小値
 
 //==================================================================================
 // --- 生成処理 ---
@@ -77,11 +77,11 @@ HRESULT CElectricCurrent::Init(CUtilityPole *pStart,
 	CUtilityPole *pEnd,
 	const float fTotalTime)
 {
-	D3DXVECTOR3 posStart = *pStart->GetPosition();		// 始点の座標
-	D3DXVECTOR3 posEnd = *pEnd->GetPosition();			// 終点の座標
+	Vector3 posStart = *pStart->GetPosition();		// 始点の座標
+	Vector3 posEnd = *pEnd->GetPosition();			// 終点の座標
 	
-	const D3DXQUATERNION *pQuaStart = pStart->GetQuaternion();	// 始点のクォータニオン
-	const D3DXQUATERNION *pQuaEnd = pEnd->GetQuaternion();		// 終点のクォータニオン
+	const Quaternion *pQuaStart = pStart->GetQuaternion();	// 始点のクォータニオン
+	const Quaternion *pQuaEnd = pEnd->GetQuaternion();		// 終点のクォータニオン
 
 	// 最初の電柱と最後の電柱を保存
 	m_pStart = pStart;

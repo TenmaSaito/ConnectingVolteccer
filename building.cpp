@@ -36,8 +36,8 @@ const char *CBuilding::m_apBulidingPath[TYPE_MAX] =		// 建物モデルのパス
 // --- 生成処理 ---
 //==================================================================================
 CBuilding *CBuilding::Create(const TYPE type,
-	const D3DXVECTOR3 &position,
-	const D3DXVECTOR3 &vecQua,
+	const Vector3 &position,
+	const Vector3 &vecQua,
 	const float fAngle)
 { // 建物の生成
 	CBuilding *pBuilding = nullptr;		// 建物へのポインタ
@@ -61,7 +61,7 @@ CBuilding *CBuilding::Create(const TYPE type,
 //==================================================================================
 // --- 生成処理 (任意軸と角度を現在の惑星から自動設定) ---
 //==================================================================================
-CBuilding *CBuilding::Create(const TYPE type, const D3DXVECTOR3 &position)
+CBuilding *CBuilding::Create(const TYPE type, const Vector3 &position)
 { // 建物の生成
 	CBuilding *pBuilding = nullptr;		// 建物へのポインタ
 
@@ -107,8 +107,8 @@ CBuilding::~CBuilding()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CBuilding::Init(const D3DXVECTOR3 &position,
-	const D3DXVECTOR3 &vecQua,
+HRESULT CBuilding::Init(const Vector3 &position,
+	const Vector3 &vecQua,
 	const float fAngle)
 {
 	HRESULT hr = S_OK;		// 結果
@@ -130,14 +130,14 @@ HRESULT CBuilding::Init(const D3DXVECTOR3 &position,
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CBuilding::Init(const D3DXVECTOR3 &position)
+HRESULT CBuilding::Init(const Vector3 &position)
 {
 	HRESULT hr = S_OK;		// 結果
 	CGame *pGame = CManager::GetSceneByInstance<CGame>();		// ゲームへのポインタ
 	CPlanet *pPlanet = pGame->GetPlanet();		// 惑星へのポインタ
 
 	// 惑星から現在の任意軸と角度を取得
-	D3DXVECTOR3 vecQua = VECTOR3_NULL;
+	Vector3 vecQua = VECTOR3_NULL;
 	float fAngle = 0.0f;
 
 	// クォータニオンから軸と角度を求める
@@ -184,7 +184,7 @@ void CBuilding::Update(void)
 	{ // 電柱が存在するなら判定
 		if (m_pNearPole->IsElectriced())
 		{ // 既に電柱に電流が流れている場合
-			D3DXVECTOR3 scale = *GetScale();		// スケールの値
+			Vector3 scale = *GetScale();		// スケールの値
 
 			// スケール値を変化
 			m_fLerp += m_fValue;
@@ -218,7 +218,7 @@ void CBuilding::FindUtilityPole(void)
 {
 	CObject *pObject = CObject::GetTop(UTILITYPOLE_PRIORITY);		// 最初のオブジェクト
 	float fLengthMin = 10000.0f;			// 現状最も近い電柱との距離
-	D3DXVECTOR3 pos;		// 建物のワールド座標
+	Vector3 pos;		// 建物のワールド座標
 
 	// 座標をマトリックスでワールド座標に変換
 	pos = GetWorldPosition();
@@ -232,7 +232,7 @@ void CBuilding::FindUtilityPole(void)
 			CUtilityPole *pPole = static_cast<CUtilityPole*>(pObject);
 
 			// 電柱のワールド座標を求める
-			D3DXVECTOR3 posPole;	// 電柱のワールド座標
+			Vector3 posPole;	// 電柱のワールド座標
 			posPole = pPole->GetWorldPosition();
 
 			// 距離を計算

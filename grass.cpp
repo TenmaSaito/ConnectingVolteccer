@@ -26,7 +26,7 @@
 //==================================================================================
 // --- 生成処理 ---
 //==================================================================================
-CGrass *CGrass::Create(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const float fSwaySpeed, const float fSwayWidth)
+CGrass *CGrass::Create(const Vector3 &pos, const Vector2 &size, const float fSwaySpeed, const float fSwayWidth)
 {
 	CGrass *pGrass = nullptr;
 
@@ -70,7 +70,7 @@ CGrass::~CGrass()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CGrass::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const float fSwaySpeed, const float fSwayWidth)
+HRESULT CGrass::Init(const Vector3 &pos, const Vector2 &size, const float fSwaySpeed, const float fSwayWidth)
 {
 	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
 	CRand *pRand = CRand::GetInstance();				// 乱数デバイスへのポインタ
@@ -122,10 +122,10 @@ HRESULT CGrass::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const floa
 	pVtx[3].pos.z = 0.0f;
 
 	// 法線ベクトルの設定
-	pVtx[0].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-	pVtx[1].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-	pVtx[2].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-	pVtx[3].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
+	pVtx[0].nor = Vector3(0.0f, 0.0f, -1.0f);
+	pVtx[1].nor = Vector3(0.0f, 0.0f, -1.0f);
+	pVtx[2].nor = Vector3(0.0f, 0.0f, -1.0f);
+	pVtx[3].nor = Vector3(0.0f, 0.0f, -1.0f);
 
 	// 頂点カラー設定
 	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
@@ -134,10 +134,10 @@ HRESULT CGrass::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const floa
 	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
-	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(1.0f, 0.0f);
-	pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
-	pVtx[3].tex = D3DXVECTOR2(1.0f, 1.0f);
+	pVtx[0].tex = Vector2(0.0f, 0.0f);
+	pVtx[1].tex = Vector2(1.0f, 0.0f);
+	pVtx[2].tex = Vector2(0.0f, 1.0f);
+	pVtx[3].tex = Vector2(1.0f, 1.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuff->Unlock();
@@ -233,13 +233,13 @@ void CGrass::Draw(void)
 //==================================================================================
 // --- 当たり判定処理 ---
 //==================================================================================
-bool CGrass::Collision(const D3DXVECTOR3 &pos, const float fRadius)
+bool CGrass::Collision(const Vector3 &pos, const float fRadius)
 {
 	CManager *pManager = CManager::GetInstance();	// マネージャーへのポインタ
 	auto pProc = pManager->GetDebugProc();			// デバッグ表示へのポインタ
-	D3DXVECTOR3 vecToGrass = VECTOR3_NULL;			// プレイヤーから草へのベクトル
-	D3DXVECTOR3 norVec = VECTOR3_NULL;	// 正規化されたベクトル
-	D3DXVECTOR3 rot = VECTOR3_NULL;		// 計算後の角度
+	Vector3 vecToGrass = VECTOR3_NULL;			// プレイヤーから草へのベクトル
+	Vector3 norVec = VECTOR3_NULL;	// 正規化されたベクトル
+	Vector3 rot = VECTOR3_NULL;		// 計算後の角度
 	float fLength = 0.0f;		// posと草の距離
 	float fAngle = 0.0f;		// 角度
 	float fPower = 0.0f;		// 倒れる強さ

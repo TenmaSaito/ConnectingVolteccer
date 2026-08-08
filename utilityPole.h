@@ -47,14 +47,14 @@ public:
 		HEIGHT_MAX
 	} HEIGHT;
 
-	static CUtilityPole *Create(const D3DXVECTOR3 &pos,
-		const D3DXVECTOR3 &vecQua,
+	static CUtilityPole *Create(const Vector3 &pos,
+		const Vector3 &vecQua,
 		const float fAngle);
 
 	CUtilityPole();
 	~CUtilityPole();
 
-	HRESULT Init(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &vecQua, const float fAngle);
+	HRESULT Init(const Vector3 &pos, const Vector3 &vecQua, const float fAngle);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);

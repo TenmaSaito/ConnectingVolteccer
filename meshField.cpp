@@ -20,9 +20,9 @@
 //==================================================================================
 // --- メッシュフィールドの作成 ---
 //==================================================================================
-CMeshField *CMeshField::Create(const D3DXVECTOR3 &pos,
-	const D3DXVECTOR3 &rot,
-	const D3DXVECTOR2 &size,
+CMeshField *CMeshField::Create(const Vector3 &pos,
+	const Vector3 &rot,
+	const Vector2 &size,
 	const int nNumXBlock,
 	const int nNumZBlock)
 {
@@ -69,9 +69,9 @@ CMeshField::~CMeshField()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CMeshField::Init(const D3DXVECTOR3 &pos, 
-	const D3DXVECTOR3 &rot,
-	const D3DXVECTOR2 &size,
+HRESULT CMeshField::Init(const Vector3 &pos, 
+	const Vector3 &rot,
+	const Vector2 &size,
 	const int nNumXBlock,
 	const int nNumZBlock)
 {
@@ -136,15 +136,15 @@ HRESULT CMeshField::Init(const D3DXVECTOR3 &pos,
 				nIdxVtx = nCntXBlock + (nCntZBlock * (nNumXBlock + 1));		// 設定する頂点のインデックス
 
 				// 初期法線
-				pVtx[nIdxVtx].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+				pVtx[nIdxVtx].nor = Vector3(0.0f, 1.0f, 0.0f);
 
 				if (nCntZBlock == 0)
 				{ // 一列目の場合
 					if (nCntXBlock == 0)
 					{ // 初めの頂点の場合、二つの法線ベクトルの平均を計算
-						D3DXVECTOR3 norA, norB;		// 各頂点の法線
-						D3DXVECTOR3 norAB;			// 求める法線
-						D3DXVECTOR3 aVec[4];		// 各頂点の境界線ベクトル
+						Vector3 norA, norB;		// 各頂点の法線
+						Vector3 norAB;			// 求める法線
+						Vector3 aVec[4];		// 各頂点の境界線ベクトル
 
 						// 各境界線ベクトルを求める
 						aVec[0] = pVtx[nIdxVtx].pos - pVtx[(m_nNumZBlock + 1)].pos;
@@ -170,8 +170,8 @@ HRESULT CMeshField::Init(const D3DXVECTOR3 &pos,
 					}
 					else if (nCntXBlock == m_nNumXBlock)
 					{ // 右上の頂点の場合、一つの法線ベクトルの計算
-						D3DXVECTOR3 nor;			// 求める法線
-						D3DXVECTOR3 aVec[2];		// 各頂点の境界線ベクトル
+						Vector3 nor;			// 求める法線
+						Vector3 aVec[2];		// 各頂点の境界線ベクトル
 
 						// 各境界線ベクトルを求める
 						aVec[0] = pVtx[nIdxVtx - 1].pos - pVtx[nIdxVtx].pos;
@@ -188,10 +188,10 @@ HRESULT CMeshField::Init(const D3DXVECTOR3 &pos,
 					}
 					else
 					{ // それ以外の場合、三つの法線ベクトルの平均を計算
-						D3DXVECTOR3 norA, norB, norC;		// 各頂点の法線
-						D3DXVECTOR3 norBC;			// BCの法線
-						D3DXVECTOR3 norABC;			// 求める法線
-						D3DXVECTOR3 aVec[6];		// 各頂点の境界線ベクトル
+						Vector3 norA, norB, norC;		// 各頂点の法線
+						Vector3 norBC;			// BCの法線
+						Vector3 norABC;			// 求める法線
+						Vector3 aVec[6];		// 各頂点の境界線ベクトル
 
 						// 各境界線ベクトルを求める
 						aVec[0] = pVtx[nIdxVtx - 1].pos - pVtx[nIdxVtx].pos;
@@ -228,8 +228,8 @@ HRESULT CMeshField::Init(const D3DXVECTOR3 &pos,
 				{ // 最後の列の場合
 					if (nCntXBlock == 0)
 					{ // 左下の頂点の場合、一つの法線ベクトルの計算
-						D3DXVECTOR3 nor;			// 求める法線
-						D3DXVECTOR3 aVec[2];		// 各頂点の境界線ベクトル
+						Vector3 nor;			// 求める法線
+						Vector3 aVec[2];		// 各頂点の境界線ベクトル
 
 						// 各境界線ベクトルを求める
 						aVec[0] = pVtx[nIdxVtx - (m_nNumXBlock + 1)].pos - pVtx[nIdxVtx].pos;
@@ -246,9 +246,9 @@ HRESULT CMeshField::Init(const D3DXVECTOR3 &pos,
 					}
 					else if (nCntXBlock == m_nNumXBlock)
 					{ // 最後の頂点の場合、二つの法線ベクトルの平均を計算
-						D3DXVECTOR3 norA, norB;		// 各頂点の法線
-						D3DXVECTOR3 norAB;			// 求める法線
-						D3DXVECTOR3 aVec[4];		// 各頂点の境界線ベクトル
+						Vector3 norA, norB;		// 各頂点の法線
+						Vector3 norAB;			// 求める法線
+						Vector3 aVec[4];		// 各頂点の境界線ベクトル
 
 						// 各境界線ベクトルを求める
 						aVec[0] = pVtx[nIdxVtx - 1 - (m_nNumZBlock + 1)].pos - pVtx[nIdxVtx - 1].pos;
@@ -274,10 +274,10 @@ HRESULT CMeshField::Init(const D3DXVECTOR3 &pos,
 					}
 					else
 					{ // それ以外の場合、三つの法線ベクトルの平均を計算
-						D3DXVECTOR3 norA, norB, norC;		// 各頂点の法線
-						D3DXVECTOR3 norBC;			// BCの法線
-						D3DXVECTOR3 norABC;			// 求める法線
-						D3DXVECTOR3 aVec[6];		// 各頂点の境界線ベクトル
+						Vector3 norA, norB, norC;		// 各頂点の法線
+						Vector3 norBC;			// BCの法線
+						Vector3 norABC;			// 求める法線
+						Vector3 aVec[6];		// 各頂点の境界線ベクトル
 
 						// 各境界線ベクトルを求める
 						aVec[0] = pVtx[nIdxVtx - (m_nNumXBlock + 1)].pos - pVtx[nIdxVtx].pos;
@@ -314,10 +314,10 @@ HRESULT CMeshField::Init(const D3DXVECTOR3 &pos,
 				{ // 間の列の場合
 					if (nCntXBlock == 0)
 					{ // 最初の頂点の場合、三つの法線の平均を計算
-						D3DXVECTOR3 norA, norB, norC;		// 各頂点の法線
-						D3DXVECTOR3 norBC;			// BCの法線
-						D3DXVECTOR3 norABC;			// 求める法線
-						D3DXVECTOR3 aVec[6];		// 各頂点の境界線ベクトル
+						Vector3 norA, norB, norC;		// 各頂点の法線
+						Vector3 norBC;			// BCの法線
+						Vector3 norABC;			// 求める法線
+						Vector3 aVec[6];		// 各頂点の境界線ベクトル
 
 						// 各境界線ベクトルを求める
 						aVec[0] = pVtx[nIdxVtx - (m_nNumXBlock + 1)].pos - pVtx[nIdxVtx].pos;
@@ -351,10 +351,10 @@ HRESULT CMeshField::Init(const D3DXVECTOR3 &pos,
 					}
 					else if (nCntXBlock == m_nNumXBlock)
 					{ // 右端の頂点の場合、三つの法線の平均を計算
-						D3DXVECTOR3 norA, norB, norC;		// 各頂点の法線
-						D3DXVECTOR3 norBC;			// BCの法線
-						D3DXVECTOR3 norABC;			// 求める法線
-						D3DXVECTOR3 aVec[6];		// 各頂点の境界線ベクトル
+						Vector3 norA, norB, norC;		// 各頂点の法線
+						Vector3 norBC;			// BCの法線
+						Vector3 norABC;			// 求める法線
+						Vector3 aVec[6];		// 各頂点の境界線ベクトル
 
 						// 各境界線ベクトルを求める
 						aVec[0] = pVtx[nIdxVtx - 1].pos - pVtx[nIdxVtx].pos;
@@ -388,10 +388,10 @@ HRESULT CMeshField::Init(const D3DXVECTOR3 &pos,
 					}
 					else
 					{ // それ以外の頂点の場合、六つ(1は既に求まっている)の法線の平均を計算
-						D3DXVECTOR3 norA, norB, norC, norD, norE;		// 各頂点の法線
-						D3DXVECTOR3 norDE;			// BCの法線
-						D3DXVECTOR3 norABCDE;		// 求める法線
-						D3DXVECTOR3 aVec[8];		// 各頂点の境界線ベクトル
+						Vector3 norA, norB, norC, norD, norE;		// 各頂点の法線
+						Vector3 norDE;			// BCの法線
+						Vector3 norABCDE;		// 求める法線
+						Vector3 aVec[8];		// 各頂点の境界線ベクトル
 
 						// 左上の法線の取得
 						norA = pVtx[nIdxVtx - 1 - (m_nNumZBlock + 1)].nor;
@@ -510,7 +510,7 @@ void CMeshField::Update(void)
 	auto pKeyboard = pManager->GetInputKeyboard();		// キーボードへのポインタ
 	auto pProc = pManager->GetDebugProc();				// デバッグ表示へのポインタ
 	VERTEX_3D *pVtx = nullptr;				// 頂点バッファへのポインタ
-	D3DXVECTOR3 posVtx;						// 頂点座標
+	Vector3 posVtx;						// 頂点座標
 
 	if (pKeyboard->GetPress(DIK_LCONTROL))
 	{ // 左CTRLを押しながらで頂点編集モード
@@ -549,9 +549,9 @@ void CMeshField::Update(void)
 					{ // 一列目の場合
 						if (nCntXBlock == 0)
 						{ // 初めの頂点の場合、二つの法線ベクトルの平均を計算
-							D3DXVECTOR3 norA, norB;		// 各頂点の法線
-							D3DXVECTOR3 norAB;			// 求める法線
-							D3DXVECTOR3 aVec[4];		// 各頂点の境界線ベクトル
+							Vector3 norA, norB;		// 各頂点の法線
+							Vector3 norAB;			// 求める法線
+							Vector3 aVec[4];		// 各頂点の境界線ベクトル
 
 							// 各境界線ベクトルを求める
 							aVec[0] = pVtx[nIdxVtx].pos - pVtx[(m_nNumZBlock + 1)].pos;
@@ -577,8 +577,8 @@ void CMeshField::Update(void)
 						}
 						else if (nCntXBlock == m_nNumXBlock)
 						{ // 右上の頂点の場合、一つの法線ベクトルの計算
-							D3DXVECTOR3 nor;			// 求める法線
-							D3DXVECTOR3 aVec[2];		// 各頂点の境界線ベクトル
+							Vector3 nor;			// 求める法線
+							Vector3 aVec[2];		// 各頂点の境界線ベクトル
 
 							// 各境界線ベクトルを求める
 							aVec[0] = pVtx[nIdxVtx - 1].pos - pVtx[nIdxVtx].pos;
@@ -595,10 +595,10 @@ void CMeshField::Update(void)
 						}
 						else
 						{ // それ以外の場合、三つの法線ベクトルの平均を計算
-							D3DXVECTOR3 norA, norB, norC;		// 各頂点の法線
-							D3DXVECTOR3 norBC;			// BCの法線
-							D3DXVECTOR3 norABC;			// 求める法線
-							D3DXVECTOR3 aVec[6];		// 各頂点の境界線ベクトル
+							Vector3 norA, norB, norC;		// 各頂点の法線
+							Vector3 norBC;			// BCの法線
+							Vector3 norABC;			// 求める法線
+							Vector3 aVec[6];		// 各頂点の境界線ベクトル
 
 							// 各境界線ベクトルを求める
 							aVec[0] = pVtx[nIdxVtx - 1].pos - pVtx[nIdxVtx].pos;
@@ -635,8 +635,8 @@ void CMeshField::Update(void)
 					{ // 最後の列の場合
 						if (nCntXBlock == 0)
 						{ // 左下の頂点の場合、一つの法線ベクトルの計算
-							D3DXVECTOR3 nor;			// 求める法線
-							D3DXVECTOR3 aVec[2];		// 各頂点の境界線ベクトル
+							Vector3 nor;			// 求める法線
+							Vector3 aVec[2];		// 各頂点の境界線ベクトル
 
 							// 各境界線ベクトルを求める
 							aVec[0] = pVtx[nIdxVtx - (m_nNumXBlock + 1)].pos - pVtx[nIdxVtx].pos;
@@ -653,9 +653,9 @@ void CMeshField::Update(void)
 						}
 						else if (nCntXBlock == m_nNumXBlock)
 						{ // 最後の頂点の場合、二つの法線ベクトルの平均を計算
-							D3DXVECTOR3 norA, norB;		// 各頂点の法線
-							D3DXVECTOR3 norAB;			// 求める法線
-							D3DXVECTOR3 aVec[4];		// 各頂点の境界線ベクトル
+							Vector3 norA, norB;		// 各頂点の法線
+							Vector3 norAB;			// 求める法線
+							Vector3 aVec[4];		// 各頂点の境界線ベクトル
 
 							// 各境界線ベクトルを求める
 							aVec[0] = pVtx[nIdxVtx - 1 - (m_nNumZBlock + 1)].pos - pVtx[nIdxVtx - 1].pos;
@@ -681,10 +681,10 @@ void CMeshField::Update(void)
 						}
 						else
 						{ // それ以外の場合、三つの法線ベクトルの平均を計算
-							D3DXVECTOR3 norA, norB, norC;		// 各頂点の法線
-							D3DXVECTOR3 norBC;			// BCの法線
-							D3DXVECTOR3 norABC;			// 求める法線
-							D3DXVECTOR3 aVec[6];		// 各頂点の境界線ベクトル
+							Vector3 norA, norB, norC;		// 各頂点の法線
+							Vector3 norBC;			// BCの法線
+							Vector3 norABC;			// 求める法線
+							Vector3 aVec[6];		// 各頂点の境界線ベクトル
 
 							// 各境界線ベクトルを求める
 							aVec[0] = pVtx[nIdxVtx - (m_nNumXBlock + 1)].pos - pVtx[nIdxVtx].pos;
@@ -721,10 +721,10 @@ void CMeshField::Update(void)
 					{ // 間の列の場合
 						if (nCntXBlock == 0)
 						{ // 最初の頂点の場合、三つの法線の平均を計算
-							D3DXVECTOR3 norA, norB, norC;		// 各頂点の法線
-							D3DXVECTOR3 norBC;			// BCの法線
-							D3DXVECTOR3 norABC;			// 求める法線
-							D3DXVECTOR3 aVec[6];		// 各頂点の境界線ベクトル
+							Vector3 norA, norB, norC;		// 各頂点の法線
+							Vector3 norBC;			// BCの法線
+							Vector3 norABC;			// 求める法線
+							Vector3 aVec[6];		// 各頂点の境界線ベクトル
 
 							// 各境界線ベクトルを求める
 							aVec[0] = pVtx[nIdxVtx - (m_nNumXBlock + 1)].pos - pVtx[nIdxVtx].pos;
@@ -758,10 +758,10 @@ void CMeshField::Update(void)
 						}
 						else if (nCntXBlock == m_nNumXBlock)
 						{ // 右端の頂点の場合、三つの法線の平均を計算
-							D3DXVECTOR3 norA, norB, norC;		// 各頂点の法線
-							D3DXVECTOR3 norBC;			// BCの法線
-							D3DXVECTOR3 norABC;			// 求める法線
-							D3DXVECTOR3 aVec[6];		// 各頂点の境界線ベクトル
+							Vector3 norA, norB, norC;		// 各頂点の法線
+							Vector3 norBC;			// BCの法線
+							Vector3 norABC;			// 求める法線
+							Vector3 aVec[6];		// 各頂点の境界線ベクトル
 
 							// 各境界線ベクトルを求める
 							aVec[0] = pVtx[nIdxVtx - 1].pos - pVtx[nIdxVtx].pos;
@@ -795,10 +795,10 @@ void CMeshField::Update(void)
 						}
 						else
 						{ // それ以外の頂点の場合、六つ(1は既に求まっている)の法線の平均を計算
-							D3DXVECTOR3 norA, norB, norC, norD, norE;		// 各頂点の法線
-							D3DXVECTOR3 norDE;			// BCの法線
-							D3DXVECTOR3 norABCDE;		// 求める法線
-							D3DXVECTOR3 aVec[8];		// 各頂点の境界線ベクトル
+							Vector3 norA, norB, norC, norD, norE;		// 各頂点の法線
+							Vector3 norDE;			// BCの法線
+							Vector3 norABCDE;		// 求める法線
+							Vector3 aVec[8];		// 各頂点の境界線ベクトル
 
 							// 左上の法線の取得
 							norA = pVtx[nIdxVtx - 1 - (m_nNumZBlock + 1)].nor;
@@ -891,20 +891,20 @@ void CMeshField::Draw(void)
 //==================================================================================
 // --- メッシュフィールドの高さ取得処理 ---
 //==================================================================================
-float CMeshField::GetHeight(const D3DXVECTOR3 &pos)
+float CMeshField::GetHeight(const Vector3 &pos)
 {
 	CManager *pManager = CManager::GetInstance();	// マネージャーへのポインタ
 	auto pProc = pManager->GetDebugProc();			// デバッグ表示へのポインタ
-	D3DXVECTOR3 aVtx[4] = { VECTOR3_NULL };		// 当たり判定をする頂点座標
-	D3DXVECTOR3 posStart = VECTOR3_NULL;		// 割合計算の開始地点
+	Vector3 aVtx[4] = { VECTOR3_NULL };		// 当たり判定をする頂点座標
+	Vector3 posStart = VECTOR3_NULL;		// 割合計算の開始地点
 	float fHeight = 0.0f;			// 計算結果
 
 	// スタート地点を指定 (左上)
 	posStart.x = m_pos.x - (m_size.x * 0.5f);
 	posStart.z = m_pos.z + (m_size.y * 0.5f);
 
-	D3DXVECTOR3 posDiff = VECTOR3_NULL;			// スタート地点からの差分
-	D3DXVECTOR3 norDiff = VECTOR3_NULL;			// 差分の正規化結果
+	Vector3 posDiff = VECTOR3_NULL;			// スタート地点からの差分
+	Vector3 norDiff = VECTOR3_NULL;			// 差分の正規化結果
 
 	// スタート位置からどれだけ離れているかを求める
 	posDiff.x = pos.x - posStart.x;
@@ -954,8 +954,8 @@ float CMeshField::GetHeight(const D3DXVECTOR3 &pos)
 
 	if (Vec3::IsInsideTriangle(pos, &aVtx[0]))
 	{ // もし三角形の内側にいたら
-		D3DXVECTOR3 vec1, vec2;		// 各頂点間のベクトル
-		D3DXVECTOR3 nor;			// 法線ベクトル
+		Vector3 vec1, vec2;		// 各頂点間のベクトル
+		Vector3 nor;			// 法線ベクトル
 
 		// 各ベクトルを求める
 		vec1 = aVtx[1] - aVtx[0];
@@ -970,8 +970,8 @@ float CMeshField::GetHeight(const D3DXVECTOR3 &pos)
 	}
 	else if (Vec3::IsInsideTriangle(pos, &aVtx[1], true))
 	{ // もし三角形の内側にいたら
-		D3DXVECTOR3 vec1, vec2;		// 各頂点間のベクトル
-		D3DXVECTOR3 nor;			// 法線ベクトル
+		Vector3 vec1, vec2;		// 各頂点間のベクトル
+		Vector3 nor;			// 法線ベクトル
 
 		// 各ベクトルを求める
 		vec1 = aVtx[1] - aVtx[3];
@@ -991,7 +991,7 @@ float CMeshField::GetHeight(const D3DXVECTOR3 &pos)
 //==================================================================================
 // --- メッシュフィールドの高さ増減処理 ---
 //==================================================================================
-void CMeshField::SetHeight(const D3DXVECTOR3 &pos, const float fWidth, const float fPower)
+void CMeshField::SetHeight(const Vector3 &pos, const float fWidth, const float fPower)
 {
 	VERTEX_3D *pVtx = nullptr;				// 頂点バッファへのポインタ
 
@@ -1021,9 +1021,9 @@ void CMeshField::SetHeight(const D3DXVECTOR3 &pos, const float fWidth, const flo
 				{ // 一列目の場合
 					if (nCntXBlock == 0)
 					{ // 初めの頂点の場合、二つの法線ベクトルの平均を計算
-						D3DXVECTOR3 norA, norB;		// 各頂点の法線
-						D3DXVECTOR3 norAB;			// 求める法線
-						D3DXVECTOR3 aVec[4];		// 各頂点の境界線ベクトル
+						Vector3 norA, norB;		// 各頂点の法線
+						Vector3 norAB;			// 求める法線
+						Vector3 aVec[4];		// 各頂点の境界線ベクトル
 
 						// 各境界線ベクトルを求める
 						aVec[0] = pVtx[nIdxVtx].pos - pVtx[(m_nNumZBlock + 1)].pos;
@@ -1049,8 +1049,8 @@ void CMeshField::SetHeight(const D3DXVECTOR3 &pos, const float fWidth, const flo
 					}
 					else if (nCntXBlock == m_nNumXBlock)
 					{ // 右上の頂点の場合、一つの法線ベクトルの計算
-						D3DXVECTOR3 nor;			// 求める法線
-						D3DXVECTOR3 aVec[2];		// 各頂点の境界線ベクトル
+						Vector3 nor;			// 求める法線
+						Vector3 aVec[2];		// 各頂点の境界線ベクトル
 
 						// 各境界線ベクトルを求める
 						aVec[0] = pVtx[nIdxVtx - 1].pos - pVtx[nIdxVtx].pos;
@@ -1067,10 +1067,10 @@ void CMeshField::SetHeight(const D3DXVECTOR3 &pos, const float fWidth, const flo
 					}
 					else
 					{ // それ以外の場合、三つの法線ベクトルの平均を計算
-						D3DXVECTOR3 norA, norB, norC;		// 各頂点の法線
-						D3DXVECTOR3 norBC;			// BCの法線
-						D3DXVECTOR3 norABC;			// 求める法線
-						D3DXVECTOR3 aVec[6];		// 各頂点の境界線ベクトル
+						Vector3 norA, norB, norC;		// 各頂点の法線
+						Vector3 norBC;			// BCの法線
+						Vector3 norABC;			// 求める法線
+						Vector3 aVec[6];		// 各頂点の境界線ベクトル
 
 						// 各境界線ベクトルを求める
 						aVec[0] = pVtx[nIdxVtx - 1].pos - pVtx[nIdxVtx].pos;
@@ -1107,8 +1107,8 @@ void CMeshField::SetHeight(const D3DXVECTOR3 &pos, const float fWidth, const flo
 				{ // 最後の列の場合
 					if (nCntXBlock == 0)
 					{ // 左下の頂点の場合、一つの法線ベクトルの計算
-						D3DXVECTOR3 nor;			// 求める法線
-						D3DXVECTOR3 aVec[2];		// 各頂点の境界線ベクトル
+						Vector3 nor;			// 求める法線
+						Vector3 aVec[2];		// 各頂点の境界線ベクトル
 
 						// 各境界線ベクトルを求める
 						aVec[0] = pVtx[nIdxVtx - (m_nNumXBlock + 1)].pos - pVtx[nIdxVtx].pos;
@@ -1125,9 +1125,9 @@ void CMeshField::SetHeight(const D3DXVECTOR3 &pos, const float fWidth, const flo
 					}
 					else if (nCntXBlock == m_nNumXBlock)
 					{ // 最後の頂点の場合、二つの法線ベクトルの平均を計算
-						D3DXVECTOR3 norA, norB;		// 各頂点の法線
-						D3DXVECTOR3 norAB;			// 求める法線
-						D3DXVECTOR3 aVec[4];		// 各頂点の境界線ベクトル
+						Vector3 norA, norB;		// 各頂点の法線
+						Vector3 norAB;			// 求める法線
+						Vector3 aVec[4];		// 各頂点の境界線ベクトル
 
 						// 各境界線ベクトルを求める
 						aVec[0] = pVtx[nIdxVtx - 1 - (m_nNumZBlock + 1)].pos - pVtx[nIdxVtx - 1].pos;
@@ -1153,10 +1153,10 @@ void CMeshField::SetHeight(const D3DXVECTOR3 &pos, const float fWidth, const flo
 					}
 					else
 					{ // それ以外の場合、三つの法線ベクトルの平均を計算
-						D3DXVECTOR3 norA, norB, norC;		// 各頂点の法線
-						D3DXVECTOR3 norBC;			// BCの法線
-						D3DXVECTOR3 norABC;			// 求める法線
-						D3DXVECTOR3 aVec[6];		// 各頂点の境界線ベクトル
+						Vector3 norA, norB, norC;		// 各頂点の法線
+						Vector3 norBC;			// BCの法線
+						Vector3 norABC;			// 求める法線
+						Vector3 aVec[6];		// 各頂点の境界線ベクトル
 
 						// 各境界線ベクトルを求める
 						aVec[0] = pVtx[nIdxVtx - (m_nNumXBlock + 1)].pos - pVtx[nIdxVtx].pos;
@@ -1193,10 +1193,10 @@ void CMeshField::SetHeight(const D3DXVECTOR3 &pos, const float fWidth, const flo
 				{ // 間の列の場合
 					if (nCntXBlock == 0)
 					{ // 最初の頂点の場合、三つの法線の平均を計算
-						D3DXVECTOR3 norA, norB, norC;		// 各頂点の法線
-						D3DXVECTOR3 norBC;			// BCの法線
-						D3DXVECTOR3 norABC;			// 求める法線
-						D3DXVECTOR3 aVec[6];		// 各頂点の境界線ベクトル
+						Vector3 norA, norB, norC;		// 各頂点の法線
+						Vector3 norBC;			// BCの法線
+						Vector3 norABC;			// 求める法線
+						Vector3 aVec[6];		// 各頂点の境界線ベクトル
 
 						// 各境界線ベクトルを求める
 						aVec[0] = pVtx[nIdxVtx - (m_nNumXBlock + 1)].pos - pVtx[nIdxVtx].pos;
@@ -1230,10 +1230,10 @@ void CMeshField::SetHeight(const D3DXVECTOR3 &pos, const float fWidth, const flo
 					}
 					else if (nCntXBlock == m_nNumXBlock)
 					{ // 右端の頂点の場合、三つの法線の平均を計算
-						D3DXVECTOR3 norA, norB, norC;		// 各頂点の法線
-						D3DXVECTOR3 norBC;			// BCの法線
-						D3DXVECTOR3 norABC;			// 求める法線
-						D3DXVECTOR3 aVec[6];		// 各頂点の境界線ベクトル
+						Vector3 norA, norB, norC;		// 各頂点の法線
+						Vector3 norBC;			// BCの法線
+						Vector3 norABC;			// 求める法線
+						Vector3 aVec[6];		// 各頂点の境界線ベクトル
 
 						// 各境界線ベクトルを求める
 						aVec[0] = pVtx[nIdxVtx - 1].pos - pVtx[nIdxVtx].pos;
@@ -1267,10 +1267,10 @@ void CMeshField::SetHeight(const D3DXVECTOR3 &pos, const float fWidth, const flo
 					}
 					else
 					{ // それ以外の頂点の場合、六つ(1は既に求まっている)の法線の平均を計算
-						D3DXVECTOR3 norA, norB, norC, norD, norE;		// 各頂点の法線
-						D3DXVECTOR3 norDE;			// BCの法線
-						D3DXVECTOR3 norABCDE;		// 求める法線
-						D3DXVECTOR3 aVec[8];		// 各頂点の境界線ベクトル
+						Vector3 norA, norB, norC, norD, norE;		// 各頂点の法線
+						Vector3 norDE;			// BCの法線
+						Vector3 norABCDE;		// 求める法線
+						Vector3 aVec[8];		// 各頂点の境界線ベクトル
 
 						// 左上の法線の取得
 						norA = pVtx[nIdxVtx - 1 - (m_nNumZBlock + 1)].nor;

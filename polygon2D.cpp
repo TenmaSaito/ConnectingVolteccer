@@ -16,9 +16,9 @@
 //==================================================================================
 // --- 生成処理 ---
 //==================================================================================
-CPolygon2D *CPolygon2D::Create(const D3DXVECTOR3 &pos,
-	const D3DXVECTOR3 &rot,
-	const D3DXVECTOR2 &size)
+CPolygon2D *CPolygon2D::Create(const Vector3 &pos,
+	const Vector3 &rot,
+	const Vector2 &size)
 {
 	CPolygon2D *pPolygon = new CPolygon2D;		// 生成したポリゴンへのポインタ
 	if (pPolygon != nullptr)
@@ -55,9 +55,9 @@ CPolygon2D::~CPolygon2D()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CPolygon2D::Init(const D3DXVECTOR3 &pos, 
-	const D3DXVECTOR3 &rot, 
-	const D3DXVECTOR2 &size)
+HRESULT CPolygon2D::Init(const Vector3 &pos, 
+	const Vector3 &rot, 
+	const Vector2 &size)
 {
 	VERTEX_2D* pVtx = NULL;		// 頂点情報へのポインタ
 	CRenderer *pRenderer = CManager::GetInstance()->GetRenderer();	// レンダラーへのポインタ
@@ -113,10 +113,10 @@ HRESULT CPolygon2D::Init(const D3DXVECTOR3 &pos,
 	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
-	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(1.0f, 0.0f);
-	pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
-	pVtx[3].tex = D3DXVECTOR2(1.0f, 1.0f);
+	pVtx[0].tex = Vector2(0.0f, 0.0f);
+	pVtx[1].tex = Vector2(1.0f, 0.0f);
+	pVtx[2].tex = Vector2(0.0f, 1.0f);
+	pVtx[3].tex = Vector2(1.0f, 1.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuff->Unlock();
@@ -196,7 +196,7 @@ void CPolygon2D::BindTexture(const int nIdxTexture)
 //==================================================================================
 // --- 位置の設定処理 ---
 //==================================================================================
-void CPolygon2D::SetPosition(const D3DXVECTOR3 &position)
+void CPolygon2D::SetPosition(const Vector3 &position)
 {
 
 }
@@ -204,7 +204,7 @@ void CPolygon2D::SetPosition(const D3DXVECTOR3 &position)
 //==================================================================================
 // --- 角度の設定処理 ---
 //==================================================================================
-void CPolygon2D::SetRotation(const D3DXVECTOR3 &rotation)
+void CPolygon2D::SetRotation(const Vector3 &rotation)
 {
 
 }
@@ -212,7 +212,7 @@ void CPolygon2D::SetRotation(const D3DXVECTOR3 &rotation)
 //==================================================================================
 // --- サイズの設定処理 ---
 //==================================================================================
-void CPolygon2D::SetSize(const D3DXVECTOR2 &size)
+void CPolygon2D::SetSize(const Vector2 &size)
 {
 	VERTEX_2D* pVtx = NULL;		// 頂点情報へのポインタ
 

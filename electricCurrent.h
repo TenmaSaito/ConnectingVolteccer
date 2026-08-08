@@ -43,17 +43,17 @@ public:
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
-	void SetParent(const D3DXMATRIX *pMtxParent) { m_pMtxParent = pMtxParent; }
+	void SetParent(const Matrix *pMtxParent) { m_pMtxParent = pMtxParent; }
 
 private:
 	CUtilityPole *m_pStart;		// 始まりの電柱
 	CUtilityPole *m_pEnd;		// 終わりの電柱
 	CThunderEffect *m_pThunder;		// 生成した電流エフェクトへのポインタ
-	D3DXMATRIX m_mtxWorld;			// ワールドマトリックス
-	const D3DXMATRIX *m_pMtxParent;	// 親マトリックスへのポインタ
-	D3DXVECTOR3 m_pos;	// 位置
-	D3DXVECTOR3 m_rot;	// 角度
-	D3DXQUATERNION m_qua;		// クォータニオン
+	Matrix m_mtxWorld;			// ワールドマトリックス
+	const Matrix *m_pMtxParent;	// 親マトリックスへのポインタ
+	Vector3 m_pos;	// 位置
+	Vector3 m_rot;	// 角度
+	Quaternion m_qua;		// クォータニオン
 	float m_fTime;		// 線形補間用変数
 	float m_fTotalTime;	// 線形補間完了にかかる時間
 };

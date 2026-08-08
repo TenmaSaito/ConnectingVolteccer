@@ -35,9 +35,9 @@ public:
 	LPDIRECT3D9 GetD3DObject(void) const;
 	LPDIRECT3DDEVICE9 GetDevice(void) const;
 	void SetDefaultTarget(void);
-	void ChangeTarget(const D3DXVECTOR3 &posV, 
-		const D3DXVECTOR3 &posR, 
-		const D3DXVECTOR3 &vecU,
+	void ChangeTarget(const Vector3 &posV, 
+		const Vector3 &posR, 
+		const Vector3 &vecU,
 		const D3DVIEWPORT9 *pViewport = nullptr);
 #ifdef ENABLE_FEEDBACK_EFFECT
 	LPDIRECT3DTEXTURE9 GetTextureMT(void) { return m_apTextureMT[0]; }
@@ -57,8 +57,8 @@ private:
 	LPDIRECT3DSURFACE9 m_pRenderDef;	// デフォルトインターフェース
 	LPDIRECT3DSURFACE9 m_pZBuffDef;		// 〃Zバッファ
 	D3DVIEWPORT9 m_viewportDef;			// 〃ビューポート
-	D3DXMATRIX m_mtxProjDef;			// 〃プロジェクションマトリックス
-	D3DXMATRIX m_mtxViewDef;			// 〃ビューマトリックス
+	Matrix m_mtxProjDef;			// 〃プロジェクションマトリックス
+	Matrix m_mtxViewDef;			// 〃ビューマトリックス
 #ifdef ENABLE_FEEDBACK_EFFECT
 	LPDIRECT3DTEXTURE9 m_apTextureMT[2];	// レンダリングターゲット用テクスチャ
 	LPDIRECT3DSURFACE9 m_apRenderMT[2];		// テクスチャレンダリング用インターフェース

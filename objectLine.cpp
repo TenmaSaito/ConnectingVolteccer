@@ -18,7 +18,7 @@
 //==================================================================================
 // --- 生成処理 (始点と終点指定) ---
 //==================================================================================
-CObjectLine *CObjectLine::Create(const D3DXVECTOR3 &start, const D3DXVECTOR3 &end)
+CObjectLine *CObjectLine::Create(const Vector3 &start, const Vector3 &end)
 {
 	CObjectLine *pLine = new CObjectLine;		// 生成したラインへのポインタ
 	if (pLine != nullptr)
@@ -32,7 +32,7 @@ CObjectLine *CObjectLine::Create(const D3DXVECTOR3 &start, const D3DXVECTOR3 &en
 //==================================================================================
 // --- 生成処理 (方向ベクトルと長さ指定) ---
 //==================================================================================
-CObjectLine *CObjectLine::Create(const D3DXVECTOR3 &origin, const D3DXVECTOR3 &vec, const float fLength)
+CObjectLine *CObjectLine::Create(const Vector3 &origin, const Vector3 &vec, const float fLength)
 {
 	CObjectLine *pLine = new CObjectLine;		// 生成したラインへのポインタ
 	if (pLine != nullptr)
@@ -68,7 +68,7 @@ CObjectLine::~CObjectLine()
 //==================================================================================
 // --- 初期化処理 (始点と終点指定) ---
 //==================================================================================
-HRESULT CObjectLine::Init(const D3DXVECTOR3 &start, const D3DXVECTOR3 &end)
+HRESULT CObjectLine::Init(const Vector3 &start, const Vector3 &end)
 { // 引数を保存
 	SetPoint(start, end);
 
@@ -82,7 +82,7 @@ HRESULT CObjectLine::Init(const D3DXVECTOR3 &start, const D3DXVECTOR3 &end)
 //==================================================================================
 // --- 初期化処理 (方向ベクトルと長さ指定) ---
 //==================================================================================
-HRESULT CObjectLine::Init(const D3DXVECTOR3 &origin, const D3DXVECTOR3 &vec, const float fLength)
+HRESULT CObjectLine::Init(const Vector3 &origin, const Vector3 &vec, const float fLength)
 { // 引数を保存
 	SetVector(origin, vec, fLength);
 	
@@ -125,7 +125,7 @@ void CObjectLine::Update(void)
 void CObjectLine::Draw(void)
 {
 	LPDIRECT3DDEVICE9 pDevice = CManager::GetDeviceByInstance();		// デバイスの取得
-	D3DXMATRIX mtxWorld;		// ワールドマトリックス
+	Matrix mtxWorld;		// ワールドマトリックス
 
 	if (m_bDisp)
 	{
@@ -190,16 +190,16 @@ HRESULT CObjectLine::CreateVertex(void)
 	pVtx[1].pos = m_end;
 
 	// 法線設定
-	pVtx[0].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-	pVtx[1].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+	pVtx[0].nor = Vector3(0.0f, 1.0f, 0.0f);
+	pVtx[1].nor = Vector3(0.0f, 1.0f, 0.0f);
 
 	// 色
 	pVtx[0].col = m_color;
 	pVtx[1].col = m_color;
 
 	// テクスチャ座標設定
-	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(0.0f, 0.0f);
+	pVtx[0].tex = Vector2(0.0f, 0.0f);
+	pVtx[1].tex = Vector2(0.0f, 0.0f);
 
 	// ロック解除
 	m_pVtxBuff->Unlock();
@@ -222,8 +222,8 @@ void CObjectLine::UpdateVertex(void)
 	pVtx[1].pos = m_end;
 
 	// 法線設定
-	pVtx[0].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-	pVtx[1].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+	pVtx[0].nor = Vector3(0.0f, 1.0f, 0.0f);
+	pVtx[1].nor = Vector3(0.0f, 1.0f, 0.0f);
 
 	// 色
 	pVtx[0].col = m_color;
@@ -236,7 +236,7 @@ void CObjectLine::UpdateVertex(void)
 //==================================================================================
 // --- ライン指定処理 (始点と終点指定) ---
 //==================================================================================
-void CObjectLine::SetPoint(const D3DXVECTOR3 &start, const D3DXVECTOR3 &end)
+void CObjectLine::SetPoint(const Vector3 &start, const Vector3 &end)
 { // 引数保存
 	m_start = start;
 	m_end = end;
@@ -249,7 +249,7 @@ void CObjectLine::SetPoint(const D3DXVECTOR3 &start, const D3DXVECTOR3 &end)
 //==================================================================================
 // --- ライン指定処理 (始点と方向ベクトルと長さ指定) ---
 //==================================================================================
-void CObjectLine::SetVector(const D3DXVECTOR3 &origin, const D3DXVECTOR3 &vec, const float fLength)
+void CObjectLine::SetVector(const Vector3 &origin, const Vector3 &vec, const float fLength)
 { // 引数保存
 	m_start = origin;
 	m_vec = vec;

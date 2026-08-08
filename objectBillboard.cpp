@@ -17,7 +17,7 @@
 //==================================================================================
 // --- 生成処理 ---
 //==================================================================================
-CObjectBillboard *CObjectBillboard::Create(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size)
+CObjectBillboard *CObjectBillboard::Create(const Vector3 &pos, const Vector2 &size)
 {
 	CObjectBillboard *pObject3D = NULL;		// 生成したオブジェクトへのポインタ
 
@@ -57,7 +57,7 @@ CObjectBillboard::~CObjectBillboard()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CObjectBillboard::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size)
+HRESULT CObjectBillboard::Init(const Vector3 &pos, const Vector2 &size)
 {
 	CRenderer *pRenderer = CManager::GetInstance()->GetRenderer();			// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();			// デバイスへのポインタ
@@ -102,10 +102,10 @@ HRESULT CObjectBillboard::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size)
 	pVtx[3].pos.z = 0.0f;
 
 	// 座標変換用変数設定
-	pVtx[0].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-	pVtx[1].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-	pVtx[2].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-	pVtx[3].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
+	pVtx[0].nor = Vector3(0.0f, 0.0f, -1.0f);
+	pVtx[1].nor = Vector3(0.0f, 0.0f, -1.0f);
+	pVtx[2].nor = Vector3(0.0f, 0.0f, -1.0f);
+	pVtx[3].nor = Vector3(0.0f, 0.0f, -1.0f);
 
 	// 頂点カラー設定
 	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
@@ -114,10 +114,10 @@ HRESULT CObjectBillboard::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size)
 	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
-	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(1.0f, 0.0f);
-	pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
-	pVtx[3].tex = D3DXVECTOR2(1.0f, 1.0f);
+	pVtx[0].tex = Vector2(0.0f, 0.0f);
+	pVtx[1].tex = Vector2(1.0f, 0.0f);
+	pVtx[2].tex = Vector2(0.0f, 1.0f);
+	pVtx[3].tex = Vector2(1.0f, 1.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuff->Unlock();
@@ -160,7 +160,7 @@ void CObjectBillboard::Draw(void)
 	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
 	CTexture *pTexture = CTexture::GetInstance();			// テクスチャへのポインタ
-	D3DXMATRIX mtxView;		// ビューマトリックス
+	Matrix mtxView;		// ビューマトリックス
 
 	/*** カメラのビューマトリックスを取得 ***/
 	pDevice->GetTransform(D3DTS_VIEW, &mtxView);
@@ -216,7 +216,7 @@ void CObjectBillboard::Draw(void)
 //==================================================================================
 // --- サイズの変更処理 ---
 //==================================================================================
-void CObjectBillboard::SetSize(const D3DXVECTOR2 &size)
+void CObjectBillboard::SetSize(const Vector2 &size)
 { // サイズの変更及び変更フラグを立てる
 	VERTEX_3D *pVtx = nullptr;		// 頂点情報へのポインタ
 

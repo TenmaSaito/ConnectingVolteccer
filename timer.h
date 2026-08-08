@@ -34,12 +34,12 @@ public:
 	CTimer(const int nPriority = DEFAULT_TIMER_PRIORITY);
 	~CTimer();
 
-	static CTimer *Create(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int nNumNumber);
-	static CTimer *Create(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int nNumNumber, const int nScore);
+	static CTimer *Create(const Vector3 &pos, const Vector2 &size, const int nNumNumber);
+	static CTimer *Create(const Vector3 &pos, const Vector2 &size, const int nNumNumber, const int nScore);
 
 	HRESULT Init(void);
-	HRESULT Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int nNumNumber);
-	HRESULT Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int nNumNumber, const int nScore);
+	HRESULT Init(const Vector3 &pos, const Vector2 &size, const int nNumNumber);
+	HRESULT Init(const Vector3 &pos, const Vector2 &size, const int nNumNumber, const int nScore);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);

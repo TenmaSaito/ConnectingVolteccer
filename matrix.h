@@ -1,6 +1,6 @@
 //==================================================================================
 // 
-// D3DXMATRIXの計算関連関数をまとめたヘッダーファイル [matrix.h]
+// Matrixの計算関連関数をまとめたヘッダーファイル [matrix.h]
 // Author : TENMA SAITO
 // Date   : 2026/5/16
 // 
@@ -14,46 +14,46 @@
 #include "main.h"
 
 //**********************************************************************************
-// *** D3DXMATRIX関連関数名前空間 ***
+// *** Matrix関連関数名前空間 ***
 //**********************************************************************************
 namespace Mtx
 {
 	//******************************************************************************
 	// *** プロトタイプ宣言 ***
 	//******************************************************************************
-	D3DXMATRIX *CalcPosition(D3DXMATRIX *pMtx, const D3DXVECTOR3 &position);
-	D3DXMATRIX *CalcRotation(D3DXMATRIX *pMtx, const D3DXVECTOR3 &rotation);
-	D3DXMATRIX *CalcRotation(D3DXMATRIX *pMtx, const D3DXQUATERNION &quaternion);
-	D3DXMATRIX *CalcScale(D3DXMATRIX *pMtx, const D3DXVECTOR3 &scale);
+	Matrix *CalcPosition(Matrix *pMtx, const Vector3 &position);
+	Matrix *CalcRotation(Matrix *pMtx, const Vector3 &rotation);
+	Matrix *CalcRotation(Matrix *pMtx, const Quaternion &quaternion);
+	Matrix *CalcScale(Matrix *pMtx, const Vector3 &scale);
 
-	D3DXMATRIX *CalcWorld(D3DXMATRIX *pMtx, 
-		const D3DXVECTOR3 &position, 
-		const D3DXVECTOR3 &rotation);
+	Matrix *CalcWorld(Matrix *pMtx, 
+		const Vector3 &position, 
+		const Vector3 &rotation);
 
-	D3DXMATRIX *CalcWorld(D3DXMATRIX *pMtx, 
-		const D3DXVECTOR3 &position, 
-		const D3DXQUATERNION &quaternion);
+	Matrix *CalcWorld(Matrix *pMtx, 
+		const Vector3 &position, 
+		const Quaternion &quaternion);
 
-	D3DXMATRIX *CalcWorld(D3DXMATRIX *pMtx,
-		const D3DXMATRIX *pParent, 
-		const D3DXVECTOR3 &position,
-		const D3DXVECTOR3 &rotation);
+	Matrix *CalcWorld(Matrix *pMtx,
+		const Matrix *pParent, 
+		const Vector3 &position,
+		const Vector3 &rotation);
 
-	D3DXMATRIX *CalcWorld(D3DXMATRIX *pMtx,
-		const D3DXMATRIX *pParent, 
-		const D3DXVECTOR3 &position,
-		const D3DXQUATERNION &quaternion);
+	Matrix *CalcWorld(Matrix *pMtx,
+		const Matrix *pParent, 
+		const Vector3 &position,
+		const Quaternion &quaternion);
 
-	D3DXMATRIX *CalcWorld(D3DXMATRIX *pMtx,
-		const D3DXMATRIX *pParent,
-		const D3DXVECTOR3 &scale,
-		const D3DXVECTOR3 &position,
-		const D3DXQUATERNION &quaternion);
+	Matrix *CalcWorld(Matrix *pMtx,
+		const Matrix *pParent,
+		const Vector3 &scale,
+		const Vector3 &position,
+		const Quaternion &quaternion);
 
-	D3DXMATRIX *CreateShadow(const D3DXMATRIX *pMtxWorld,
-		const D3DXVECTOR3 &pos, 
-		const D3DXVECTOR3 &nor,
+	Matrix *CreateShadow(const Matrix *pMtxWorld,
+		const Vector3 &pos, 
+		const Vector3 &nor,
 		const D3DLIGHT9 &light,
-		D3DXMATRIX *pOut);
+		Matrix *pOut);
 }
 #endif

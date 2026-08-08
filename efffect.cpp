@@ -37,10 +37,10 @@ HRESULT CEffect::Load(void)
 //==================================================================================
 // --- 数値オブジェクトの生成処理 (位置、サイズ指定) ---
 //==================================================================================
-CEffect *CEffect::Create(const D3DXVECTOR3 &pos, 
+CEffect *CEffect::Create(const Vector3 &pos, 
 	const int nLife,
 	const float fRadius,
-	const D3DXVECTOR3 &move,
+	const Vector3 &move,
 	const float fGravity)
 {
 	CEffect *pEffect = nullptr;		// 生成したオブジェクトへのポインタ
@@ -87,15 +87,15 @@ CEffect::~CEffect()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CEffect::Init(const D3DXVECTOR3 &pos, 
+HRESULT CEffect::Init(const Vector3 &pos, 
 	const int nLife, 
 	const float fRadius,
-	const D3DXVECTOR3 &move,
+	const Vector3 &move,
 	const float fGravity)
 {
 	HRESULT hr = S_OK;			// 関数の結果
 	VERTEX_3D *pVtx = NULL;		// 頂点情報へのポインタ
-	D3DXVECTOR2 size = {};		// ポリゴンサイズ
+	Vector2 size = {};		// ポリゴンサイズ
 
 	// 親クラスの初期化
 	hr = CObjectBillboard::Init(pos, Vec2::ToSquareSize(fRadius));
@@ -126,7 +126,7 @@ void CEffect::Uninit(void)
 //==================================================================================
 void CEffect::Update(void)
 {
-	D3DXVECTOR3 pos = CObjectBillboard::GetPosition();		// エフェクトの位置
+	Vector3 pos = CObjectBillboard::GetPosition();		// エフェクトの位置
 
 	// エフェクトを移動
 	pos += m_move;

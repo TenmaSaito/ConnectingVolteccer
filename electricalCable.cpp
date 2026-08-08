@@ -84,10 +84,10 @@ HRESULT CElectricalCable::Init(const CUtilityPole *pStart,
 {
 	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pManager->GetRenderer()->GetDevice();		// デバイスへのポインタ
-	D3DXVECTOR3 posStart = VECTOR3_NULL;		// 始点の座標
-	D3DXVECTOR3 posStart2 = VECTOR3_NULL;		// 始点の座標2
-	D3DXVECTOR3 posEnd = VECTOR3_NULL;			// 終点の座標
-	D3DXVECTOR3 posEnd2 = VECTOR3_NULL;			// 終点の座標2
+	Vector3 posStart = VECTOR3_NULL;		// 始点の座標
+	Vector3 posStart2 = VECTOR3_NULL;		// 始点の座標2
+	Vector3 posEnd = VECTOR3_NULL;			// 終点の座標
+	Vector3 posEnd2 = VECTOR3_NULL;			// 終点の座標2
 	float fLength;			// 電柱間の距離
 	HRESULT hr = S_OK;		// 初期化結果
 	VERTEX_3D *pVtx;		// 頂点へのポインタ
@@ -124,10 +124,10 @@ HRESULT CElectricalCable::Init(const CUtilityPole *pStart,
 	pVtx[3].pos = posEnd2;
 
 	// 頂点の法線を設定
-	pVtx[0].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-	pVtx[1].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-	pVtx[2].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-	pVtx[3].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
+	pVtx[0].nor = Vector3(0.0f, 0.0f, -1.0f);
+	pVtx[1].nor = Vector3(0.0f, 0.0f, -1.0f);
+	pVtx[2].nor = Vector3(0.0f, 0.0f, -1.0f);
+	pVtx[3].nor = Vector3(0.0f, 0.0f, -1.0f);
 
 	// 頂点カラー設定
 	pVtx[0].col = D3DXCOLOR(0.0f, 1.0f, 0.0f, 1.0f);
@@ -136,16 +136,16 @@ HRESULT CElectricalCable::Init(const CUtilityPole *pStart,
 	pVtx[3].col = D3DXCOLOR(0.0f, 1.0f, 0.0f, 1.0f);
 
 	// テクスチャ座標設定
-	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(1.0f, 0.0f);
-	pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
-	pVtx[3].tex = D3DXVECTOR2(1.0f, 1.0f);
+	pVtx[0].tex = Vector2(0.0f, 0.0f);
+	pVtx[1].tex = Vector2(1.0f, 0.0f);
+	pVtx[2].tex = Vector2(0.0f, 1.0f);
+	pVtx[3].tex = Vector2(1.0f, 1.0f);
 
 	// ロック解除
 	m_pVtxBuff->Unlock();
 
 	// 現在の惑星のクォータニオンから任意軸と角度を求める
-	const D3DXQUATERNION *pQuaPlanet = pManager->GetScene<CGame>()->GetPlanet()->GetQuaternion();
+	const Quaternion *pQuaPlanet = pManager->GetScene<CGame>()->GetPlanet()->GetQuaternion();
 	D3DXQuaternionToAxisAngle(pQuaPlanet,
 		&m_vecQua,
 		&m_fAngle);

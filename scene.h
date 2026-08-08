@@ -12,6 +12,7 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "main.h"
+#include <memory>
 
 //**********************************************************************************
 // *** モードクラス ***
@@ -33,7 +34,7 @@ public:
 	virtual ~CScene();
 
 	static CScene *Create(const MODE mode);
-	static CScene *Create(const MODE mode, CScene **ppOut);
+	static CScene *Create(const MODE mode, std::unique_ptr<CScene> &rpOut);
 
 	virtual HRESULT Init(void) = 0;
 	virtual void Uninit(void) = 0;

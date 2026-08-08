@@ -32,16 +32,16 @@ public:
 	~CEffect();
 
 	static HRESULT Load(void);
-	static CEffect *Create(const D3DXVECTOR3 &pos,
+	static CEffect *Create(const Vector3 &pos,
 		const int nLife = DEFAULT_EFFECT_LIFE,
 		const float fRadius = DEFAULT_EFFECT_RADIUS,
-		const D3DXVECTOR3 &move = DEFAULT_EFFECT_MOVE,
+		const Vector3 &move = DEFAULT_EFFECT_MOVE,
 		const float fGravity = DEFAULT_EFFECT_GRAVITY);
 
-	HRESULT Init(const D3DXVECTOR3 &pos, 
+	HRESULT Init(const Vector3 &pos, 
 		const int nLife, 
 		const float fRadius,
-		const D3DXVECTOR3 &move,
+		const Vector3 &move,
 		const float fGravity);
 	void Uninit(void);
 	void Update(void);
@@ -49,7 +49,7 @@ public:
 
 private:
 	static int m_nIdxTexture;	// テクスチャインデックス
-	D3DXVECTOR3 m_move;			// 移動量
+	Vector3 m_move;			// 移動量
 	int m_nLife;				// 体力
 	float m_fRadius;			// 半径
 	float m_fDecreaseRadius;	// 半径の減少割合

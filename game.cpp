@@ -159,10 +159,10 @@ void CGame::Start(void)
 	}
 
 	// タイマー生成
-	m_pTimer = CTimer::Create(D3DXVECTOR3(WINDOW_MIDDLE.x - 75.0f, 35.0f, 0.0f), D3DXVECTOR2(150.0f, 85.0f), 3, 120);
+	m_pTimer = CTimer::Create(Vector3(WINDOW_MIDDLE.x - 75.0f, 35.0f, 0.0f), Vector2(150.0f, 85.0f), 3, 120);
 
 	// プレイヤー出現
-	m_pPlayer = CPlayer::Create("data/SCRIPT/motion_nabeatsu.txt", D3DXVECTOR3(0.0f, 1125.0f, 0.0f), VECTOR3_NULL);
+	m_pPlayer = CPlayer::Create("data/SCRIPT/motion_nabeatsu.txt", Vector3(0.0f, 1125.0f, 0.0f), VECTOR3_NULL);
 	NULLPOINTER_ASSERT(m_pPlayer);
 
 	// 惑星配置

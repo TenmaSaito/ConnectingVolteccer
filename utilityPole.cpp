@@ -27,7 +27,7 @@
 // *** マクロ定義 ***
 //**********************************************************************************
 #define POLE_PATH			"data/MODEL/utilityPole.x"		// 電柱のパス
-#define DEF_ICON_SIZE		D3DXVECTOR2(50.0f, 50.0f)		// アイコンサイズ
+#define DEF_ICON_SIZE		Vector2(50.0f, 50.0f)		// アイコンサイズ
 #define SELECT_ICON_SIZE	(DEF_ICON_SIZE * 2.0f)			// 最も近いアイコンのサイズ
 #define ICON_CAN_PATH		"data/TEXTURE/LOGO_CAN.png"		// 可能アイコンへのパス
 #define ICON_CANT_PATH		"data/TEXTURE/LOGO_CANT.png"	// 不可能アイコンへのパス
@@ -36,7 +36,7 @@
 //==================================================================================
 // --- オブジェクト3Dの生成処理 ---
 //==================================================================================
-CUtilityPole *CUtilityPole::Create(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &vecQua, const float fAngle)
+CUtilityPole *CUtilityPole::Create(const Vector3 &pos, const Vector3 &vecQua, const float fAngle)
 {
 	CUtilityPole *pPole = NULL;		// 生成したオブジェクトへのポインタ
 
@@ -79,15 +79,15 @@ CUtilityPole::~CUtilityPole()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CUtilityPole::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &vecQua, const float fAngle)
+HRESULT CUtilityPole::Init(const Vector3 &pos, const Vector3 &vecQua, const float fAngle)
 {
 	HRESULT hr;		// 初期化結果
 	CTexture *pTexture = CTexture::GetInstance();		// テクスチャ管理オブジェクトへのポインタ
-	D3DXVECTOR3 posIcon;
+	Vector3 posIcon;
 
 	// 親クラスの初期化
 	hr = CObjectXQuaternion::Init(POLE_PATH, pos, vecQua, fAngle);
-	posIcon = D3DXVECTOR3(0.0f, GetVtxMax()->y, 0.0f);
+	posIcon = Vector3(0.0f, GetVtxMax()->y, 0.0f);
 
 	// ビルボード生成
 	m_apBillboard[ICON_CAN] = CObjectBillboard::Create(posIcon, DEF_ICON_SIZE);
@@ -124,8 +124,8 @@ void CUtilityPole::Update(void)
 	CGame *pGame = pManager->GetScene<CGame>();		// ゲームシーンへのポインタ
 	CPlayer *pPlayer = pGame->GetPlayer();			// プレイヤーへのポインタ
 	CCamera *pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);		// プレイヤーカメラへのポインタ
-	D3DXVECTOR3 posPlayer = VECTOR3_NULL;			// プレイヤーの絶対座標
-	D3DXVECTOR3 posPole = *GetPosition();			// 電柱の絶対座標
+	Vector3 posPlayer = VECTOR3_NULL;			// プレイヤーの絶対座標
+	Vector3 posPole = *GetPosition();			// 電柱の絶対座標
 	CUtilityPole *pRidingPole = pPlayer->GetRidingPole();			// プレイヤーの乗っている電柱
 
 	// 電柱の上の絶対座標を求める

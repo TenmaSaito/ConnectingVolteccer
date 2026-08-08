@@ -21,8 +21,8 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define DEF_MAX_SIZE		D3DXVECTOR2(15.0f, 50.0f)		// 基本の最大サイズ
-#define DEF_MIN_SIZE		D3DXVECTOR2(5.0f, 10.0f)		// 基本の最小サイズ
+#define DEF_MAX_SIZE		Vector2(15.0f, 50.0f)		// 基本の最大サイズ
+#define DEF_MIN_SIZE		Vector2(5.0f, 10.0f)		// 基本の最小サイズ
 #define DEF_MAXSWAYSPEED	(0.07f)				// 基本の最大揺れ速度
 #define DEF_MINSWAYSPEED	(0.01f)				// 基本の最小揺れ速度
 #define DEF_MAXSWAYWIDTH	(HALF_PI * 0.75f)	// 基本の最大揺れ幅
@@ -31,7 +31,7 @@
 //==================================================================================
 // --- 生成処理 ---
 //==================================================================================
-CGrassLand *CGrassLand::Create(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int nNumGrass, const Propaty &propaty)
+CGrassLand *CGrassLand::Create(const Vector3 &pos, const Vector2 &size, const int nNumGrass, const Propaty &propaty)
 {
 	CGrassLand *pGrassLand = nullptr;
 
@@ -80,12 +80,12 @@ CGrassLand::~CGrassLand()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CGrassLand::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int nNumGrass, const Propaty &propaty)
+HRESULT CGrassLand::Init(const Vector3 &pos, const Vector2 &size, const int nNumGrass, const Propaty &propaty)
 {
 	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
 	CRand *pRand = CRand::GetInstance();				// 乱数デバイスへのポインタ
-	D3DXVECTOR3 posGrass = VECTOR3_NULL;		// 生成位置
-	D3DXVECTOR2 sizeGrass = VECTOR2_NULL;		// 草のサイズ
+	Vector3 posGrass = VECTOR3_NULL;		// 生成位置
+	Vector2 sizeGrass = VECTOR2_NULL;		// 草のサイズ
 	float fSwaySpeed = 0.0f;		// 揺れる速度
 	float fSwayWidth = 0.0f;		// 揺れる幅
 
@@ -189,7 +189,7 @@ void CGrassLand::Draw(void)
 //==================================================================================
 // --- 当たり判定処理 ---
 //==================================================================================
-bool CGrassLand::Collision(const D3DXVECTOR3 &pos, const float fRadius)
+bool CGrassLand::Collision(const Vector3 &pos, const float fRadius)
 {
 	bool bCollision = false;		// 一度でも当たったか
 

@@ -27,7 +27,7 @@
 //==================================================================================
 // --- オブジェクト3Dの生成処理 ---
 //==================================================================================
-CObjectX *CObjectX::Create(const char *pXFileName,const D3DXVECTOR3& pos, const D3DXVECTOR3& rot)
+CObjectX *CObjectX::Create(const char *pXFileName,const Vector3& pos, const Vector3& rot)
 {
 	CObjectX *pObject3D = NULL;		// 生成したオブジェクトへのポインタ
 
@@ -74,7 +74,7 @@ CObjectX::~CObjectX()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CObjectX::Init(const char *pXFileName, const D3DXVECTOR3 &pos, const D3DXVECTOR3 &rot)
+HRESULT CObjectX::Init(const char *pXFileName, const Vector3 &pos, const Vector3 &rot)
 {
 	CManager *pManager = CManager::GetInstance();			// マネージャーへのポインタ
 	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
@@ -223,7 +223,7 @@ HRESULT	CObjectX::LoadXFile(const char *pXFileName)
 	// 頂点の最大、最小値を取得
 	for (int nCntVtx = 0; nCntVtx < nNumVtx; nCntVtx++)
 	{
-		D3DXVECTOR3 vtx = *(D3DXVECTOR3*)pVtxBuff;	// 頂点座標の代入
+		Vector3 vtx = *(Vector3*)pVtxBuff;	// 頂点座標の代入
 
 		// 最小値を取得
 		m_vtxMin.x = (m_vtxMin.x > vtx.x) ? vtx.x : m_vtxMin.x;

@@ -42,8 +42,8 @@ public:
 	~CMap();
 
 	void Resister(const BUILDING type, const char *pPath);
-	void AddUtilityPole(const D3DXVECTOR3 &pos);
-	void AddBulding(const BUILDING type, const D3DXVECTOR3 &pos);
+	void AddUtilityPole(const Vector3 &pos);
+	void AddBulding(const BUILDING type, const Vector3 &pos);
 	void Save(const char *pMapFile);
 	void Load(const char *pMapFile);
 	static CMap *GetInstance(void);

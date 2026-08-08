@@ -32,8 +32,8 @@ struct CMap::IODATA
 {
 	int type;			// モデルの種類
 	int nIdxModel;		// 建物のインデックス
-	D3DXVECTOR3 pos;	// 位置
-	D3DXVECTOR3 vecQua;	// 任意軸
+	Vector3 pos;	// 位置
+	Vector3 vecQua;	// 任意軸
 	float fAngle;		// 角度
 };
 #else
@@ -41,8 +41,8 @@ struct CMap::IODATA
 {
 	int type;			// モデルの種類
 	int nIdxModel;		// モデルのインデックス
-	D3DXVECTOR3 pos;	// 位置
-	D3DXVECTOR3 rot;	// 角度
+	Vector3 pos;	// 位置
+	Vector3 rot;	// 角度
 };
 #endif
 
@@ -86,11 +86,11 @@ void CMap::Resister(const BUILDING type, const char *pPath)
 //==================================================================================
 // --- 電柱設置処理 ---
 //==================================================================================
-void CMap::AddUtilityPole(const D3DXVECTOR3 &pos)
+void CMap::AddUtilityPole(const Vector3 &pos)
 {
 	CGame *pGame = CManager::GetInstance()->GetScene<CGame>();
 	auto pPlanet = pGame->GetPlanet();
-	D3DXVECTOR3 vecQua = VECTOR3_NULL;
+	Vector3 vecQua = VECTOR3_NULL;
 	float fAngle = 0.0f;
 
 	// クォータニオンから軸と角度を求める
@@ -111,11 +111,11 @@ void CMap::AddUtilityPole(const D3DXVECTOR3 &pos)
 //==================================================================================
 // --- 建造物設置処理 ---
 //==================================================================================
-void CMap::AddBulding(const BUILDING type, const D3DXVECTOR3 &pos)
+void CMap::AddBulding(const BUILDING type, const Vector3 &pos)
 {
 	CGame *pGame = CManager::GetInstance()->GetScene<CGame>();
 	auto pPlanet = pGame->GetPlanet();
-	D3DXVECTOR3 vecQua = VECTOR3_NULL;
+	Vector3 vecQua = VECTOR3_NULL;
 	float fAngle = 0.0f;
 
 	// インデックス外ならアサーション
@@ -339,7 +339,7 @@ void CMap::Load(const char *pMapFile)
 	int nNumModelIdx = 0;	// モデルのインデックスの数
 	int nNumModel = 0;		// モデルの数
 	int nIdxModel = 0;		// モデルのインデックス
-	const D3DXMATRIX *pMtxPlanet = CManager::GetInstance()->GetScene<CGame>()->GetPlanet()->GetMatrix();
+	const Matrix *pMtxPlanet = CManager::GetInstance()->GetScene<CGame>()->GetPlanet()->GetMatrix();
 
 	// データ読み込み
 	std::unique_ptr<CFileStream> pFile(new CFileStream);		// ファイルストリーム

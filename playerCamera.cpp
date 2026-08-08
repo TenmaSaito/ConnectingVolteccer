@@ -38,8 +38,8 @@
 //==================================================================================
 // --- カメラの生成 ---
 //==================================================================================
-CPlayerCamera *CPlayerCamera::Create(const D3DXVECTOR3 &rot,
-	const D3DXVECTOR3 &rotRiding,
+CPlayerCamera *CPlayerCamera::Create(const Vector3 &rot,
+	const Vector3 &rotRiding,
 	const float fLengthPlayer, 
 	const float fLengthRiding)
 {
@@ -80,8 +80,8 @@ CPlayerCamera::~CPlayerCamera()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-void CPlayerCamera::Init(const D3DXVECTOR3 &rot, 
-	const D3DXVECTOR3 &rotRiding, 
+void CPlayerCamera::Init(const Vector3 &rot, 
+	const Vector3 &rotRiding, 
 	const float fLengthPlayer,
 	const float fLengthRiding)
 { // 親クラスの初期化
@@ -114,9 +114,9 @@ void CPlayerCamera::Update(void)
 	auto pKeyboard = pManager->GetInputKeyboard();	// キーボードへのポインタ
 	auto pProc = pManager->GetDebugProc();			// デバッグ表示へのポインタ
 	auto pPlayer = m_pPlayer;					// プレイヤーへのポインタ
-	D3DXVECTOR3 posV = *CCamera::GetPosV();		// 視点座標
-	D3DXVECTOR3 posR = *CCamera::GetPosR();		// 注視点座標
-	D3DXVECTOR3 rot = *CCamera::GetRotate();		// 角度
+	Vector3 posV = *CCamera::GetPosV();		// 視点座標
+	Vector3 posR = *CCamera::GetPosR();		// 注視点座標
+	Vector3 rot = *CCamera::GetRotate();		// 角度
 
 #ifndef ENABLE_PLANET
 	/*** 視点の平行移動！ ***/

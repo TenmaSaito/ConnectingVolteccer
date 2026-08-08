@@ -31,7 +31,7 @@
 //**********************************************************************************
 namespace Constant
 {
-	const D3DXVECTOR3 Middle = D3DXVECTOR3(SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f, 0.0f);		// スクリーンの中心座標
+	const Vector3 Middle = Vector3(SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f, 0.0f);		// スクリーンの中心座標
 	const D3DXCOLOR ZeroCol = D3DXCOLOR(0, 0, 0, 0);	// D3DXCOLORの0クリア
 	const D3DXCOLOR White = D3DXCOLOR(1, 1, 1, 1);		// D3DXCOLORの基本色(白)
 }

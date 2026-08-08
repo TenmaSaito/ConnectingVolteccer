@@ -98,6 +98,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -115,6 +116,7 @@
       <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
