@@ -59,8 +59,7 @@ CMap *CMap::GetInstance(void)
 // --- コンストラクタ ---
 //==================================================================================
 CMap::CMap()
-{ // メンバ変数のクリア
-	ZeroMemory(m_aBuildingPath, sizeof(m_aBuildingPath));
+{
 }
 
 //==================================================================================
@@ -68,19 +67,6 @@ CMap::CMap()
 //==================================================================================
 CMap::~CMap()
 {
-}
-
-//==================================================================================
-// --- ファイル名登録処理 ---
-//==================================================================================
-void CMap::Resister(const BUILDING type, const char *pPath)
-{ // インデックス外ならアサーション
-	assert(BUILDING_MAX > type && type >= 0);
-
-	if (BUILDING_MAX > type && type >= 0)
-	{ // パスをコピー
-		strcpy_s(m_aBuildingPath[type], pPath);
-	}
 }
 
 //==================================================================================
@@ -111,33 +97,14 @@ void CMap::AddUtilityPole(const Vector3 &pos)
 //==================================================================================
 // --- 建造物設置処理 ---
 //==================================================================================
-void CMap::AddBulding(const BUILDING type, const Vector3 &pos)
+void CMap::AddBulding(const int nType, const Vector3 &pos)
 {
 	CGame *pGame = CManager::GetInstance()->GetScene<CGame>();
 	auto pPlanet = pGame->GetPlanet();
 	Vector3 vecQua = VECTOR3_NULL;
 	float fAngle = 0.0f;
 
-	// インデックス外ならアサーション
-	assert(BUILDING_MAX > type && type >= 0);
-	if ((BUILDING_MAX > type && type >= 0) == false) return;
-
-#if 0
-	// クォータニオンから軸と角度を求める
-	D3DXQuaternionToAxisAngle(pPlanet->GetQuaternion(),
-		&vecQua,
-		&fAngle);
-
-	// 角度反転
-	fAngle *= -1;
-
-	// 建物設置 + 親設定
-	auto pObject = CObjectXQuaternion::Create(m_aBuildingPath[type],
-		pos,
-		vecQua,
-		fAngle);
-	pObject->SetParent(pPlanet->GetMatrix());
-#endif
+	
 }
 
 //==================================================================================

@@ -32,7 +32,7 @@ public:
 	virtual void Update(void) = 0;
 
 protected:
-	static LPDIRECTINPUT8 m_pInput;		// 入力オブジェクト
+	inline static LPDIRECTINPUT8 m_pInput = nullptr;		// 入力オブジェクト
 	LPDIRECTINPUTDEVICE8 m_pDevice;		// 入力デバイス
 };
 

@@ -41,12 +41,12 @@ public:
 	float GetLength(void) const { return m_fLength; }
 	Vector3 GetRay(void) const { return m_start + (m_vec * m_fLength); }
 
-	auto operator<=>(const CRay &ray) { return GetLength() <=> ray.GetLength(); }
-	bool operator==(const CRay &ray) { return GetLength() == ray.GetLength(); }
+	auto operator<=>(const CRay &ray) const { return GetLength() <=> ray.GetLength(); }
+	bool operator==(const CRay &ray) const { return GetLength() == ray.GetLength(); }
 
 private:
 	Vector3 m_start, m_end;			// 始点、終点
 	Vector3 m_vec;		// 始点と方向ベクトル
-	float m_fLength;		// ベクトルの長さ
+	float m_fLength;	// ベクトルの長さ
 };
 #endif

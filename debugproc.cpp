@@ -17,10 +17,9 @@
 // --- コンストラクタ ---
 //==================================================================================
 CDebugProc::CDebugProc()
-{
-	// 各メンバ変数のクリア
+{ // 各メンバ変数のクリア
+	m_sProc.reserve(DEFAULT_STRING_CAPACITY);
 	m_pFont = NULL;
-	m_pString = NULL;
 	m_colFont = D3DXCOLOR(1, 1, 1, 1);
 }
 
@@ -53,19 +52,6 @@ HRESULT CDebugProc::Init(const UINT &rHeight, const char *pFontname)
 		}
 	}
 
-	if (m_pString == NULL)
-	{ // 文字列バッファが作成されていなければ
-		// 文字列バッファを確保
-		m_pString = new char[MAX_STRING];
-		if (m_pString == NULL)
-		{ // バッファの確保失敗
-			return E_FAIL;
-		}
-
-		// NULL文字を追加
-		m_pString[0] = '\0';
-	}
-
 	// 初期化成功
 	return S_OK;
 }
@@ -79,11 +65,7 @@ void CDebugProc::Uninit(void)
 	SafeRelease(m_pFont);
 
 	// 文字列の破棄
-	if (m_pString != NULL)
-	{ // 文字列が生成されている場合、解放
-		delete[] m_pString;
-		m_pString = NULL;
-	}
+	m_sProc.clear();
 }
 
 //==================================================================================
@@ -91,7 +73,7 @@ void CDebugProc::Uninit(void)
 //==================================================================================
 void CDebugProc::Update(void)
 { // 文字列をクリア
-	strcpy(m_pString, "");
+	m_sProc.clear();
 }
 
 //==================================================================================
@@ -103,24 +85,6 @@ void CDebugProc::Draw(void)
 	RECT rect = { 0,0,SCREEN_WIDTH,SCREEN_HEIGHT };			// 画面サイズ
 
 	// デバッグ表示
-	m_pFont->DrawText(NULL, m_pString, -1, &rect, DT_LEFT, m_colFont);
+	m_pFont->DrawText(NULL, m_sProc.c_str(), -1, &rect, DT_LEFT, m_colFont);
 #endif
-}
-
-//==================================================================================
-// --- デバッグ表示の追加処理 ---
-//==================================================================================
-void CDebugProc::Print(const char *pFmt, ...)
-{
-	char aStr[256];			// 一時的な文字列へのポインタ
-	va_list arg = NULL;		// 可変長引数へのポインタ
-
-	// 可変長引数の取得
-	va_start(arg, pFmt);
-
-	// 文字列への変換
-	vsprintf(aStr, pFmt, arg);
-
-	// 文字列を追加
-	strcat(m_pString, aStr);
 }

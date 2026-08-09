@@ -16,6 +16,7 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
+#define DEFAULT_VP			D3DVIEWPORT9{0,0,SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 1.0f}	// デフォルトのビューポート
 
 //**********************************************************************************
 // *** カメラクラス ***
@@ -69,10 +70,10 @@ protected:
 	void Release(void);
 
 private:
-	static CCamera *m_apCamera[TYPE_MAX];		// 現在登録されているカメラへのポインタ
-	static D3DVIEWPORT9 m_vpDef;	// デフォルトのビューポート
-	static TYPE m_currentType;		// 現在設置されているカメラのタイプ
-	static TYPE m_focusType;		// フルスクリーンにフォーカスしているカメラのタイプ
+	inline static CCamera *m_apCamera[TYPE_MAX] = {};		// 現在登録されているカメラへのポインタ
+	inline static D3DVIEWPORT9 m_vpDef = DEFAULT_VP;		// デフォルトのビューポート
+	inline static TYPE m_currentType = CCamera::TYPE_PLAYER;	// 現在設置されているカメラのタイプ
+	inline static TYPE m_focusType = CCamera::TYPE_MAX;			// フルスクリーンにフォーカスしているカメラのタイプ
 	Matrix m_mtxProjection;		// プロジェクションマトリックス
 	Matrix m_mtxView;	// ビューマトリックス
 	Vector3 m_posV;		// 視点	

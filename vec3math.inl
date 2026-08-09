@@ -1,6 +1,6 @@
 //==================================================================================
 // 
-// Vector2,3の計算関連関数をまとめたインラインファイル [vec3math.inl]
+// Vector3の計算関連関数をまとめたインラインファイル [vec3math.inl]
 // Author : TENMA SAITO
 // Date   : 2026/5/16
 // 
@@ -10,8 +10,6 @@
 //**********************************************************************************
 namespace Vec3
 {
-	constexpr float OX_EPSILON = 0.000001f;		// 浮動小数による判定誤差防止
-
 	//==================================================================================
 	// --- 3次元ベクトルの長さ取得処理 ---
 	//==================================================================================
@@ -118,7 +116,6 @@ namespace Vec3
 	{
 		Vector3 vecView = posR - posV;		// 視線ベクトル
 		Vector3 vecToPos = pos - posV;		// 判定する点へのベクトル
-		float fLengthToPos = 0.0f;		// 判定点へのベクトルの長さ
 		float fTheta = 0.0f;	// 基準値
 		float fCos = 0.0f;		// 結果
 
@@ -153,7 +150,6 @@ namespace Vec3
 	{
 		Vector3 vecView = posR - posV;		// 視線ベクトル
 		Vector3 vecToPos = pos - posV;		// 判定する点へのベクトル
-		float fLengthToPos = 0.0f;		// 判定点へのベクトルの長さ
 		float fTheta = 0.0f;	// 基準値
 		float fCos = 0.0f;		// 結果
 
@@ -479,5 +475,41 @@ namespace Vec3
 	{
 		if (axisEx >= static_cast<AxisEx>(Axis::MAX)) return Axis::MAX;
 		return static_cast<Axis>(axisEx);
+	}
+
+	//==================================================================================
+	// --- ベクトルの軸フラグ取得処理 (X != (0.0f +- epsilon) -> array[0] == true) ---
+	//==================================================================================
+	FORCEINLINE AxisFlags IsAxis(const Vector3 &vec, const float fEpsilon)
+	{
+		auto isAxis = [&](const float fValue)
+		{ // エプシロンを考慮した値の有無確認ラムダ式
+			return fabsf(fValue) >= fEpsilon;
+		};
+
+		return AxisFlags({ isAxis(vec.x), isAxis(vec.y), isAxis(vec.z) });
+	}
+
+	//==================================================================================
+	// --- ベクトルの軸EXフラグ取得処理 (X != (0.0f +- epsilon) -> array[0] == true) ---
+	//==================================================================================
+	FORCEINLINE AxisExFlags IsAxisEx(const Vector3 &vec, const float fEpsilon)
+	{
+		AxisExFlags flags;		// フラグ
+		auto isAxis = [&](const float fValue)
+		{ // エプシロンを考慮した値の有無確認ラムダ式
+			return fabsf(fValue) >= fEpsilon;
+		};
+
+		// フラグチェック
+		flags[static_cast<UINT>(AxisEx::X)] = isAxis(vec.x);
+		flags[static_cast<UINT>(AxisEx::Y)] = isAxis(vec.y);
+		flags[static_cast<UINT>(AxisEx::Z)] = isAxis(vec.z);
+		flags[static_cast<UINT>(AxisEx::XY)] = flags[static_cast<UINT>(AxisEx::X)] && flags[static_cast<UINT>(AxisEx::Y)];
+		flags[static_cast<UINT>(AxisEx::XZ)] = flags[static_cast<UINT>(AxisEx::X)] && flags[static_cast<UINT>(AxisEx::Z)];
+		flags[static_cast<UINT>(AxisEx::YZ)] = flags[static_cast<UINT>(AxisEx::Y)] && flags[static_cast<UINT>(AxisEx::Z)];
+		flags[static_cast<UINT>(AxisEx::XYZ)] = flags[static_cast<UINT>(AxisEx::XY)] && flags[static_cast<UINT>(AxisEx::Z)];
+
+		return flags;
 	}
 }

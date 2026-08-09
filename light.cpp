@@ -99,7 +99,6 @@ void CLight::Update(void)
 	CManager *pManager = CManager::GetInstance();			// マネージャーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pManager->GetRenderer()->GetDevice();		// デバイスへのポインタ
 	auto pKeyboard = pManager->GetInputKeyboard();			// キーボードへのポインタ
-	auto pJoypad = pManager->GetJoypad();					// ジョイパッドへのポインタ
 	auto pProc = CManager::GetInstance()->GetDebugProc();		// デバッグ表示へのポインタ
 	Vector3 vecDir = m_aLight[m_nIdxLight].Direction;	// ライトの向き 
 

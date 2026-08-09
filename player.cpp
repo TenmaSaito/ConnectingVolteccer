@@ -23,6 +23,7 @@
 #include "motion.h"
 #include "utilityPole.h"
 #include "map.h"
+#include "building.h"
 #include "planet.h"
 #include "ray.h"
 #include "util.h"
@@ -210,7 +211,7 @@ void CPlayer::Update(void)
 	CollisionAction();
 
 	// 現在位置表示
-	pProc->Print("[PPos : %.02f %.02f %.02f]\n", PRINT_VECTOR3(m_pos));
+	pProc->Print("[PPos : {:.2f} {:.2f} {:.2f}]\n", PRINT_VECTOR3(m_pos));
 
 	// 各種更新処理
 	OtherUpdate();
@@ -572,19 +573,19 @@ void CPlayer::InputMap(void)
 
 	if (pKeyboard->GetTrigger(DIK_1))
 	{ // 建物0生成
-		pMap->AddBulding(CMap::BUILDING_0, pos);
+		pMap->AddBulding(CBuilding::TYPE_0, pos);
 	}
 	else if (pKeyboard->GetTrigger(DIK_2))
 	{ // 建物1生成
-		pMap->AddBulding(CMap::BUILDING_1, pos);
+		pMap->AddBulding(CBuilding::TYPE_1, pos);
 	}
 	else if (pKeyboard->GetTrigger(DIK_3))
 	{ // 建物2生成
-		pMap->AddBulding(CMap::BUILDING_2, pos);
+		pMap->AddBulding(CBuilding::TYPE_2, pos);
 	}
 	else if (pKeyboard->GetTrigger(DIK_4))
 	{ // 建物3生成
-		pMap->AddBulding(CMap::BUILDING_3, pos);
+		pMap->AddBulding(CBuilding::TYPE_3, pos);
 	}
 	else if (pKeyboard->GetTrigger(DIK_5))
 	{ // 電柱生成

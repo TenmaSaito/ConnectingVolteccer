@@ -145,19 +145,6 @@ void CGame::Start(void)
 {
 	CMap *pMap = CMap::GetInstance();		// マップへのポインタ
 
-	const char *apBuildingPath[CMap::BUILDING_MAX] =
-	{ // 各建物のモデルパス
-		"data/MODEL/house000.x",
-		"data/MODEL/house001.x",
-		"data/MODEL/house002.x",
-		"data/MODEL/house003.x",
-	};
-
-	for (int nCntBuilding = 0; nCntBuilding < CMap::BUILDING_MAX; nCntBuilding++)
-	{ // モデルパスを登録
-		pMap->Resister(static_cast<CMap::BUILDING>(nCntBuilding), apBuildingPath[nCntBuilding]);
-	}
-
 	// タイマー生成
 	m_pTimer = CTimer::Create(Vector3(WINDOW_MIDDLE.x - 75.0f, 35.0f, 0.0f), Vector2(150.0f, 85.0f), 3, 120);
 

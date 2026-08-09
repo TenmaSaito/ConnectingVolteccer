@@ -216,6 +216,9 @@ void CBillboard::SetSize(const Vector2 &size)
 {
 	VERTEX_3D *pVtx = NULL;		// 頂点情報へのポインタ
 
+	// サイズを保存
+	m_size = size;
+
 	// 頂点バッファをロック
 	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
 

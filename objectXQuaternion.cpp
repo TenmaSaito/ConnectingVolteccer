@@ -49,7 +49,6 @@ CObjectXQuaternion::CObjectXQuaternion(const int nPriority) : CObject(nPriority)
 { // メンバ変数をクリア
 	m_pMesh = nullptr;
 	m_pBuffMat = nullptr;
-	m_pIdx = nullptr;
 	m_pMtxParent = nullptr;
 	m_dwNumMat = 0;
 	m_pos = VECTOR3_NULL;
@@ -135,11 +134,8 @@ void CObjectXQuaternion::Uninit(void)
 		m_pBuffMat = nullptr;
 	}
 
-	if (m_pIdx != nullptr)
-	{ // インデックスを解放
-		delete[] m_pIdx;
-		m_pIdx = nullptr;
-	}
+	// インデックスをリセット
+	m_vIdx.clear();
 
 	// 自分自身を破棄
 	CObject::Release();
@@ -253,7 +249,7 @@ void CObjectXQuaternion::Draw(void)
 		pDevice->SetMaterial(&matSub);
 
 		// テクスチャの設定
-		pDevice->SetTexture(0, pTexture->GetAddress(m_pIdx[nCntMat]));
+		pDevice->SetTexture(0, pTexture->GetAddress(m_vIdx.at(nCntMat)));
 
 		// モデル(パーツ)の描画
 		m_pMesh->DrawSubset(nCntMat);
@@ -374,19 +370,13 @@ HRESULT	CObjectXQuaternion::LoadXFile(const char* pXFileName)
 		return E_FAIL;
 	}
 
-	// マテリアル数分だけ、インデックス用バッファを確保
-	m_pIdx = new int[static_cast<int>(m_dwNumMat)];
-	memset(m_pIdx, -1, sizeof(int) * m_dwNumMat);
-
 	// マテリアルデータへのポインタを取得
 	pMat = static_cast<D3DXMATERIAL*>(m_pBuffMat->GetBufferPointer());
 
 	for (int nCntMat = 0; nCntMat < static_cast<int>(m_dwNumMat); nCntMat++)
 	{ // マテリアル数分だけテクスチャチェック
-		if (pMat[nCntMat].pTextureFilename != NULL)
-		{ // テクスチャの読み込み
-			m_pIdx[nCntMat] = pTexture->Register(pMat[nCntMat].pTextureFilename);
-		}
+		// テクスチャの読み込み
+		m_vIdx.push_back(pTexture->Register(pMat[nCntMat].pTextureFilename));
 	}
 
 	// 頂点数を取得

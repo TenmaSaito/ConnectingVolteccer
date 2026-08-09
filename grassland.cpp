@@ -82,7 +82,6 @@ CGrassLand::~CGrassLand()
 //==================================================================================
 HRESULT CGrassLand::Init(const Vector3 &pos, const Vector2 &size, const int nNumGrass, const Propaty &propaty)
 {
-	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
 	CRand *pRand = CRand::GetInstance();				// 乱数デバイスへのポインタ
 	Vector3 posGrass = VECTOR3_NULL;		// 生成位置
 	Vector2 sizeGrass = VECTOR2_NULL;		// 草のサイズ

@@ -108,6 +108,7 @@ private:
 	int m_nNumModel;		// モデルの総数
 	CThunderEffect *m_pThunderEffect;		// 雷エフェクトへのポインタ
 	bool m_bShotLasso;						// 投げ縄を投げたか
+	float m_fAngle;			// 次の電柱への回転度合い
 };
 
 //==================================================================================

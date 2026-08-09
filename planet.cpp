@@ -172,16 +172,16 @@ void CPlanet::Draw(void)
 		pMat = static_cast<D3DXMATERIAL*>(pXdata->pBuffMat->GetBufferPointer());
 
 		// 各マテリアルを描画
-		for (int nCntMat = 0; nCntMat < static_cast<int>(pXdata->dwNumMat); nCntMat++)
+		for (DWORD dwCntMat = 0; dwCntMat < pXdata->dwNumMat; dwCntMat++)
 		{
 			// マテリアルの設定
-			pDevice->SetMaterial(&pMat[nCntMat].MatD3D);
+			pDevice->SetMaterial(&pMat[dwCntMat].MatD3D);
 
 			// テクスチャの設定
-			pDevice->SetTexture(0, pTexture->GetAddress(pXdata->pIdx[nCntMat]));
+			pDevice->SetTexture(0, pTexture->GetAddress(pXdata->vIdx[dwCntMat]));
 
 			// モデル(パーツ)の描画
-			pXdata->pMesh->DrawSubset(nCntMat);
+			pXdata->pMesh->DrawSubset(dwCntMat);
 		}
 	}
 

@@ -15,7 +15,6 @@
 // *** マクロ定義 ***
 //**********************************************************************************
 #define SQUARE(x)		(x * x)			// 2乗
-#define OX_EPSILON		(0.000001f)		// 浮動小数による判定誤差防止
 
 //**********************************************************************************
 // *** Vector3計算関連名前空間の定義 ***
@@ -471,5 +470,22 @@ float Vec3::GetAxis(Vector3 &vec, const Axis axis)
 {
 	if (axis == Axis::MAX) return NAN;
 	return static_cast<float *>(vec)[static_cast<UINT>(axis)];
+}
+
+//==================================================================================
+// --- 軸列挙変換処理 (Axis -> AxisEx) ---
+//==================================================================================
+AxisEx Vec3::ToAxisEx(const Axis axis)
+{
+	return static_cast<AxisEx>(axis);
+}
+
+//==================================================================================
+// --- 軸列挙変換処理 (AxisEx -> Axis) ---
+//==================================================================================
+Axis Vec3::ToAxis(const AxisEx axisEx)
+{
+	if (axisEx >= static_cast<AxisEx>(Axis::MAX)) return Axis::MAX;
+	return static_cast<Axis>(axisEx);
 }
 #endif

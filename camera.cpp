@@ -26,15 +26,6 @@
 #define DEFAULT_SPD			(1.0f)		// 移動速度
 #define DEFAULT_ROTSPD		(0.01f)		// 回転速度
 #define DEFAULT_LENGTH		(300.0f)	// 注視点との距離
-#define DEFAULT_VP			D3DVIEWPORT9{0,0,SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 1.0f}	// デフォルトのビューポート
-
-//**********************************************************************************
-// *** 静的メンバ変数 ***
-//**********************************************************************************
-CCamera *CCamera::m_apCamera[TYPE_MAX] = {};					// 現在登録されているカメラへのポインタ
-D3DVIEWPORT9 CCamera::m_vpDef = DEFAULT_VP;						// デフォルトのビューポート
-CCamera::TYPE CCamera::m_currentType = CCamera::TYPE_PLAYER;	// 現在設置されているカメラのタイプ
-CCamera::TYPE CCamera::m_focusType = CCamera::TYPE_MAX;			// 現在フォーカスされているカメラのタイプ
 
 //==================================================================================
 // --- コンストラクタ ---

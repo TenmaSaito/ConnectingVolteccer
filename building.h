@@ -57,7 +57,6 @@ public:
 private:
 	void FindUtilityPole(void);
 
-	static const char *m_apBulidingPath[TYPE_MAX];		// 各建物のパス
 	const CUtilityPole *m_pNearPole;		// 最も近い電柱
 	bool m_bHitByPlayerCamRay;				// プレイヤーカメラとのレイ判定
 	bool m_bFind;				// 検索

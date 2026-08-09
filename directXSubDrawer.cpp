@@ -130,8 +130,6 @@ void CDirectXSubDrawer::Quit(void)
 //==================================================================================
 HRESULT CDirectXSubDrawer::Init(void)
 {
-	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
-
 	if (m_aCallFunction[FUNCTION_INIT])
 	{
 		m_aFunc[FUNCTION_INIT].InvokeAll();

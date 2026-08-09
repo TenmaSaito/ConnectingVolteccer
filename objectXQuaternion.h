@@ -12,6 +12,7 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "object.h"
+#include <vector>
 
 //**********************************************************************************
 // *** Xモデル(クォータニオン仕様)クラス ***
@@ -59,16 +60,16 @@ private:
 
 	LPD3DXMESH m_pMesh;				// メッシュ(頂点情報)へのポインタ
 	LPD3DXBUFFER m_pBuffMat;		// マテリアルへのポインタ
-	int *m_pIdx;					// テクスチャインデックスの配列
+	std::vector<int> m_vIdx;		// テクスチャインデックスの配列
 	DWORD m_dwNumMat;				// マテリアルの数
 	Vector3 m_vtxMin, m_vtxMax;	// モデルの各最大最小頂点の位置
 	Vector3 m_pos;				// 位置
 	Vector3 m_scale;			// サイズ
 	Vector3 m_vecQua;			// 任意軸
-	float m_fAngle;					// 軸回転
+	float m_fAngle;				// 軸回転
 	Quaternion m_qua;			// クォータニオン
 	Matrix m_mtxWorld;			// ワールドマトリックス
-	const Matrix *m_pMtxParent;	// 親のワールドマトリックス
+	const Matrix *m_pMtxParent;		// 親のワールドマトリックス
 	char m_aFileName[MAX_PATH];		// ファイル名
 	bool m_bHitByPlayerCamRay;		// プレイヤーカメラとのレイ判定
 	bool m_bCalcMatrix;				// マトリックスが一度でも計算されたかを示すフラグ

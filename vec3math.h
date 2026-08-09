@@ -12,6 +12,7 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "main.h"
+#include <array>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -42,6 +43,9 @@ namespace Vec3
 	template<Axis axis>
 	inline constexpr bool IsTrueAxis_v = IsTrueAxis<axis>;
 
+	// フラグ管理
+	using AxisFlags = std::array<bool, static_cast<std::size_t>(Axis::MAX)>;
+
 	//******************************************************************************
 	// *** 軸列挙 (複数軸有り) ***
 	//******************************************************************************
@@ -65,6 +69,9 @@ namespace Vec3
 	template<AxisEx axisEx>
 	inline constexpr bool IsTrueAxisEx_v = IsTrueAxisEx<axisEx>;
 
+	// フラグ管理
+	using AxisExFlags = std::array<bool, static_cast<std::size_t>(AxisEx::MAX)>;
+
 	//******************************************************************************
 	// *** プロトタイプ宣言 ***
 	//******************************************************************************
@@ -86,8 +93,6 @@ namespace Vec3
 	Vector3 Middle(const Vector3 &p1, const Vector3 &p2);
 	Vector3 Direction(const Vector3 &To, const Vector3 &From);
 	Vector3 Direction(const Vector3 &angle);
-	bool Intersect(const LPD3DXBASEMESH pMesh, const Vector3 &pos, const Vector3 &ray, 
-		const float *pLength, const DWORD *pFaceIndex = nullptr, const Vector2 *pUV = nullptr);
 	Vector3 Random(void);
 	Vector3 Clamp(const Vector3 &vec, const Vector3 &min, const Vector3 &max);
 	Vector3 FixedRotation(const Vector3 &rot);
@@ -101,6 +106,8 @@ namespace Vec3
 	float GetAxis(Vector3 &vec, const Axis axis);
 	AxisEx ToAxisEx(const Axis axis);
 	Axis ToAxis(const AxisEx axisEx);
+	AxisFlags IsAxis(const Vector3 &vec, const float fEpsilon = FLT_EPSILON);
+	AxisExFlags IsAxisEx(const Vector3 &vec, const float fEpsilon = FLT_EPSILON);
 }
 
 #ifdef VEC3_INLINE

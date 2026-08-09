@@ -94,7 +94,6 @@ HRESULT CEffect::Init(const Vector3 &pos,
 	const float fGravity)
 {
 	HRESULT hr = S_OK;			// 関数の結果
-	VERTEX_3D *pVtx = NULL;		// 頂点情報へのポインタ
 	Vector2 size = {};		// ポリゴンサイズ
 
 	// 親クラスの初期化

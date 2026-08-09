@@ -76,6 +76,8 @@ void CTexture::Unload(void)
 //==================================================================================
 int CTexture::Register(const char *pFileName)
 {
+	if (pFileName == nullptr) return -1;
+
 	// Šù‚É“Ç‚İ‚ñ‚Å‚¢‚È‚¢‚©‚ğŠm”F
 	for (int nCntTexture = 0; nCntTexture < m_nNumAll; nCntTexture++)
 	{

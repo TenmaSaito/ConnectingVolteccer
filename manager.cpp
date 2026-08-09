@@ -360,7 +360,7 @@ void CManager::Update(void)
 	m_pLight->Update();
 
 	// FPS表示
-	m_pDebugProc->Print("FPS : %d\n", m_nCountFPS);
+	m_pDebugProc->Print("FPS : {}\n", m_nCountFPS);
 
 	if (m_pInputKeyboard->GetTrigger(DIK_O))
 	{ // スクリーンショット

@@ -351,7 +351,7 @@ void CPlayerCamera::Update(void)
 	CCamera::SetRotate(rot);
 
 	// ƒJƒƒ‰‚ÌÀ•W‚ð•\Ž¦
-	pProc->Print("Cam : PosV[%f %f %f]\nPosR[%f %f %f]\n", PRINT_VECTOR3(posV), PRINT_VECTOR3(posR));
+	pProc->Print("Cam : PosV[{:.2f} {:.2f} {:.2f}]\nPosR[{:.2f} {:.2f} {:.2f}]\n", PRINT_VECTOR3(posV), PRINT_VECTOR3(posR));
 }
 
 //==================================================================================

@@ -59,7 +59,7 @@ public:
 	void BindPlayer(const CPlayer *pPlayer) { m_pPlayer = pPlayer; }
 
 private:
-	const CPlayer *m_pPlayer;			// プレイヤーへのポインタ
+	const CPlayer *m_pPlayer;		// プレイヤーへのポインタ
 	Vector3 m_rotDefault;			// 通常のカメラ角度
 	Vector3 m_rotRidingDefault;		// 電柱登攀時の通常のカメラ角度
 	float m_fLengthPlayer;		// プレイヤーとの距離

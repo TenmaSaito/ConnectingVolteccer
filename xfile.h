@@ -12,11 +12,8 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "main.h"
-
-//**********************************************************************************
-// *** マクロ定義 ***
-//**********************************************************************************
-#define MAX_XFILE		(256)		// Xファイルの読み込める数
+#include <string>
+#include <vector>
 
 //**********************************************************************************
 // *** Xファイルクラス ***
@@ -27,12 +24,13 @@ public:
 	// XFileの情報構造体
 	struct XDATA
 	{
-		char *pXFileName;			// 読み込んだXファイルパス
+		std::string sXFileName;		// 読み込んだXファイルパス
 		LPD3DXMESH pMesh;			// メッシュ(頂点情報)へのポインタ
 		LPD3DXBUFFER pBuffMat;		// マテリアルへのポインタ
-		int *pIdx;					// テクスチャインデックスの配列
+		std::vector<int> vIdx;		// テクスチャインデックスの配列
 		DWORD dwNumMat;				// マテリアルの数
-		Vector3 vtxMin, vtxMax;	// モデルの各最大最小頂点の位置
+		Vector3 vtxMin, vtxMax;		// モデルの各最大最小頂点の位置
+		int nId;					// 自身のID
 	};
 
 	CXFile();
@@ -45,7 +43,7 @@ public:
 	bool GetAddress(const int nIdxXFile, XDATA **ppOut);
 
 private:
-	XDATA m_aXData[MAX_XFILE];		// 読み込んだデータ
+	std::vector<XDATA> m_vXData;	// 読み込んだデータ
 	int m_nNumAll;			// 読み込んだモデルの総数
 };
 #endif

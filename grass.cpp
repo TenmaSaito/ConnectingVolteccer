@@ -159,10 +159,6 @@ void CGrass::Uninit(void)
 //==================================================================================
 void CGrass::Update(void)
 {
-	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
-	CRand *pRand = CRand::GetInstance();				// 乱数デバイスへのポインタ
-	float fHeight = 0.0f;		// メッシュフィールドとの高さ
-
 	if (m_fSpeed == 0.4f)
 	{ // プレイヤーと接触直後
 		m_rot.x = (m_rotDest.x - m_rot.x) * m_fSpeed;
@@ -236,12 +232,10 @@ void CGrass::Draw(void)
 bool CGrass::Collision(const Vector3 &pos, const float fRadius)
 {
 	CManager *pManager = CManager::GetInstance();	// マネージャーへのポインタ
-	auto pProc = pManager->GetDebugProc();			// デバッグ表示へのポインタ
 	Vector3 vecToGrass = VECTOR3_NULL;			// プレイヤーから草へのベクトル
 	Vector3 norVec = VECTOR3_NULL;	// 正規化されたベクトル
 	Vector3 rot = VECTOR3_NULL;		// 計算後の角度
 	float fLength = 0.0f;		// posと草の距離
-	float fAngle = 0.0f;		// 角度
 	float fPower = 0.0f;		// 倒れる強さ
 
 	// 距離を測る

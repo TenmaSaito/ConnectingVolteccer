@@ -81,7 +81,6 @@ HRESULT CElectricCurrent::Init(CUtilityPole *pStart,
 	Vector3 posEnd = *pEnd->GetPosition();			// 終点の座標
 	
 	const Quaternion *pQuaStart = pStart->GetQuaternion();	// 始点のクォータニオン
-	const Quaternion *pQuaEnd = pEnd->GetQuaternion();		// 終点のクォータニオン
 
 	// 最初の電柱と最後の電柱を保存
 	m_pStart = pStart;

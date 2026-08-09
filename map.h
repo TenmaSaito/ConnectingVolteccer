@@ -26,29 +26,16 @@
 class CMap
 {
 public:
-	typedef enum
-	{
-		BUILDING_0 = 0,		// åöï®0
-		BUILDING_1,			// åöï®1
-		BUILDING_2,			// åöï®2
-		BUILDING_3,			// åöï®3
-		BUILDING_MAX		
-	} BUILDING;
-
 	// èoóÕÇ∑ÇÈèÓïÒ
 	struct IODATA;
 
 	CMap();
 	~CMap();
 
-	void Resister(const BUILDING type, const char *pPath);
 	void AddUtilityPole(const Vector3 &pos);
-	void AddBulding(const BUILDING type, const Vector3 &pos);
+	void AddBulding(const int nType, const Vector3 &pos);
 	void Save(const char *pMapFile);
 	void Load(const char *pMapFile);
 	static CMap *GetInstance(void);
-
-private:
-	char m_aBuildingPath[BUILDING_MAX][MAX_PATH_LEN];
 };
 #endif

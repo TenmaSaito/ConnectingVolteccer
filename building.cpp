@@ -15,6 +15,8 @@
 #include "utilityPole.h"
 #include "vec3math.h"
 #include "effect.h"
+#include <string_view>
+#include <array>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -24,13 +26,16 @@
 //**********************************************************************************
 // *** 静的メンバ変数 ***
 //**********************************************************************************
-const char *CBuilding::m_apBulidingPath[TYPE_MAX] =		// 建物モデルのパス
+namespace
 {
-	"data/MODEL/house000.x",		// 建物0
-	"data/MODEL/house001.x",		// 建物1
-	"data/MODEL/house002.x",		// 建物2
-	"data/MODEL/house003.x",		// 建物3
-};
+	constexpr std::string_view m_buildingPath[CBuilding::TYPE_MAX] =	// 建物モデルのパス
+	{
+		"data/MODEL/house000.x",		// 建物0
+		"data/MODEL/house001.x",		// 建物1
+		"data/MODEL/house002.x",		// 建物2
+		"data/MODEL/house003.x",		// 建物3
+	};
+}
 
 //==================================================================================
 // --- 生成処理 ---
@@ -84,7 +89,7 @@ CBuilding *CBuilding::Create(const TYPE type, const Vector3 &position)
 //==================================================================================
 // --- コンストラクタ ---
 //==================================================================================
-CBuilding::CBuilding(const TYPE type, const int nPriority)
+CBuilding::CBuilding(const TYPE type, const int nPriority) : CObjectXQuaternion(nPriority)
 { // メンバ変数のクリア
 	m_pNearPole = nullptr;
 	m_bHitByPlayerCamRay = false;
@@ -116,7 +121,7 @@ HRESULT CBuilding::Init(const Vector3 &position,
 	CPlanet *pPlanet = pGame->GetPlanet();		// 惑星へのポインタ
 
 	// 親クラスの初期化
-	hr = CObjectXQuaternion::Init(m_apBulidingPath[m_buildingType], position, vecQua, fAngle);
+	hr = CObjectXQuaternion::Init(m_buildingPath[m_buildingType].data(), position, vecQua, fAngle);
 
 	// 親を惑星に設定
 	SetParent(pPlanet->GetMatrix());
@@ -149,7 +154,7 @@ HRESULT CBuilding::Init(const Vector3 &position)
 	fAngle *= -1;
 
 	// 親クラスの初期化
-	hr = CObjectXQuaternion::Init(m_apBulidingPath[m_buildingType], position, vecQua, fAngle);
+	hr = CObjectXQuaternion::Init(m_buildingPath[m_buildingType].data(), position, vecQua, fAngle);
 
 	// 親を惑星に設定
 	SetParent(pPlanet->GetMatrix());
