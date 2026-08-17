@@ -20,7 +20,7 @@ CDebugProc::CDebugProc()
 { // 各メンバ変数のクリア
 	m_sProc.reserve(DEFAULT_STRING_CAPACITY);
 	m_pFont = NULL;
-	m_colFont = D3DXCOLOR(1, 1, 1, 1);
+	m_colFont = Color(1, 1, 1, 1);
 }
 
 //==================================================================================
@@ -39,7 +39,7 @@ HRESULT CDebugProc::Init(const UINT &rHeight, const char *pFontname)
 	HRESULT hr = S_OK;		// 処理の結果
 
 	// デバイスの取得
-	pDevice = CManager::GetDeviceByInstance();
+	pDevice = CManager::GetInstance()->GetRenderer()->GetDevice();
 
 	if (m_pFont == NULL)
 	{ // フォントが作成されていなければ作成

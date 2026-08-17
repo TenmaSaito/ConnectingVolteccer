@@ -28,7 +28,7 @@
 //**********************************************************************************
 namespace
 {
-	constexpr std::string_view m_buildingPath[CBuilding::TYPE_MAX] =	// 建物モデルのパス
+	constexpr std::string_view m_sBuildingPath[CBuilding::TYPE_MAX] =	// 建物モデルのパス
 	{
 		"data/MODEL/house000.x",		// 建物0
 		"data/MODEL/house001.x",		// 建物1
@@ -117,11 +117,11 @@ HRESULT CBuilding::Init(const Vector3 &position,
 	const float fAngle)
 {
 	HRESULT hr = S_OK;		// 結果
-	CGame *pGame = CManager::GetSceneByInstance<CGame>();		// ゲームへのポインタ
+	CGame *pGame = CManager::GetInstance()->GetScene(&pGame);		// ゲームへのポインタ
 	CPlanet *pPlanet = pGame->GetPlanet();		// 惑星へのポインタ
 
 	// 親クラスの初期化
-	hr = CObjectXQuaternion::Init(m_buildingPath[m_buildingType].data(), position, vecQua, fAngle);
+	hr = CObjectXQuaternion::Init(m_sBuildingPath[m_buildingType].data(), position, vecQua, fAngle);
 
 	// 親を惑星に設定
 	SetParent(pPlanet->GetMatrix());
@@ -138,7 +138,7 @@ HRESULT CBuilding::Init(const Vector3 &position,
 HRESULT CBuilding::Init(const Vector3 &position)
 {
 	HRESULT hr = S_OK;		// 結果
-	CGame *pGame = CManager::GetSceneByInstance<CGame>();		// ゲームへのポインタ
+	CGame *pGame = CManager::GetInstance()->GetScene(&pGame);		// ゲームへのポインタ
 	CPlanet *pPlanet = pGame->GetPlanet();		// 惑星へのポインタ
 
 	// 惑星から現在の任意軸と角度を取得
@@ -154,7 +154,7 @@ HRESULT CBuilding::Init(const Vector3 &position)
 	fAngle *= -1;
 
 	// 親クラスの初期化
-	hr = CObjectXQuaternion::Init(m_buildingPath[m_buildingType].data(), position, vecQua, fAngle);
+	hr = CObjectXQuaternion::Init(m_sBuildingPath[m_buildingType].data(), position, vecQua, fAngle);
 
 	// 親を惑星に設定
 	SetParent(pPlanet->GetMatrix());

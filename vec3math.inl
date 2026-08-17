@@ -436,10 +436,11 @@ namespace Vec3
 	//==================================================================================
 	FORCEINLINE Vector2 ToVector2(const Vector3 &vec, const Axis less)
 	{
-		float x = vec[(static_cast<UINT>(less) - 1U) % static_cast<UINT>(Axis::MAX)];
-		float y = vec[(static_cast<UINT>(less) + 1U) % static_cast<UINT>(Axis::MAX)];
+		if (less == Axis::X) return Vector2(vec.y, vec.z);
+		else if (less == Axis::Y) return Vector2(vec.x, vec.z);
+		else if (less == Axis::Z) return Vector2(vec.x, vec.y);
 
-		return Vector2(x, y);
+		return Vector2(0.0f, 0.0f);
 	}
 
 	//==================================================================================

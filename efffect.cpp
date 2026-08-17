@@ -156,7 +156,7 @@ void CEffect::Update(void)
 //==================================================================================
 void CEffect::Draw(void)
 {
-	LPDIRECT3DDEVICE9 pDevice = CManager::GetDeviceByInstance();		// デバイスの取得
+	LPDIRECT3DDEVICE9 pDevice = CManager::GetInstance()->GetRenderer()->GetDevice();		// デバイスの取得
 
 	// ライティングを無効に設定
 	pDevice->SetRenderState(D3DRS_LIGHTING, FALSE);

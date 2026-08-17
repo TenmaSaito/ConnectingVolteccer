@@ -53,8 +53,8 @@ public:
 	Vector2 GetSize(void) const { return m_size; }
 	void SetLength(const float fLength);
 	float GetLength(void) const { return m_fLength; }
-	void SetColor(const D3DXCOLOR &color);
-	D3DXCOLOR GetColor(void) const { return m_color; }
+	void SetColor(const Color &color);
+	Color GetColor(void) const { return m_color; }
 	void SetDisp(const bool bDisp) { m_bDisp = bDisp; }
 	bool GetDisp(void) { return m_bDisp; }
 	void BindTexture(const int nIdxTexture) { m_nIdxTexture = nIdxTexture; }
@@ -62,11 +62,11 @@ public:
 private:
 	LPDIRECT3DVERTEXBUFFER9 m_pVtxBuff;			// 頂点バッファへのポインタ
 	int m_nIdxTexture;		// テクスチャインデックス
-	Vector3 m_pos;		// オブジェクトの位置
-	Vector3 m_offset;	// オブジェクト描画時のオフセット
-	Vector3 m_rot;		// オブジェクトの角度
-	Vector2 m_size;		// オブジェクトのサイズ
-	D3DXCOLOR m_color;		// 色
+	Vector3 m_pos;			// オブジェクトの位置
+	Vector3 m_offset;		// オブジェクト描画時のオフセット
+	Vector3 m_rot;			// オブジェクトの角度
+	Vector2 m_size;			// オブジェクトのサイズ
+	Color m_color;			// 色
 	float m_fLength;		// 対角線の長さ
 	float m_fAngle;			// 対角線の角度
 	bool m_bDisp;			// 描画の有無

@@ -23,6 +23,7 @@
 #define DEFAULT_EFFECT_PRIORITY	(4)			// エフェクト関連の優先順位
 #define DEFAULT_UI_PRIORITY		(6)			// UIの基本優先順位
 #define ENABLE_OBJECT_LIST		TRUE		// リスト構造での管理の有効化
+#define DEBUG_ASSERT_TYPE_NONE				// オブジェクトにタイプが指定されていなかった場合、アサーション
 #define OBJTYPE_TO_BITFLAG(type)	(1 << (type))								// ビットフラグ化
 #define FIND_BITFLAG_BY_OBJTYPE(flag, type)		((flag) & (1i64 << (type)))		// ビットフラグの確認
 
@@ -35,11 +36,17 @@ public:
 	// オブジェクトの種類
 	typedef enum
 	{
-		TYPE_NONE = 0,		// 無し
+		TYPE_NONE = 0,		// 指定無し (アサーション対象)
+		TYPE_OBJ_2D,		// Object2D
+		TYPE_OBJ_3D,		// Object3D
+		TYPE_OBJ_BILLBOARD,	// ObjectBillboard
+		TYPE_OBJ_LINE,		// ObjectLine
+		TYPE_OBJ_X,			// ObjectX
+		TYPE_OBJ_X_QUA,		// ObjectXQuaternion
 		TYPE_PLAYER,		// プレイヤー
-		TYPE_ENEMY,			// 敵
-		TYPE_BULLET,		// 弾
+		TYPE_PLANET,		// 惑星
 		TYPE_SCORE,			// スコア
+		TYPE_TIMER,			// タイマー
 		TYPE_EFFECT,		// エフェクト
 		TYPE_POLE,			// 電柱
 		TYPE_CABLE,			// 電線
@@ -49,7 +56,6 @@ public:
 		TYPE_ORBIT3D,		// メッシュオービット
 		TYPE_MESHFIELD,		// メッシュフィールド
 		TYPE_MESHSPHERE,	// メッシュスフィア
-		TYPE_XMODEL,		// Xモデル
 		TYPE_BUILDING,		// 建物
 		TYPE_MAX
 	} TYPE;

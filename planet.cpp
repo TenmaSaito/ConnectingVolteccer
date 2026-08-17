@@ -59,6 +59,9 @@ CPlanet::CPlanet()
 	D3DXQuaternionIdentity(&m_qua);
 	m_fAngle = 0.0f;
 	m_nIdxModel = -1;
+
+	// タイプを指定
+	SetType(TYPE_PLANET);
 }
 
 //==================================================================================

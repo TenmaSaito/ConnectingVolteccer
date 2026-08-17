@@ -95,7 +95,7 @@ void CCamera::Update(void)
 //==================================================================================
 void CCamera::SetCamera(void)
 {
-	LPDIRECT3DDEVICE9 pDevice = CManager::GetDeviceByInstance();	// デバイスへのポインタ
+	LPDIRECT3DDEVICE9 pDevice = CManager::GetInstance()->GetRenderer()->GetDevice();	// デバイスへのポインタ
 	RECT rect = { 0,0,SCREEN_WIDTH,SCREEN_HEIGHT };		// 画面サイズ
 
 	// プロジェクションマトリックスの初期化
@@ -259,7 +259,7 @@ CCamera *CCamera::Begin(const int nIdx)
 { // nullの場合スキップ
 	if (m_apCamera[nIdx] == nullptr) return nullptr;
 
-	LPDIRECT3DDEVICE9 pDevice = CManager::GetDeviceByInstance();	// デバイスへのポインタ
+	LPDIRECT3DDEVICE9 pDevice = CManager::GetInstance()->GetRenderer()->GetDevice();	// デバイスへのポインタ
 
 	// ビューポートを取得
 	pDevice->GetViewport(&m_vpDef);
@@ -281,7 +281,7 @@ CCamera *CCamera::Begin(const int nIdx)
 //==================================================================================
 void CCamera::End(void)
 {
-	LPDIRECT3DDEVICE9 pDevice = CManager::GetDeviceByInstance();	// デバイスへのポインタ
+	LPDIRECT3DDEVICE9 pDevice = CManager::GetInstance()->GetRenderer()->GetDevice();	// デバイスへのポインタ
 
 	// ビューポートを元に戻す
 	pDevice->SetViewport(&m_vpDef);

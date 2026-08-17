@@ -25,12 +25,6 @@ namespace Util
 	float Lerp(const float fStart, const float fEnd, const float ft);
 	void SetStringSetting(const int nNumPrecision);
 	template<class T> std::string ToString(const T &value);
-#ifdef _DEBUG
-	template<class T> T *GetTemp(const T &value);
-#else
-	template<class T>
-	[[deprecated("is not safe function. please use local pointer.")]] T* GetTemp(const T& value);
-#endif
 }
 
 //==================================================================================
@@ -57,32 +51,4 @@ template<class T> std::string Util::ToString(const T &value)
 	// 変換後の文字列を返す
 	return str;
 }
-
-//==================================================================================
-// --- 一時アドレス取得処理 ---
-//==================================================================================
-#ifdef _DEBUG
-template<class T> T *Util::GetTemp(const T &value)
-{
-	static T tempValue;		// アドレス化用変数
-
-	// バッファをコピー
-	memcpy(&tempValue, &value, sizeof(T));
-
-	// 変数へのアドレスを返す
-	return &tempValue;
-}
-#else
-template<class T>
-[[deprecated("Is not safe function. Please use local pointer.")]] T* Util::GetTemp(const T& value)
-{
-	static T tempValue;		// アドレス化用変数
-
-	// バッファをコピー
-	memcpy(&tempValue, &value, sizeof(T));
-
-	// 変数へのアドレスを返す
-	return &tempValue;
-}
-#endif
 #endif

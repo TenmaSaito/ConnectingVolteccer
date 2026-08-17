@@ -84,7 +84,7 @@ HRESULT CMeshSphere::Init(const Vector3 &pos,
 	m_vecQua = vecQua;
 	m_fAngle = fAngle;
 
-	LPDIRECT3DDEVICE9 pDevice = CManager::GetDeviceByInstance();		// デバイスへのポインタ
+	LPDIRECT3DDEVICE9 pDevice = CManager::GetInstance()->GetRenderer()->GetDevice();		// デバイスへのポインタ
 	VERTEX_3D *pVtx = nullptr;	// 頂点バッファへのポインタ
 	WORD *pIdx = nullptr;		// インデックスへのポインタ
 

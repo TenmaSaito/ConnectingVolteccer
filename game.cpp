@@ -157,5 +157,5 @@ void CGame::Start(void)
 	NULLPOINTER_ASSERT(m_pPlanet);
 
 	// ƒ}ƒbƒv“Ç‚İ‚İ
-	CMap::GetInstance()->Load("data/2026-07-30-12-30-30.bin");
+	CMap::GetInstance()->Load("data/2026-08-11-00-25-32.bin");
 }

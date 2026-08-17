@@ -53,9 +53,12 @@ CObjectLine::CObjectLine(const int nPriority) : CObject(nPriority)
 	m_end = VECTOR3_NULL;
 	m_vec = VECTOR3_NULL;
 	m_fLength = 0.0f;
-	m_color = Color::GetColor(Color::COLOR_WHITE);
+	m_color = Colors::GetColor(Colors::COLOR_WHITE);
 	m_nLife = 0;
 	m_bDisp = true;
+
+	// タイプを設定
+	SetType(TYPE_OBJ_LINE);
 }
 
 //==================================================================================
@@ -124,7 +127,7 @@ void CObjectLine::Update(void)
 //==================================================================================
 void CObjectLine::Draw(void)
 {
-	LPDIRECT3DDEVICE9 pDevice = CManager::GetDeviceByInstance();		// デバイスの取得
+	LPDIRECT3DDEVICE9 pDevice = CManager::GetInstance()->GetRenderer()->GetDevice();		// デバイスの取得
 	Matrix mtxWorld;		// ワールドマトリックス
 
 	if (m_bDisp)
@@ -170,7 +173,7 @@ void CObjectLine::Draw(void)
 //==================================================================================
 HRESULT CObjectLine::CreateVertex(void)
 {
-	LPDIRECT3DDEVICE9 pDevice = CManager::GetDeviceByInstance();		// デバイスの取得
+	LPDIRECT3DDEVICE9 pDevice = CManager::GetInstance()->GetRenderer()->GetDevice();		// デバイスの取得
 	VERTEX_3D *pVtx = nullptr;		// 頂点情報へのポインタ
 	HRESULT hr = S_OK;				// 結果
 

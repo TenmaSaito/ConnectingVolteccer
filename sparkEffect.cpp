@@ -86,7 +86,7 @@ HRESULT CSparkEffect::Init(const Vector3 &pos,
 	const Vector3 &max)
 {
 	CTexture *pTexture = CTexture::GetInstance();		// テクスチャへのポインタ
-	D3DXCOLOR col = Color::GetColor(Color::COLOR_YELLOW);	// 色
+	Color col = Colors::GetColor(Colors::COLOR_YELLOW);	// 色
 	VERTEX_3D *pVtx = nullptr;		// 頂点へのポインタ
 	Matrix mtxParentTemp;		// 都度生成される疑似的な親マトリックス
 

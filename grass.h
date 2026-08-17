@@ -33,11 +33,11 @@ public:
 private:
 	LPDIRECT3DVERTEXBUFFER9 m_pVtxBuff;		// 頂点バッファへのポインタ
 	int m_nIdxTexture;		// テクスチャインデックス
-	Vector3 m_pos;		// 位置
-	Vector3 m_rot;		// 角度
-	Vector3 m_rotDest;	// 目標角度
-	Vector2 m_size;		// サイズ
-	Matrix m_mtxWorld;	// ワールドマトリックス
+	Vector3 m_pos;			// 位置
+	Vector3 m_rot;			// 角度
+	Vector3 m_rotDest;		// 目標角度
+	Vector2 m_size;			// サイズ
+	Matrix m_mtxWorld;		// ワールドマトリックス
 	float m_fSwaySpeed;		// 揺れる速度
 	float m_fSwayWidth;		// 揺れる幅
 	float m_fLerpCount;		// 線形補間用変数

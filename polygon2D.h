@@ -42,9 +42,9 @@ private:
 	LPDIRECT3DVERTEXBUFFER9 m_pVtxBuff;		// 頂点バッファ
 	LPDIRECT3DTEXTURE9 m_pTexture;		// テクスチャバッファ
 	int m_nIdxTexture;			// テクスチャインデックス
-	Vector3 m_pos;			// 中心座標
-	Vector3 m_rot;			// 角度
-	Vector2 m_size;			// サイズ
+	Vector3 m_pos;				// 中心座標
+	Vector3 m_rot;				// 角度
+	Vector2 m_size;				// サイズ
 	float m_fLength;			// 対角線の長さ
 	float m_fAngle;				// 対角線の角度
 	bool m_bUseIndex;			// テクスチャインデックスを使用するか

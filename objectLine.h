@@ -52,9 +52,9 @@ private:
 
 	LPDIRECT3DVERTEXBUFFER9 m_pVtxBuff;		// 頂点バッファ
 	Vector3 m_start, m_end;			// 始点、終点
-	Vector3 m_vec;		// 始点と方向ベクトル
+	Vector3 m_vec;			// 始点と方向ベクトル
 	float m_fLength;		// ベクトルの長さ
-	D3DXCOLOR m_color;		// 色
+	Color m_color;			// 色
 	int m_nLife;			// 寿命
 	bool m_bDisp;			// 描画するか
 };

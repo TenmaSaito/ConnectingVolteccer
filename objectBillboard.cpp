@@ -45,6 +45,9 @@ CObjectBillboard::CObjectBillboard(const int nPriority) : CObject(nPriority)
 	m_size = VECTOR2_NULL;
 	m_bDisp = true;
 	m_bAlpha = true;
+
+	// タイプを指定
+	SetType(TYPE_OBJ_BILLBOARD);
 }
 
 //==================================================================================
@@ -108,10 +111,10 @@ HRESULT CObjectBillboard::Init(const Vector3 &pos, const Vector2 &size)
 	pVtx[3].nor = Vector3(0.0f, 0.0f, -1.0f);
 
 	// 頂点カラー設定
-	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[0].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[1].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[2].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[3].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
 	pVtx[0].tex = Vector2(0.0f, 0.0f);

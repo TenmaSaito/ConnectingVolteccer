@@ -49,13 +49,9 @@ private:
 	CUtilityPole *m_pStart;		// 電線の始点電柱
 	CUtilityPole *m_pEnd;		// 電線の終点電柱
 	Vector3 m_pos;			// 位置
-#ifndef ENABLE_QUATERNION
-	Vector3 m_rot;			// 角度
-#else
 	Vector3 m_vecQua;		// 任意軸
 	float m_fAngle;				// 軸角度
 	Quaternion m_qua;		// クォータニオン
-#endif
 	Matrix m_mtxWorld;		// ワールドマトリックス
 	const Matrix *m_pMtxParent;		// 親のワールドマトリックス
 };

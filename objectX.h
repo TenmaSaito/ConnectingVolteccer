@@ -54,9 +54,9 @@ private:
 	int *m_pIdx;				// テクスチャインデックスの配列
 	DWORD m_dwNumMat;			// マテリアルの数
 	Vector3 m_vtxMin, m_vtxMax;	// モデルの各最大最小頂点の位置
-	Matrix m_mtxWorld;		// ワールドマトリックス
-	Vector3 m_pos;			// 位置
-	Vector3 m_rot;			// 角度
+	Matrix m_mtxWorld;			// ワールドマトリックス
+	Vector3 m_pos;				// 位置
+	Vector3 m_rot;				// 角度
 	char m_aFileName[MAX_PATH];	// ファイル名
 };
 #endif

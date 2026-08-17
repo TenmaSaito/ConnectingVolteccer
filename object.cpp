@@ -62,6 +62,9 @@ CObject::CObject(const int nPriority)
 		}
 	}
 #endif
+
+	// タイプを設定
+	SetType(TYPE_NONE);
 }
 
 //==================================================================================
@@ -121,6 +124,11 @@ void CObject::UpdateAll(void)
 		{ // nullptrになるまで繰り返す
 			CObject *pObjectNext = pObject->m_pNext;	// 次のオブジェクトへのポインタ
 
+#ifdef DEBUG_ASSERT_TYPE_NONE
+			// オブジェクトのタイプがNONEの場合、アサーション + ブレークポイント
+			assert(pObject->m_type != TYPE_NONE);
+			if (pObject->m_type == TYPE_NONE) __debugbreak();
+#endif
 			// オブジェクトの更新
 			pObject->Update();
 

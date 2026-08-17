@@ -79,7 +79,7 @@ HRESULT CThunderEffect::Init(const Vector3 &min,
 {
 	CTexture *pTexture = CTexture::GetInstance();		// テクスチャへのポインタ
 	VERTEX_3D *pVtx = nullptr;		// 頂点へのポインタ
-	D3DXCOLOR col = Color::GetColor(Color::COLOR_YELLOW);
+	Color col = Colors::GetColor(Colors::COLOR_YELLOW);
 
 	// オービットの最大最小値を設定
 	m_fMinWidth = 3.0f;

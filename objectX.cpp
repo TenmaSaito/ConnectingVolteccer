@@ -61,7 +61,7 @@ CObjectX::CObjectX(const int nPriority) : CObject(nPriority)
 	strcpy(m_aFileName, "");
 
 	// É^ÉCÉvÇÃê›íË
-	SetType(TYPE_XMODEL);
+	SetType(TYPE_OBJ_X);
 }
 
 //==================================================================================

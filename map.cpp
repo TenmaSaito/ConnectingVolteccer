@@ -27,24 +27,23 @@
 //**********************************************************************************
 // *** マップ情報構造体 ***
 //**********************************************************************************
-#ifdef ENABLE_PLANET
 struct CMap::IODATA
 {
 	int type;			// モデルの種類
 	int nIdxModel;		// 建物のインデックス
-	Vector3 pos;	// 位置
-	Vector3 vecQua;	// 任意軸
+	Vector3 pos;		// 位置
+	Vector3 vecQua;		// 任意軸
 	float fAngle;		// 角度
 };
-#else
-struct CMap::IODATA
+
+//**********************************************************************************
+// *** モデルのタイプ保存用情報構造体 ***
+//**********************************************************************************
+struct THIS_FILE_OBJECT_TYPEINFO
 {
-	int type;			// モデルの種類
-	int nIdxModel;		// モデルのインデックス
-	Vector3 pos;	// 位置
-	Vector3 rot;	// 角度
+	int nBuildingType;		// ファイル作成時の建物のタイプのインデックス
+	int nPoleType;			// ファイル作成時の電柱のタイプのインデックス
 };
-#endif
 
 //==================================================================================
 // --- インスタンス取得処理 ---
@@ -112,7 +111,6 @@ void CMap::AddBulding(const int nType, const Vector3 &pos)
 //==================================================================================
 void CMap::Save(const char *pMapFile)
 {
-#ifdef ENABLE_PLANET
 	std::vector<std::string> filepath;			// ファイルパス
 	std::vector<CBuilding::TYPE> aIdxModel;		// モデルインデックス
 	std::vector<IODATA> outData;			// 出力データ群
@@ -167,27 +165,21 @@ void CMap::Save(const char *pMapFile)
 		// 書き出し時に小数第2位まで書き出すことを指定
 		(*pOfs) << std::fixed << std::setprecision(2);
 
-#if 0
-		// モデルの合計数を書き出し
-		*pFile << outData.size() << '\n';
-#else
+		THIS_FILE_OBJECT_TYPEINFO objTypeInfo = {};		// タイプ情報
+
+		// オブジェクトのタイプの定義が次回読み込み時に変わる恐れがあるため、
+		// 今回のオブジェクトのタイプを事前に保存
+		objTypeInfo.nBuildingType = CObject::TYPE_BUILDING;		// 建物のタイプを保存
+		objTypeInfo.nPoleType = CObject::TYPE_POLE;				// 電柱のタイプを保存
+
+		// オブジェクトのタイプを書き出し
+		pFile->Write(&objTypeInfo, sizeof(THIS_FILE_OBJECT_TYPEINFO));
+
 		// モデルの合計数を書き出し
 		*pFile << outData.size();
-#endif
 
 		for (const auto &out : outData)
 		{ // モデルのデータ書き出し
-#if 0
-			*pFile << out.type << ' '
-				<< out.nIdxModel << ' '
-				<< out.pos.x << ' '
-				<< out.pos.y << ' '
-				<< out.pos.z << ' '
-				<< out.vecQua.x << ' '
-				<< out.vecQua.y << ' '
-				<< out.vecQua.z << ' '
-				<< out.fAngle << '\n';
-#else
 			*pFile << out.type
 				<< out.nIdxModel
 				<< out.pos.x
@@ -197,104 +189,11 @@ void CMap::Save(const char *pMapFile)
 				<< out.vecQua.y
 				<< out.vecQua.z
 				<< out.fAngle;
-#endif
 		}
 
 		// ファイルを閉じる
 		pFile->CloseFile();
 	}
-#else
-	std::vector<std::string> filepath;		// ファイルパス
-	std::vector<IODATA> outData;			// 出力データ群
-	int nIdxModel = 0;		// モデルのインデックス
-	long long flag = OBJTYPE_TO_BITFLAG(CObject::TYPE_POLE);
-	flag |= OBJTYPE_TO_BITFLAG(CObject::TYPE_XMODEL);
-
-	for (int nCntPriority = 0; nCntPriority < MAX_OBJPRIORITY; nCntPriority++)
-	{
-		CObject *pObject = CObject::GetTop(nCntPriority);		// 先頭
-		while (pObject != nullptr)
-		{ // nullptrになるまで走査
-			CObject *pObjectNext = pObject->GetNext();		// 次のオブジェクトへのポインタ
-
-			if (static_cast<bool>(FIND_BITFLAG_BY_OBJTYPE(flag, static_cast<long long>(pObject->GetType()))))
-			{ // もし、書き出すタイプなら
-				// ObjectXにキャスト
-				CObjectX *pObjX = static_cast<CObjectX *>(pObject);
-
-				// ファイルパス取得
-				for (const auto &path : filepath)
-				{
-					if (strcmp(path.c_str(), pObjX->GetFileName()) == 0)
-					{ // 保存済みならスキップ
-						break;
-					}
-
-					nIdxModel++;		// インデックスを進める
-				}
-
-				if (nIdxModel == filepath.size())
-				{ // 保存していないならパスを保存
-					filepath.push_back(pObjX->GetFileName());
-				}
-
-				IODATA out = {};		// 出力データ
-
-				// メモリクリア
-				ZeroMemory(&out, sizeof(IODATA));
-
-				// 情報設定
-				out.type = pObject->GetType();
-				out.nIdxModel = nIdxModel;
-				out.pos = pObjX->GetPosition();
-				out.rot = pObjX->GetRotation();
-
-				// 書き出し情報に追加
-				outData.push_back(out);
-			}
-
-			nIdxModel = 0;		// インデックスリセット
-
-			pObject = pObjectNext;		// オブジェクトを進める
-		}
-	}
-
-	// データ書き出し
-	std::unique_ptr<CFileStream> pFile(new CFileStream);		// ファイルストリーム
-	std::ofstream *pOfs = pFile->GetOutStream();		// 出力ストリームへのポインタ
-
-	if (pFile->CreateFile(pMapFile, false, CFileStream::FLAG_OVERWRITE))
-	{
-		// 書き出し時に小数第2位まで書き出すことを指定
-		(*pOfs) << std::fixed << std::setprecision(2);
-
-		// パスの合計数を書き出し
-		*pFile << filepath.size() << '\n';
-
-		for (const auto &path : filepath)
-		{ // パス書き出し
-			*pFile << path << '\n';
-		}
-
-		// モデルの合計数を書き出し
-		*pFile << outData.size() << '\n';
-
-		for (const auto &out : outData)
-		{ // モデルのデータ書き出し
-			*pFile << out.type << ' '
-				<< out.nIdxModel << ' '
-				<< out.pos.x << ' '
-				<< out.pos.y << ' '
-				<< out.pos.z << ' '
-				<< out.rot.x << ' '
-				<< out.rot.y << ' '
-				<< out.rot.z << '\n';
-		}
-
-		// ファイルを閉じる
-		pFile->CloseFile();
-	}
-#endif
 }
 
 //==================================================================================
@@ -309,10 +208,15 @@ void CMap::Load(const char *pMapFile)
 	const Matrix *pMtxPlanet = CManager::GetInstance()->GetScene<CGame>()->GetPlanet()->GetMatrix();
 
 	// データ読み込み
-	std::unique_ptr<CFileStream> pFile(new CFileStream);		// ファイルストリーム
+	std::unique_ptr<CFileStream> pFile(new CFileStream);	// ファイルストリーム
 
 	if (pFile->OpenFile(pMapFile, true))
 	{ // ファイルが開けた場合
+		THIS_FILE_OBJECT_TYPEINFO fileTypeInfo = {};		// 読み込んだファイルのオブジェクトタイプ情報
+
+		// ファイルに保存されたモデルのインデックスを取得
+		pFile->Read(&fileTypeInfo, sizeof(THIS_FILE_OBJECT_TYPEINFO));
+
 		// モデル数読み込み
 		*pFile >> nNumModel;
 
@@ -333,14 +237,14 @@ void CMap::Load(const char *pMapFile)
 
 			// タイプ別でオブジェクトを配置
 			CObject::TYPE type = static_cast<CObject::TYPE>(in.type);
-			if (type == CObject::TYPE_BUILDING)
+			if (type == fileTypeInfo.nBuildingType)
 			{ // 建物配置
 				CBuilding::Create(static_cast<CBuilding::TYPE>(in.nIdxModel),
 					in.pos,
 					in.vecQua,
 					in.fAngle);
 			}
-			else if (type == CObject::TYPE_POLE)
+			else if (type == fileTypeInfo.nPoleType)
 			{ // 電柱配置
 				auto pPole = CUtilityPole::Create(in.pos,
 					in.vecQua,

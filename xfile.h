@@ -16,6 +16,11 @@
 #include <vector>
 
 //**********************************************************************************
+// *** マクロ定義 ***
+//**********************************************************************************
+#define INVALID_XFILEID		((UINT)-1)	// XFILEの無効値
+
+//**********************************************************************************
 // *** Xファイルクラス ***
 //**********************************************************************************
 class CXFile
@@ -30,20 +35,20 @@ public:
 		std::vector<int> vIdx;		// テクスチャインデックスの配列
 		DWORD dwNumMat;				// マテリアルの数
 		Vector3 vtxMin, vtxMax;		// モデルの各最大最小頂点の位置
-		int nId;					// 自身のID
 	};
-
-	CXFile();
-	~CXFile();
 
 	static CXFile *GetInstance(void);
 
-	int Resister(const char *pXFileName, const bool bCopy = false);
+	UINT Resister(const char *pXFileName, const bool bCopy = false);
 	void Unload(void);
-	bool GetAddress(const int nIdxXFile, XDATA **ppOut);
+	bool GetAddress(const UINT uIdxXFile, XDATA **ppOut);
 
 private:
+	CXFile();
+	~CXFile();
+
+	UINT Load(const char *pXFileName);
+
 	std::vector<XDATA> m_vXData;	// 読み込んだデータ
-	int m_nNumAll;			// 読み込んだモデルの総数
 };
 #endif

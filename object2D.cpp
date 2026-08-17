@@ -138,8 +138,7 @@ CObject2D *CObject2D::Create(const Vector3 &pos, const Vector2 &size)
 // --- コンストラクタ ---
 //==================================================================================
 CObject2D::CObject2D(const int nPriority) : CObject(nPriority)
-{
-	// メンバ変数をクリア
+{ // メンバ変数をクリア
 	m_pVtxBuff = NULL;
 	m_nIdxTexture = -1;
 	m_pos = VECTOR3_NULL;
@@ -150,6 +149,9 @@ CObject2D::CObject2D(const int nPriority) : CObject(nPriority)
 	m_fLength = 0.0f;
 	m_fAngle = 0.0f;
 	m_bDisp = false;
+
+	// タイプを指定
+	SetType(TYPE_OBJ_2D);
 }
 
 //==================================================================================
@@ -220,10 +222,10 @@ HRESULT CObject2D::Init(void)
 	pVtx[3].rhw = 1.0f;
 
 	// 頂点カラー設定
-	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[0].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[1].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[2].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[3].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
 	pVtx[0].tex = Vector2(0.0f, 0.0f);
@@ -301,10 +303,10 @@ HRESULT CObject2D::Init(const Vector3 &pos)
 	pVtx[3].rhw = 1.0f;
 
 	// 頂点カラー設定
-	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[0].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[1].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[2].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[3].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
 	pVtx[0].tex = Vector2(0.0f, 0.0f);
@@ -382,10 +384,10 @@ HRESULT CObject2D::Init(const Vector3 &pos, const Vector3 &rot)
 	pVtx[3].rhw = 1.0f;
 
 	// 頂点カラー設定
-	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[0].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[1].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[2].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[3].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
 	pVtx[0].tex = Vector2(0.0f, 0.0f);
@@ -463,10 +465,10 @@ HRESULT CObject2D::Init(const Vector2 &size)
 	pVtx[3].rhw = 1.0f;
 
 	// 頂点カラー設定
-	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[0].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[1].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[2].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[3].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
 	pVtx[0].tex = Vector2(0.0f, 0.0f);
@@ -544,10 +546,10 @@ HRESULT CObject2D::Init(const Vector3 &pos, const Vector2 &size)
 	pVtx[3].rhw = 1.0f;
 
 	// 頂点カラー設定
-	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[0].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[1].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[2].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[3].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
 	pVtx[0].tex = Vector2(0.0f, 0.0f);
@@ -625,10 +627,10 @@ HRESULT CObject2D::Init(const Vector3 &pos, const Vector3 &rot, const Vector2 &s
 	pVtx[3].rhw = 1.0f;
 
 	// 頂点カラー設定
-	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[0].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[1].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[2].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[3].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
 	pVtx[0].tex = Vector2(0.0f, 0.0f);
@@ -907,7 +909,7 @@ void CObject2D::SetLength(const float fLength)
 //==================================================================================
 // --- 色の設定処理 ---
 //==================================================================================
-void CObject2D::SetColor(const D3DXCOLOR &color)
+void CObject2D::SetColor(const Color &color)
 {
 	VERTEX_2D *pVtx = NULL;		// 頂点情報へのポインタ
 

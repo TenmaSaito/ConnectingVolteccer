@@ -38,19 +38,18 @@ public:
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
-	template<class... Args>
-	void Print(std::_Basic_format_string<char, std::type_identity_t<Args>...> format, Args ...args);
+	template<class... Args> void Print(std::_Fmt_string<Args...> format, Args ...args);
 
 private:
 	LPD3DXFONT m_pFont;			// フォントへのポインタ
-	D3DXCOLOR m_colFont;		// フォントカラー
+	Color m_colFont;		// フォントカラー
 	std::string m_sProc;		// 表示する文字列
 };
 
 //==================================================================================
 // --- デバッグ表示の追加処理 ---
 //==================================================================================
-template<class... Args> void CDebugProc::Print(const std::_Basic_format_string<char, std::type_identity_t<Args>...> format, Args ...args)
+template<class... Args> void CDebugProc::Print(std::_Fmt_string<Args...> format, Args ...args)
 {
 	m_sProc += std::format(format, std::forward<Args>(args)...);
 }

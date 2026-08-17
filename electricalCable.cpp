@@ -130,10 +130,10 @@ HRESULT CElectricalCable::Init(const CUtilityPole *pStart,
 	pVtx[3].nor = Vector3(0.0f, 0.0f, -1.0f);
 
 	// 頂点カラー設定
-	pVtx[0].col = D3DXCOLOR(0.0f, 1.0f, 0.0f, 1.0f);
-	pVtx[1].col = D3DXCOLOR(0.0f, 1.0f, 0.0f, 1.0f);
-	pVtx[2].col = D3DXCOLOR(0.0f, 1.0f, 0.0f, 1.0f);
-	pVtx[3].col = D3DXCOLOR(0.0f, 1.0f, 0.0f, 1.0f);
+	pVtx[0].col = Color(0.0f, 1.0f, 0.0f, 1.0f);
+	pVtx[1].col = Color(0.0f, 1.0f, 0.0f, 1.0f);
+	pVtx[2].col = Color(0.0f, 1.0f, 0.0f, 1.0f);
+	pVtx[3].col = Color(0.0f, 1.0f, 0.0f, 1.0f);
 
 	// テクスチャ座標設定
 	pVtx[0].tex = Vector2(0.0f, 0.0f);

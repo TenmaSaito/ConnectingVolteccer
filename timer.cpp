@@ -77,13 +77,15 @@ CTimer *CTimer::Create(const Vector3 &pos, const Vector2 &size, const int nNumNu
 // --- コンストラクタ ---
 //==================================================================================
 CTimer::CTimer(const int nPriority) : CObject(nPriority)
-{
-	// メンバ変数をクリア
+{ // メンバ変数をクリア
 	memset(m_apNumber, 0, sizeof(m_apNumber));
 	m_nTime = 0;
 	m_nNumTime = 0;
 	m_nCounter = 0;
 	m_bUpdate = true;
+
+	// タイプを指定
+	SetType(TYPE_TIMER);
 }
 
 //==================================================================================

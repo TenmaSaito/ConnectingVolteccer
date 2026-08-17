@@ -429,11 +429,3 @@ void CManager::SetTransition(const CScene::MODE modeNext)
 {
 	m_pTransition->StartTransition(60, modeNext);
 }
-
-//==================================================================================
-// --- デバイス取得省略処理 ---
-//==================================================================================
-LPDIRECT3DDEVICE9 CManager::GetDeviceByInstance(void)
-{ 
-	return CManager::GetInstance()->GetRenderer()->GetDevice();
-}

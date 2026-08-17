@@ -1,6 +1,6 @@
 //==================================================================================
 // 
-// D3DXCOLORの色関連をまとめたソースファイル [color.cpp]
+// Colorの色関連をまとめたソースファイル [color.cpp]
 // Author : TENMA SAITO
 // Date   : 2026/5/16
 // 
@@ -9,26 +9,27 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "color.h"
+#include <DirectXMath.h>
 #include <DirectXColors.h>
 
 //**********************************************************************************
 // *** プロトタイプ宣言 ***
 //**********************************************************************************
-const DirectX::XMVECTORF32 *FindXMVECTORF32Color(const Color::COLOR color);
-D3DXCOLOR ConvertXMVECTORF32ToD3DXCOLOR(const DirectX::XMVECTORF32 *pColor);
+const DirectX::XMVECTORF32 *FindXMVECTORF32Color(const Colors::COLOR color);
+Color ConvertXMVECTORF32ToColor(const DirectX::XMVECTORF32 *pColor);
 
 //==================================================================================
 // --- 色取得処理 ---
 //==================================================================================
-D3DXCOLOR Color::GetColor(const COLOR color)
+Color Colors::GetColor(const COLOR color)
 {
-	D3DXCOLOR col;		// 出力する色
+	Color col;		// 出力する色
 
 	// 色を検索
 	const DirectX::XMVECTORF32 *pColor = FindXMVECTORF32Color(color);
 
 	// 色を変換して取得
-	col = ConvertXMVECTORF32ToD3DXCOLOR(pColor);
+	col = ConvertXMVECTORF32ToColor(pColor);
 
 	return col;
 }
@@ -36,9 +37,9 @@ D3DXCOLOR Color::GetColor(const COLOR color)
 //==================================================================================
 // --- 色の線形補間処理 ---
 //==================================================================================
-D3DXCOLOR Color::Lerp(const D3DXCOLOR start, const D3DXCOLOR end, const float t)
+Color Colors::Lerp(const Color start, const Color end, const float t)
 {
-	D3DXCOLOR col;		// 線形補間後の色
+	Color col;		// 線形補間後の色
 
 	// 色の差分を求める
 	col = end - start;
@@ -50,9 +51,9 @@ D3DXCOLOR Color::Lerp(const D3DXCOLOR start, const D3DXCOLOR end, const float t)
 //==================================================================================
 // --- 色の検索処理 ---
 //==================================================================================
-const DirectX::XMVECTORF32 *FindXMVECTORF32Color(const Color::COLOR color)
+const DirectX::XMVECTORF32 *FindXMVECTORF32Color(const Colors::COLOR color)
 {
-	static const DirectX::XMVECTORF32 *apColor[Color::COLOR_MAX] =	// 各色へのポインタ
+	static const DirectX::XMVECTORF32 *apColor[Colors::COLOR_MAX] =		// 各色へのポインタ
 	{
 		&DirectX::Colors::AliceBlue            ,	// アリスブルー（薄い水色）		
 		&DirectX::Colors::AntiqueWhite         ,	// アンティークホワイト（くすんだ真珠色）
@@ -204,9 +205,9 @@ const DirectX::XMVECTORF32 *FindXMVECTORF32Color(const Color::COLOR color)
 //==================================================================================
 // --- 色の変換処理 ---
 //==================================================================================
-D3DXCOLOR ConvertXMVECTORF32ToD3DXCOLOR(const DirectX::XMVECTORF32 *pColor)
+Color ConvertXMVECTORF32ToColor(const DirectX::XMVECTORF32 *pColor)
 {
-	D3DXCOLOR out;		// 出力する色
+	Color out;		// 出力する色
 
 	// XMVECTORF32から色として情報を抽出
 	out.r = pColor->f[0];

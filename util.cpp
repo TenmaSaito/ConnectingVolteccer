@@ -10,12 +10,15 @@
 //**********************************************************************************
 #include "util.h"
 #include <iomanip>
+#include <span>
 
 //==================================================================================
 // --- •¶š—ñ‚ÌŒŸõˆ— ---
 //==================================================================================
 int Util::FindString(const char **ppStr, const int nNumString, const char *pFind)
 {
+	std::span<const char*> strSpan(ppStr, nNumString);
+
 	// NULLCHECK
 	assert(ppStr != nullptr);
 

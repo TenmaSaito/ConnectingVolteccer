@@ -127,7 +127,8 @@ void CLasso::UpdateTransform(void)
 	{ // ˆê’èŽžŠÔi‚ñ‚¾‚çŽ€–S
 		m_pStart->Connect(m_pEnd);
 
-		CPlayer *pPlayer = CManager::GetSceneByInstance<CGame>()->GetPlayer();
+		CGame *pGame = CManager::GetInstance()->GetScene(&pGame);
+		CPlayer *pPlayer = pGame->GetPlayer();
 
 		// ŽŸ‚Éæ‚é‚×‚«“d’Œ‚ðÝ’è
 		pPlayer->ChangeRidingPole(m_pEnd);

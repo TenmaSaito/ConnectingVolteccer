@@ -44,7 +44,7 @@ CLight::~CLight()
 //==================================================================================
 void CLight::Init(void)
 {
-	LPDIRECT3DDEVICE9 pDevice = CManager::GetDeviceByInstance();		// デバイスへのポインタ
+	LPDIRECT3DDEVICE9 pDevice = CManager::GetInstance()->GetRenderer()->GetDevice();		// デバイスへのポインタ
 	Vector3 vecDir[3];			// ライトの方向ベクトル
 
 	// ライトの情報を初期化
@@ -56,9 +56,9 @@ void CLight::Init(void)
 	m_aLight[2].Type = D3DLIGHT_DIRECTIONAL;
 
 	// ライトの拡散光を設定
-	m_aLight[0].Diffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	m_aLight[1].Diffuse = D3DXCOLOR(0.7f, 0.7f, 0.7f, 1.0f);
-	m_aLight[2].Diffuse = D3DXCOLOR(0.3f, 0.3f, 0.3f, 1.0f);
+	m_aLight[0].Diffuse = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	m_aLight[1].Diffuse = Color(0.7f, 0.7f, 0.7f, 1.0f);
+	m_aLight[2].Diffuse = Color(0.3f, 0.3f, 0.3f, 1.0f);
 
 	// ライトの方向を設定
 	vecDir[0] = Vector3(0.0f, -0.8f, -0.4f);

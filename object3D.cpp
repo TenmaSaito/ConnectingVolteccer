@@ -43,8 +43,7 @@ CObject3D *CObject3D::Create(const bool bXYPlane,
 // --- コンストラクタ ---
 //==================================================================================
 CObject3D::CObject3D(const int nPriority) : CObject(nPriority)
-{
-	// メンバ変数をクリア
+{ // メンバ変数をクリア
 	m_pVtxBuff = nullptr;
 	m_nIdxTexture = -1;
 	m_pos = VECTOR3_NULL;
@@ -53,6 +52,9 @@ CObject3D::CObject3D(const int nPriority) : CObject(nPriority)
 	ZeroMemory(m_aVtx, sizeof(m_aVtx));
 	m_bDirty = false;
 	m_bXYPlane = false;
+
+	// タイプを指定
+	SetType(TYPE_OBJ_3D);
 }
 
 //==================================================================================
@@ -175,10 +177,10 @@ HRESULT CObject3D::Init(const bool bXYPlane,
 	}
 
 	// 頂点カラー設定
-	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[0].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[1].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[2].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[3].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
 	pVtx[0].tex = Vector2(0.0f, 0.0f);

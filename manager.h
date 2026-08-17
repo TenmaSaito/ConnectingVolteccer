@@ -14,6 +14,7 @@
 #include "main.h"
 #include "scene.h"
 #include <memory>
+#include <concepts>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -66,13 +67,11 @@ public:
 	HRESULT SetMode(const CScene::MODE modeNext);
 	CScene::MODE GetMode(void) const { return m_pScene->GetMode(); }
 	void SetTransition(const CScene::MODE modeNext);
-	template<class T> T *GetScene(void) const;
+	template<class T> requires std::derived_from<T, CScene> T *GetScene(T **ppOut = nullptr) const;
 	CScene *GetScene(void) const { return m_pScene.get(); }
 	HWND GetWindowHandle(void) const { return m_hWnd; }
 
 	static CManager *GetInstance(void);
-	static LPDIRECT3DDEVICE9 GetDeviceByInstance(void);
-	template<class T> static T *GetSceneByInstance(void);
 
 private:
 	CManager();
@@ -99,7 +98,7 @@ private:
 //==================================================================================
 // --- キャスト後シーン取得処理 ---
 //==================================================================================
-template<class T> T *CManager::GetScene(void) const
+template<class T> requires std::derived_from<T, CScene> T *CManager::GetScene(T **ppOut) const
 {
 	T *pScene = nullptr;		// キャスト先
 
@@ -107,19 +106,10 @@ template<class T> T *CManager::GetScene(void) const
 	pScene = static_cast<T*>(m_pScene.get());
 	NULLPOINTER_ASSERT(pScene);
 
-	return pScene;
-}
-
-//==================================================================================
-// --- シーン取得処理省略版 ---
-//==================================================================================
-template<class T> T *CManager::GetSceneByInstance(void)
-{
-	T *pScene = nullptr;		// キャスト先
-
-	// シーンのポインタをキャスト
-	pScene = static_cast<T *>(CManager::GetInstance()->m_pScene.get());
-	NULLPOINTER_ASSERT(pScene);
+	if (ppOut != nullptr)
+	{ // 引数がnullじゃなければ、値を代入
+		*ppOut = pScene;
+	}
 
 	return pScene;
 }

@@ -103,6 +103,12 @@
     <Filter Include="ヘッダー ファイル\object\building">
       <UniqueIdentifier>{b968e625-83cb-4395-a8a9-c52aacef8e6a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\object\ui">
+      <UniqueIdentifier>{7b375fc1-7044-4429-9b5b-ccf77b8e757d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\object\ui">
+      <UniqueIdentifier>{2efe8f1b-7fa3-4ded-b054-29dd99130f49}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="model.cpp">
@@ -273,9 +279,6 @@
     <ClCompile Include="circleTransition.cpp">
       <Filter>ソース ファイル\manager\transition</Filter>
     </ClCompile>
-    <ClCompile Include="timer.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="number.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -296,6 +299,9 @@
     </ClCompile>
     <ClCompile Include="planet.cpp">
       <Filter>ソース ファイル\object\building</Filter>
+    </ClCompile>
+    <ClCompile Include="timer.cpp">
+      <Filter>ソース ファイル\object\ui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -491,9 +497,6 @@
     <ClInclude Include="circleTransition.h">
       <Filter>ヘッダー ファイル\manager\transition</Filter>
     </ClInclude>
-    <ClInclude Include="timer.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="number.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -514,6 +517,9 @@
     </ClInclude>
     <ClInclude Include="planet.h">
       <Filter>ヘッダー ファイル\object\building</Filter>
+    </ClInclude>
+    <ClInclude Include="timer.h">
+      <Filter>ヘッダー ファイル\object\ui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

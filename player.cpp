@@ -43,11 +43,12 @@
 #define STICK_DEADZONE		(0.05f)		// 動いたと感知するデッドゾーン
 #define RESIST_POW			(0.25f)		// 摩擦
 #define RIDE_LENGTH			(120.0f)	// 電柱に乗れる距離
+#define POLE_MOVE_SPEED		(0.01f)		// 電柱を乗り移る際の角度
 #define PLAYERCAM_DEFROT	Vector3(0.0f, 0.0f, -0.4f)		// デフォルトのカメラ角度
 #define PLAYERCAM_RIDINGROT	Vector3(0.0f, 0.0f, -1.16f)		// 電柱に乗っているときのカメラ角度
 #define PLAYERCAM_LEN			(1000.0f)		// プレイヤーのカメラの距離
 #define PLAYERCAM_RIDING_LEN	(250.0f)		// 電柱に乗っているときのカメラの距離
-#define ENABLE_RAY_PLAYER_TO_POLE		// プレイヤーから投げ縄を投げられる電柱へのレイの表示
+//#define ENABLE_RAY_PLAYER_TO_POLE		// プレイヤーから投げ縄を投げられる電柱へのレイの表示
 
 //==================================================================================
 // --- 生成処理 ---
@@ -63,9 +64,20 @@ CPlayer *CPlayer::Create(const char *pXFileName, const Vector3 &pos, const Vecto
 	}
 
 #pragma region std::regex test
+	size_t strPos;
+	constexpr const char *pStr = "POS = 1.00 1.00 2.00";
+	if (CFileStream::FindString(pStr, "POS =", &strPos, true))
+	{
+		Vector3 pos = CFileStream::ToVector3(&pStr[strPos], nullptr);
+		pos.x = 10.0f;
+	}
 #if 0
+	char aStra[] = "POS = 1 1 2";
+	char *pEnd;
+	long l = std::strtol(aStra, &pEnd, 0);
+
 	constexpr const char *floatRegex = R"([-+]?[0-9]*\.?[0-9]+)";
-	char aStr[] = "1.0, 3.14, 1.00";
+	char aStr[] = "ROT = 1.0, 3.14, 1.00";
 	std::regex rotRegex(floatRegex);
 	std::cregex_iterator regIter(std::cbegin(aStr), std::cend(aStr), rotRegex);
 	std::cregex_iterator end;
@@ -78,7 +90,7 @@ CPlayer *CPlayer::Create(const char *pXFileName, const Vector3 &pos, const Vecto
 		auto &&result = *regIter;
 		float fValue = static_cast<float>(std::atof(result.str().c_str()));
 
-		Vec3::InAxis(rotReg, static_cast<Vec3::Axis>(n), fValue);
+		Vec3::AssignAxis(rotReg, static_cast<Vec3::Axis>(n), fValue);
 		n++;
 		regIter++;
 	}
@@ -98,11 +110,13 @@ CPlayer::CPlayer(const int nPriority) : CObject(nPriority)
 	m_move = VECTOR3_NULL;
 	m_rot = VECTOR3_NULL;
 	m_rotDest = VECTOR3_NULL;
+	m_vecQua = VECTOR3_NULL;
 	m_pMotion = nullptr;
 	m_pThunderEffect = nullptr;
 	m_pRidingPole = nullptr;
 	m_pPoleNext = nullptr;
 	m_bShotLasso = false;
+	m_fAngleRest = 0.0f;
 
 	// タイプ設定
 	SetType(TYPE_PLAYER);
@@ -119,8 +133,7 @@ CPlayer::~CPlayer()
 // --- 初期化処理 ---
 //==================================================================================
 HRESULT CPlayer::Init(const char *pFileName, const Vector3 &pos, const Vector3 &rot)
-{
-	// 引数の値を保存
+{ // 引数の値を保存
 	m_pos = pos;
 	m_offset = pos;
 	m_rot = rot;
@@ -203,10 +216,6 @@ void CPlayer::Update(void)
 	// 電柱関連の更新
 	UpdatePole();
 
-#ifndef	ENABLE_PLANET
-	// 重力
-	m_pos.y -= 0.05f;
-#endif
 	// 当たり判定関連処理
 	CollisionAction();
 
@@ -240,6 +249,56 @@ void CPlayer::Draw(void)
 	{ // 各モデルの描画
 		m_apModel[nCntModel]->Draw();
 	}
+}
+
+//==================================================================================
+// --- 繋がった電柱の設定処理 ---
+//==================================================================================
+void CPlayer::ChangeRidingPole(CUtilityPole *pNext)
+{ 
+	CGame *pGame = CManager::GetInstance()->GetScene(&pGame);		// シーンの取得
+	CPlanet *pPlanet = pGame->GetPlanet();			// 惑星の取得
+
+	// 惑星から各電柱の座標を求め、内積を求める
+	// 内積の角度分、次の電柱への角度へ回転させる
+	Vector3 planetToRiding = VECTOR3_NULL;		// 惑星からプレイヤーの乗っている電柱へのベクトル
+	Vector3 planetToNext = VECTOR3_NULL;		// 惑星から次に乗る予定の電柱へのベクトル
+	Vector3 ridingWorldPos = m_pRidingPole->GetWorldPosition();		// 乗っている電柱の絶対座標
+	Vector3 nextWorldPos = pNext->GetWorldPosition();				// 次に乗る予定の電柱の絶対座標
+
+	// ベクトルを求める
+	planetToRiding = Vec3::Direction(ridingWorldPos, *pPlanet->GetPosition());
+	CRay(*pPlanet->GetPosition(), planetToRiding, 10000.0f).Draw();
+
+	planetToNext = Vec3::Direction(nextWorldPos, *pPlanet->GetPosition());
+	CRay(*pPlanet->GetPosition(), planetToNext, 10000.0f).Draw();
+
+	// ベクトルから内積計算
+	float fDot = Vec3::Dot(planetToRiding, planetToNext);
+
+	// 内積から二つのベクトルの角度差分を求める
+	m_fAngleRest = std::acosf(std::clamp(fDot, -1.0f, 1.0f));
+
+	// 乗っている電柱から次に乗る電柱へのベクトルを計算して向きを求める
+	float fAngle = Vec2::Direction(Vec3::ToVector2(nextWorldPos, Vec3::Axis::Y),
+		Vec3::ToVector2(ridingWorldPos, Vec3::Axis::Y));
+
+	// 任意軸を右に回転
+	fAngle += HALF_PI;
+	fAngle = Util::FixedRotation(fAngle);
+
+	m_vecQua = Vec2::ToVector3(Vec2::Direction(fAngle));
+	m_vecQua.z = m_vecQua.y;
+	m_vecQua.y = 0.0f;
+	CRay(m_offset + Vector3(0.0f, 100.0f, 0.0f), m_vecQua, 1000.0f).Draw();
+
+	// オフセットを電柱上に設定
+	m_pos.y = m_offset.y + pNext->GetVtxMax()->y;
+	
+	// 電柱から降りる際の処理を実行
+	DismountPole();
+
+	m_pPoleNext = pNext;			// 次の電柱を保存
 }
 
 //==================================================================================
@@ -493,9 +552,11 @@ void CPlayer::InputPole(void)
 		}
 		else
 		{ // 既に乗っている場合
-			// オフセットを元に戻し、親マトリックスを破棄
+			// オフセットを元に戻す
 			m_pos.y = m_offset.y;
-			m_pRidingPole = nullptr;
+
+			// 電柱から降りる処理を実行
+			DismountPole();
 
 			// カメラをプレイヤーフォーカスに変更
 			pPlayerCam->SetState(CPlayerCamera::STATE_PLAYER);
@@ -533,16 +594,6 @@ void CPlayer::InputPole(void)
 
 		CGame *pGame = pManager->GetScene<CGame>();		// ゲームシーンへのポインタ
 		auto pPlanet = pGame->GetPlanet();				// 惑星へのポインタ
-		Vector3 vecQua;		// 任意軸
-		float fAngle;			// 角度
-
-		// クォータニオンから軸と角度を求める
-		D3DXQuaternionToAxisAngle(pPlanet->GetQuaternion(),
-			&vecQua,
-			&fAngle);
-
-		// 角度反転
-		fAngle *= -1;
 
 		// 選ばれた電柱が存在すれば
 		if (pPoleSelected)
@@ -639,66 +690,49 @@ void CPlayer::UpdateRotateDest(void)
 //==================================================================================
 void CPlayer::UpdatePole(void)
 {
-	if (m_pRidingPole != nullptr)
-	{ // 電柱に乗っている場合
-		if (m_pPoleNext != nullptr)
-		{ // 次に移動するべき電柱がある場合
-			CPlanet *pPlanet = CManager::GetSceneByInstance<CGame>()->GetPlanet();
-			
-			// 惑星から各電柱の座標を求め、内積を求める
-			// 内積の角度分、次の電柱への角度へ回転させる
-			
-			// ※ 絶対座標
-			Vector3 planetToRiding = VECTOR3_NULL;		// 惑星からプレイヤーの乗っている電柱へのベクトル
-			Vector3 planetToNext = VECTOR3_NULL;		// 惑星から次に乗る予定の電柱へのベクトル
-			Vector3 vecQua = VECTOR3_NULL;				// 任意軸ベクトル
-			Vector3 ridingWorldPos = m_pRidingPole->GetWorldPosition();		// 乗っている電柱の絶対座標
-			Vector3 nextWorldPos = m_pPoleNext->GetWorldPosition();			// 次に乗る予定の電柱の絶対座標
+	if (m_pPoleNext != nullptr)
+	{ // 次に移動するべき電柱がある場合
+		CGame *pGame = CManager::GetInstance()->GetScene(&pGame);		// シーンへのポインタ
+		CPlanet *pPlanet = pGame->GetPlanet();		// 惑星へのポインタ
+		Quaternion quaMultiply;				// 乗算するクォータニオン
+		float fVolume = POLE_MOVE_SPEED;	// 回転する角度
 
-			// ベクトルを求める
-			planetToRiding = Vec3::Direction(ridingWorldPos, *pPlanet->GetPosition());
-			CRay(*pPlanet->GetPosition(), planetToRiding, 10000.0f).Draw();
+		// 残りの角度をオーバーしないか確認
+		if (m_fAngleRest - fVolume < 0.0f)
+		{ // 角度がオーバーしないように調整
+			fVolume -= m_fAngleRest - fVolume;
+		}
 
-			planetToNext = Vec3::Direction(nextWorldPos, *pPlanet->GetPosition());
-			CRay(*pPlanet->GetPosition(), planetToNext, 10000.0f).Draw();
+		// クォータニオンを初期化
+		D3DXQuaternionIdentity(&quaMultiply);
 
-			// ベクトルから内積計算
-			float fDot = Vec3::Dot(planetToRiding, planetToNext);
-			
-			float fRadian = std::acosf(std::clamp(fDot, -1.0f, 1.0f));
+		// クォータニオンを生成
+		D3DXQuaternionRotationAxis(&quaMultiply,
+			&m_vecQua,
+			-fVolume);
 
-			// 乗っている電柱から次に乗る電柱へのベクトルを計算して向きを求める
-			float fAngle = Vec2::Direction(Vec3::ToVector2(nextWorldPos, Vec3::Axis::Y),
-				Vec3::ToVector2(ridingWorldPos, Vec3::Axis::Y));
+		// クォータニオンを加算
+		pPlanet->MultiplyQuaternion(quaMultiply);
 
-			fAngle += HALF_PI;
-			fAngle = Util::FixedRotation(fAngle);
-
-			vecQua = Vec2::ToVector3(Vec2::Direction(fAngle));
-			vecQua.z = vecQua.y;
-			vecQua.y = 0.0f;
-			CRay(m_offset + Vector3(0.0f, 100.0f, 0.0f), vecQua, 1000.0f).Draw();
-
-			Quaternion quaPlus;		// 加算するクォータニオン
-
-			// クォータニオンを初期化
-			D3DXQuaternionIdentity(&quaPlus);
-
-			// クォータニオンを生成
-			D3DXQuaternionRotationAxis(&quaPlus,
-				&vecQua,
-				-fRadian);
-
-			// クォータニオンを加算
-			pPlanet->AddQuaternion(quaPlus);
-
-			// その電柱に乗り移る
+		// 残りの角度が0.0f以下になった場合
+		if (m_fAngleRest <= 0.0f)
+		{ // その電柱に乗り移る
+			CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera*>(CCamera::GetCamera(CCamera::TYPE_PLAYER));
 			m_pRidingPole = m_pPoleNext;
 
+			// オフセットを電柱に設定し、マトリックスを設定
+			m_pos.y = m_pRidingPole->GetVtxMax()->y;
+
+			// 投げ縄を投げたフラグを下し、乗り移る電柱へのポインタも破棄
 			m_bShotLasso = false;
 			m_pPoleNext = nullptr;
 		}
 
+		m_fAngleRest -= fVolume;
+	}
+
+	if (m_pRidingPole != nullptr)
+	{ // 電柱に乗っている場合
 		CCamera *pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);		// プレイヤーカメラへのポインタ
 		CObject *pObject = CObject::GetTop(UTILITYPOLE_PRIORITY);		// 最初のオブジェクト
 		Vector3 vecCam = VECTOR3_NULL;				// カメラの方向ベクトル
@@ -768,6 +802,60 @@ void CPlayer::UpdatePole(void)
 }
 
 //==================================================================================
+// --- 乗っている電柱から降りる際の惑星角度修正処理 ---
+//==================================================================================
+void CPlayer::DismountPole(void)
+{
+	CGame *pGame = CManager::GetInstance()->GetScene(&pGame);		// シーンの取得
+	CPlanet *pPlanet = pGame->GetPlanet();			// 惑星の取得
+
+	// 惑星から各電柱の座標を求め、内積を求める
+	// 内積の角度分、次の電柱への角度へ回転させる
+	Vector3 planetToPlayer = VECTOR3_NULL;		// 惑星からプレイヤーへのベクトル
+	Vector3 planetToRiding = VECTOR3_NULL;		// 惑星からプレイヤーの乗っていた電柱へのベクトル
+	Vector3 playerWorldPos = m_pos;				// 降りた後の自身の絶対座標(プレイヤーのXZ座標は動かない為posを代入)
+	Vector3 ridingWorldPos = m_pRidingPole->GetWorldPosition();		// 乗っていた電柱の絶対座標
+	Vector3 vecQua;			// 任意軸
+	Quaternion quaMultiply;	// 乗算するクォータニオン
+
+	// 各ベクトルを求める
+	planetToRiding = Vec3::Direction(ridingWorldPos, *pPlanet->GetPosition());
+	planetToPlayer = Vec3::Direction(m_pos, *pPlanet->GetPosition());
+
+	// ベクトルから内積計算
+	float fDot = Vec3::Dot(planetToRiding, planetToPlayer);
+
+	// 内積から二つのベクトルの角度差分を求める
+	float fValue = std::acosf(std::clamp(fDot, -1.0f, 1.0f));
+
+	// 自身から乗っていた電柱へのベクトルを計算して向きを求める
+	float fAngle = Vec2::Direction(Vec3::ToVector2(ridingWorldPos, Vec3::Axis::Y),
+		Vec3::ToVector2(playerWorldPos, Vec3::Axis::Y));
+
+	// 任意軸を右に回転
+	fAngle += HALF_PI;
+	fAngle = Util::FixedRotation(fAngle);
+
+	vecQua = Vec2::ToVector3(Vec2::Direction(fAngle));
+	vecQua.z = vecQua.y;
+	vecQua.y = 0.0f;
+
+	// クォータニオンを初期化
+	D3DXQuaternionIdentity(&quaMultiply);
+
+	// クォータニオンを生成
+	D3DXQuaternionRotationAxis(&quaMultiply,
+		&vecQua,
+		-fValue);
+
+	// クォータニオンを加算
+	pPlanet->MultiplyQuaternion(quaMultiply);
+
+	// 電柱をnullに変更
+	m_pRidingPole = nullptr;
+}
+
+//==================================================================================
 // --- 当たり判定関連処理 ---
 //==================================================================================
 void CPlayer::CollisionAction(void)
@@ -808,8 +896,7 @@ HRESULT CPlayer::LoadFile(const char *pFilename)
 	if (pFile == nullptr) return E_FAIL;
 
 	// ファイルを開く
-	bResult = pFile->OpenFile(pFilename, false);
-	if (bResult == false)
+	if (pFile->OpenFile(pFilename, false) != true)
 	{ // ファイルオープンに失敗
 		return E_FAIL;
 	}
@@ -823,7 +910,7 @@ HRESULT CPlayer::LoadFile(const char *pFilename)
 		strcpy(aStr, line.c_str());
 		if (DeleteComment(aStr))
 		{ // 読み取れる場合
-			if (strcmp(aStr, "SCRIPT") == 0)
+			if (CFileStream::FindString(aStr, "SCRIPT"))
 			{ // 見つかった場合、読み込み開始
 				break;
 			}

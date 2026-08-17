@@ -74,8 +74,7 @@ public:
 	const Matrix *GetMatrix(void) const { return &m_mtxWorld; }
 	CUtilityPole *GetRidingPole(void) const { return m_pRidingPole; }
 	bool IsShotLasso(void) const { return m_bShotLasso; }
-	void SetLassoComplete(void) { m_bShotLasso = false; }
-	void ChangeRidingPole(CUtilityPole *pNext) { m_pPoleNext = pNext; }
+	void ChangeRidingPole(CUtilityPole *pNext);
 
 private:
 	void InputAction(void);
@@ -85,6 +84,7 @@ private:
 	void UpdatePotision(void);
 	void UpdateRotateDest(void);
 	void UpdatePole(void);
+	void DismountPole(void);
 	void CollisionAction(void);
 	void OtherUpdate(void);
 	HRESULT LoadFile(const char *pFilename);
@@ -108,7 +108,8 @@ private:
 	int m_nNumModel;		// モデルの総数
 	CThunderEffect *m_pThunderEffect;		// 雷エフェクトへのポインタ
 	bool m_bShotLasso;						// 投げ縄を投げたか
-	float m_fAngle;			// 次の電柱への回転度合い
+	Vector3 m_vecQua;			// 回転の任意軸
+	float m_fAngleRest;			// 次の電柱への残りの角度
 };
 
 //==================================================================================

@@ -36,7 +36,7 @@ public:
 	float GetAngle(void) const { return m_fAngle; }
 	const Vector3 *GetVecQua(void) const { return &m_vecQua; }
 	const Matrix *GetMatrix(void) const { return &m_mtxWorld; }
-	void AddQuaternion(const Quaternion &quaAdd) { m_qua = m_qua * quaAdd; }
+	void MultiplyQuaternion(const Quaternion &quaMultiply) { m_qua = m_qua * quaMultiply; }
 	const Quaternion *GetQuaternion(void) const { return &m_qua; }
 	const Vector3 *GetPosition(void) const { return &m_pos; }
 
@@ -45,7 +45,7 @@ private:
 	Vector3 m_vecQua;		// 任意軸
 	float m_fAngle;			// 回転角度
 	Quaternion m_qua;		// 惑星のクォータニオン
-	Matrix m_mtxWorld;	// ワールドマトリックス
+	Matrix m_mtxWorld;		// ワールドマトリックス
 	int m_nIdxModel;		// モデルインデックス
 };
 #endif

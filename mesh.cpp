@@ -40,7 +40,7 @@ CMesh::~CMesh()
 //==================================================================================
 HRESULT CMesh::Init(const int nNumVtx, const int nNumIdx, const int nNumPrim, const size_t vtxSize, const DWORD dwFlags)
 {
-	LPDIRECT3DDEVICE9 pDevice = CManager::GetDeviceByInstance();		// デバイスへのポインタ
+	LPDIRECT3DDEVICE9 pDevice = CManager::GetInstance()->GetRenderer()->GetDevice();		// デバイスへのポインタ
 	HRESULT hr;					// 各バッファ生成の判定
 
 	// 頂点バッファ生成

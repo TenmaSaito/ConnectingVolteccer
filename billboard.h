@@ -40,10 +40,10 @@ private:
 	LPDIRECT3DVERTEXBUFFER9 m_pVtxBuff;		// 頂点バッファ
 	LPDIRECT3DTEXTURE9 m_pTexture;		// テクスチャバッファ
 	int m_nIdxTexture;			// テクスチャインデックス
-	Vector3 m_pos;			// 中心座標
-	Vector2 m_size;			// サイズ
-	Matrix m_mtxWorld;		// ワールドマトリックス
-	const Matrix *m_pMtxParent;		// 親マトリックスへのポインタ
+	Vector3 m_pos;				// 中心座標
+	Vector2 m_size;				// サイズ
+	Matrix m_mtxWorld;			// ワールドマトリックス
+	const Matrix *m_pMtxParent;	// 親マトリックスへのポインタ
 	bool m_bUseIndex;			// テクスチャインデックスを使用するか
 };
 #endif

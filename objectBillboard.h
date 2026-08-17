@@ -48,11 +48,11 @@ public:
 
 private:
 	LPDIRECT3DVERTEXBUFFER9 m_pVtxBuff;	// 頂点バッファへのポインタ
-	int m_nIdxTexture;			// テクスチャインデックス
+	int m_nIdxTexture;		// テクスチャインデックス
 	Matrix m_mtxWorld;		// ワールドマトリックス
 	Vector3 m_pos;			// 位置
 	Vector2 m_size;			// サイズ
-	bool m_bDisp;				// 描画するか
-	bool m_bAlpha;				// αテストの有効化
+	bool m_bDisp;			// 描画するか
+	bool m_bAlpha;			// αテストの有効化
 };
 #endif

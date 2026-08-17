@@ -205,10 +205,10 @@ HRESULT CRenderer::Init(HWND hWnd, BOOL bWindow)
 	pVtx[3].rhw = 1.0f;
 
 	// 頂点カラー設定
-	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, FEEDBACK_ALPHA);
-	pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, FEEDBACK_ALPHA);
-	pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, FEEDBACK_ALPHA);
-	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, FEEDBACK_ALPHA);
+	pVtx[0].col = Color(1.0f, 1.0f, 1.0f, FEEDBACK_ALPHA);
+	pVtx[1].col = Color(1.0f, 1.0f, 1.0f, FEEDBACK_ALPHA);
+	pVtx[2].col = Color(1.0f, 1.0f, 1.0f, FEEDBACK_ALPHA);
+	pVtx[3].col = Color(1.0f, 1.0f, 1.0f, FEEDBACK_ALPHA);
 
 	// テクスチャ座標設定
 	pVtx[0].tex = Vector2(0.0f, 0.0f);
@@ -339,6 +339,7 @@ void CRenderer::Draw(void)
 		// スクリーン用ポリゴンの描画
 		DrawScreen();
 
+		// 遷移用トランジション描画
 		pManager->GetTransition()->Draw();
 
 		// デバッグ表示の描画
