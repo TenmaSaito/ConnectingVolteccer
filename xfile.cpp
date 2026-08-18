@@ -45,19 +45,30 @@ CXFile::~CXFile()
 //==================================================================================
 // --- Xファイルの登録処理 ---
 //==================================================================================
-UINT CXFile::Resister(const char *pXFileName, const bool bCopy)
+UINT CXFile::Resister(const std::string_view sXFileName, const bool bCopy)
 { // ファイル名がnullの場合無効
-	if (pXFileName == nullptr) return INVALID_XFILEID;
+	if (sXFileName.empty() == true) return INVALID_XFILEID;
 
 	for (UINT uCnt = 0U; uCnt < m_vXData.size(); uCnt++)
 	{ // 既に読み込まれていないか確認
-		if (m_vXData.at(uCnt).sXFileName == pXFileName && bCopy == false)
+		if (m_vXData.at(uCnt).sXFileName == sXFileName && bCopy == false)
 		{ // 読み込まれている且つコピーを生成しない場合、そのインデックスを返す
 			return uCnt;
 		}
 	}
 
-	return Load(pXFileName);
+	return Load(sXFileName.data());
+}
+
+//==================================================================================
+// --- Xファイルの登録処理 (nullptr対策) ---
+//==================================================================================
+UINT CXFile::Resister(const char *pXFileName, const bool bCopy)
+{ // ファイル名がnullの場合無効
+	if (pXFileName == nullptr) return INVALID_XFILEID;
+
+	// 存在すれば正式に処理を呼び出す
+	return Resister(std::string_view(pXFileName));
 }
 
 //==================================================================================

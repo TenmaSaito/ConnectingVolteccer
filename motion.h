@@ -14,6 +14,7 @@
 #include "main.h"
 #include <memory>
 #include <span>
+#include <vector>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -34,7 +35,7 @@ class CMotion
 {
 public:
 	// エイリアス宣言
-	using ModelArray = std::span<std::unique_ptr<CModel>>;		// モデルのポインタ配列へのビュー
+	using ModelArray = std::span<std::unique_ptr<CModel>>;				// モデルのポインタ配列へのビュー
 
 	// キー要素構造体の定義 
 	typedef struct
@@ -78,7 +79,7 @@ private:
 
 	INFO m_aInfo[MAX_MOTION_NUM];		// モーション情報
 	int m_nNumAll;			// モーションの総数
-	ModelArray m_ppModel;	// モデルへのポインタ
+	ModelArray m_ppModel;	// モデルの配列へのアクセス
 	int m_nNumModel;		// モデルの総数
 	int m_nType;			// モーションタイプ
 	bool m_bLoop;			// 現在のモーションのループの有無

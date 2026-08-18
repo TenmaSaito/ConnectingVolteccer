@@ -24,31 +24,5 @@ namespace Util
 	float FixedRotation(const float fRadian);
 	float Lerp(const float fStart, const float fEnd, const float ft);
 	void SetStringSetting(const int nNumPrecision);
-	template<class T> std::string ToString(const T &value);
-}
-
-//==================================================================================
-// --- 文字列変換処理 ---
-//==================================================================================
-template<class T> std::string Util::ToString(const T &value)
-{
-	std::string str;				// 変換後文字列
-	std::stringstream ss;			// 文字列のストリーム
-	std::streambuf *pDefBuff;		// 元の出力ストリーム
-
-	// 出力ストリーム先を文字列へ変更
-	pDefBuff = std::cout.rdbuf(ss.rdbuf());
-
-	// 変数を入力
-	std::cout << value;
-
-	// 文字列を代入
-	str += ss.str();
-
-	// 出力ストリーム先を元に戻す
-	std::cout.rdbuf(pDefBuff);
-
-	// 変換後の文字列を返す
-	return str;
 }
 #endif

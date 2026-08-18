@@ -12,6 +12,7 @@
 #include "manager.h"
 #include "renderer.h"
 #include "vec3math.h"
+#include "color.h"
 
 //==================================================================================
 // --- メッシュオービット3Dの作成 ---
@@ -95,7 +96,7 @@ HRESULT CMeshOrbit3D::Init(const Vector3 &offset1,
 		for (int nCntVtx = 0; nCntVtx < nNumVtx; nCntVtx++)
 		{ // 頂点バッファを更新
 			pVtx[nCntVtx].nor = Vector3(0.0f, 1.0f, 0.0f);
-			pVtx[nCntVtx].col = Constant::White;
+			pVtx[nCntVtx].col = Colors::GetColor(Colors::C_WHITE);
 			pVtx[nCntVtx].tex = Vector2(static_cast<float>((nCntVtx % 4) / 2), static_cast<float>(nCntVtx % 2));
 		}
 

@@ -36,6 +36,7 @@
 #include "util.h"
 #include "scene.h"
 #include "meshSphere.h"
+#include "motionLoader.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -268,6 +269,9 @@ void CManager::Uninit(void)
 	// Xファイルの破棄
 	CXFile::GetInstance()->Unload();
 	
+	// モーション情報の破棄
+	CMotionLoader::GetInstance()->Unload();
+
 	// シーンオブジェクトの破棄
 	if (m_pScene != nullptr)
 	{ // NULLではなかった場合破棄

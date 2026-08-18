@@ -16,28 +16,22 @@
 // *** プロトタイプ宣言 ***
 //**********************************************************************************
 const DirectX::XMVECTORF32 *FindXMVECTORF32Color(const Colors::COLOR color);
-Color ConvertXMVECTORF32ToColor(const DirectX::XMVECTORF32 *pColor);
 
 //==================================================================================
 // --- 色取得処理 ---
 //==================================================================================
 Color Colors::GetColor(const COLOR color)
-{
-	Color col;		// 出力する色
-
-	// 色を検索
+{ // 色を検索
 	const DirectX::XMVECTORF32 *pColor = FindXMVECTORF32Color(color);
 
-	// 色を変換して取得
-	col = ConvertXMVECTORF32ToColor(pColor);
-
-	return col;
+	// 見つかった色を返す
+	return Color(pColor->f);
 }
 
 //==================================================================================
 // --- 色の線形補間処理 ---
 //==================================================================================
-Color Colors::Lerp(const Color start, const Color end, const float t)
+Color Colors::Lerp(const Color &start, const Color &end, const float t)
 {
 	Color col;		// 線形補間後の色
 
@@ -53,7 +47,7 @@ Color Colors::Lerp(const Color start, const Color end, const float t)
 //==================================================================================
 const DirectX::XMVECTORF32 *FindXMVECTORF32Color(const Colors::COLOR color)
 {
-	static const DirectX::XMVECTORF32 *apColor[Colors::COLOR_MAX] =		// 各色へのポインタ
+	static const DirectX::XMVECTORF32 *apColor[] =		// 各色へのポインタ
 	{
 		&DirectX::Colors::AliceBlue            ,	// アリスブルー（薄い水色）		
 		&DirectX::Colors::AntiqueWhite         ,	// アンティークホワイト（くすんだ真珠色）
@@ -200,20 +194,4 @@ const DirectX::XMVECTORF32 *FindXMVECTORF32Color(const Colors::COLOR color)
 	
 	// 指定された色へのポインタを返す
 	return apColor[color];
-}
-
-//==================================================================================
-// --- 色の変換処理 ---
-//==================================================================================
-Color ConvertXMVECTORF32ToColor(const DirectX::XMVECTORF32 *pColor)
-{
-	Color out;		// 出力する色
-
-	// XMVECTORF32から色として情報を抽出
-	out.r = pColor->f[0];
-	out.g = pColor->f[1];
-	out.b = pColor->f[2];
-	out.a = pColor->f[3];
-
-	return out;
 }

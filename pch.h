@@ -46,6 +46,8 @@
 #define VECTOR3_NULL		Vector3(0.0f, 0.0f, 0.0f)	// Vector3の0クリア
 #define VECTOR3_ONE			Vector3(1.0f, 1.0f, 1.0f)	// Vector3の1クリア
 #define WINDOW_MIDDLE		Vector3(SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f, 0.0f)		// ウィンドウの真ん中
+#define COLOR_NULL			Color(0.0f, 0.0f, 0.0f, 0.0f)	// Colorの0クリア
+#define COLOR_ONE			Color(1.0f, 1.0f, 1.0f, 1.0f)	// Colorの1クリア
 #define DOUBLE_PI			(D3DX_PI * 2.0f)				// 2π
 #define HALF_PI				(D3DX_PI * 0.5f)				// 1/2π
 #define QUARTER_PI			(D3DX_PI * 0.25f)				// 1/4π

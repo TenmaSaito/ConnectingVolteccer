@@ -53,7 +53,7 @@ CObjectLine::CObjectLine(const int nPriority) : CObject(nPriority)
 	m_end = VECTOR3_NULL;
 	m_vec = VECTOR3_NULL;
 	m_fLength = 0.0f;
-	m_color = Colors::GetColor(Colors::COLOR_WHITE);
+	m_color = Colors::GetColor(Colors::C_WHITE);
 	m_nLife = 0;
 	m_bDisp = true;
 
@@ -131,7 +131,7 @@ void CObjectLine::Draw(void)
 	Matrix mtxWorld;		// ワールドマトリックス
 
 	if (m_bDisp)
-	{
+	{ // 描画する場合
 		// 単位マトリックスを設定
 		D3DXMatrixIdentity(&mtxWorld);
 		pDevice->SetTransform(D3DTS_WORLD, &mtxWorld);

@@ -13,6 +13,7 @@
 #include "renderer.h"
 #include "input.h"
 #include "texture.h"
+#include "color.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -145,7 +146,7 @@ CObject2D::CObject2D(const int nPriority) : CObject(nPriority)
 	m_rot = VECTOR3_NULL;
 	m_offset = VECTOR3_NULL;
 	m_size = VECTOR2_NULL;
-	m_color = Constant::ZeroCol;
+	m_color = COLOR_NULL;
 	m_fLength = 0.0f;
 	m_fAngle = 0.0f;
 	m_bDisp = false;
@@ -188,7 +189,7 @@ HRESULT CObject2D::Init(void)
 	m_pos = VECTOR3_NULL;
 	m_rot = VECTOR3_NULL;
 	m_size = Vector2(INIT_WIDTH, INIT_HEIGHT);
-	m_color = Constant::White;
+	m_color = Colors::GetColor(Colors::C_WHITE);
 	m_bDisp = true;
 
 	// 対角線の長さと角度を求める
@@ -266,7 +267,7 @@ HRESULT CObject2D::Init(const Vector3 &pos)
 	// 変数の初期化
 	m_rot = VECTOR3_NULL;
 	m_size = Vector2(INIT_WIDTH, INIT_HEIGHT);
-	m_color = Constant::White;
+	m_color = Colors::GetColor(Colors::C_WHITE);
 	m_bDisp = true;
 
 	// 位置を保存
@@ -346,7 +347,7 @@ HRESULT CObject2D::Init(const Vector3 &pos, const Vector3 &rot)
 
 	// 変数の初期化
 	m_size = Vector2(INIT_WIDTH, INIT_HEIGHT);
-	m_color = Constant::White;
+	m_color = Colors::GetColor(Colors::C_WHITE);
 	m_bDisp = true;
 
 	// 位置と角度を保存
@@ -428,7 +429,7 @@ HRESULT CObject2D::Init(const Vector2 &size)
 	// 変数の初期化
 	m_pos = VECTOR3_NULL;
 	m_rot = VECTOR3_NULL;
-	m_color = Constant::White;
+	m_color = Colors::GetColor(Colors::C_WHITE);
 	m_bDisp = true;
 
 	// サイズを保存
@@ -508,7 +509,7 @@ HRESULT CObject2D::Init(const Vector3 &pos, const Vector2 &size)
 
 	// 変数の初期化
 	m_rot = VECTOR3_NULL;
-	m_color = Constant::White;
+	m_color = Colors::GetColor(Colors::C_WHITE);
 	m_bDisp = true;
 
 	// 位置、サイズを保存
@@ -588,7 +589,7 @@ HRESULT CObject2D::Init(const Vector3 &pos, const Vector3 &rot, const Vector2 &s
 	}
 
 	// 変数の初期化
-	m_color = Constant::White;
+	m_color = Colors::GetColor(Colors::C_WHITE);
 	m_bDisp = true;
 
 	// 位置、角度、サイズを保存

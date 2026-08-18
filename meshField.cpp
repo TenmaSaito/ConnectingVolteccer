@@ -16,6 +16,7 @@
 #include "input.h"
 #include "vec3math.h"
 #include "matrix.h"
+#include "color.h"
 
 //==================================================================================
 // --- メッシュフィールドの作成 ---
@@ -124,7 +125,7 @@ HRESULT CMeshField::Init(const Vector3 &pos,
 				pVtx[nIdxVtx].pos.z = pos.z + (size.y * 0.5f) - (fOnceDepth * nCntZBlock);
 				pVtx[nIdxVtx].tex.x = (nCntXBlock * 1.0f);
 				pVtx[nIdxVtx].tex.y = (nCntZBlock * 1.0f);
-				pVtx[nIdxVtx].col = Constant::White;
+				pVtx[nIdxVtx].col = Colors::GetColor(Colors::C_WHITE);
 			}
 		}
 

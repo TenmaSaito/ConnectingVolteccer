@@ -1,52 +1,57 @@
 //==================================================================================
 // 
-// テクスチャクラスのヘッダーファイル [texture.h]
+// モーション読み込みクラスのヘッダーファイル [motionLoader.h]
 // Author : TENMA SAITO
-// Date   : 2026/6/1
+// Date   : 2026/8/18
 // 
 //==================================================================================
-#ifndef _TEXTURE_H_		// インクルードガード
-#define _TEXTURE_H_
+#ifndef _MOTION_LOADER_H_		// インクルードガード
+#define _MOTION_LOADER_H_
 
 //**********************************************************************************
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "main.h"
 #include <vector>
+#include <memory>
 #include <string>
 #include <string_view>
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define INVALID_TEXID	((UINT)-1)	// テクスチャの無効値
+#define INVALID_MOTION_ID	((UINT)-1)	// モーションIDの無効値
 
 //**********************************************************************************
-// *** テクスチャクラス ***
+// *** 前方宣言 ***
 //**********************************************************************************
-class CTexture
+class CMotion;
+
+//**********************************************************************************
+// *** モーション読み込みクラス ***
+//**********************************************************************************
+class CMotionLoader
 {
 public:
-	// テクスチャデータ構造体
+	// 一度読み込んだモーションの情報構造体
 	struct BUFFER
 	{
-		LPDIRECT3DTEXTURE9 pTexture;	// テクスチャポインタ
-		std::string sFilename;			// ファイル名
+		std::unique_ptr<CMotion> pMotion;	// ファイルから読み込んだモーション情報
+		std::string sFilename;				// ファイル名
 	};
 
-	static CTexture *GetInstance(void);
-	HRESULT Load(void);
-	void Unload(void);
+	static CMotionLoader *GetInstance(void);
 	UINT Register(const std::string_view path);
 	UINT Register(const char *pPath);
-	LPDIRECT3DTEXTURE9 GetAddress(const UINT uIdx);
+	std::unique_ptr<CMotion> CreateMotion(const UINT uIdx) const;
+	void Unload(void);
 
 private:
-	CTexture();
-	~CTexture();
+	CMotionLoader();
+	~CMotionLoader();
 
 	UINT Load(const std::string_view path);
 
-	std::vector<BUFFER> m_vTexBuff;			// テクスチャの配列
+	std::vector<BUFFER> m_vBuffer;		// 読み込んだモーション情報
 };
 #endif

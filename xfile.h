@@ -13,6 +13,7 @@
 //**********************************************************************************
 #include "main.h"
 #include <string>
+#include <string_view>
 #include <vector>
 
 //**********************************************************************************
@@ -39,6 +40,7 @@ public:
 
 	static CXFile *GetInstance(void);
 
+	UINT Resister(const std::string_view sXFileName, const bool bCopy = false);
 	UINT Resister(const char *pXFileName, const bool bCopy = false);
 	void Unload(void);
 	bool GetAddress(const UINT uIdxXFile, XDATA **ppOut);

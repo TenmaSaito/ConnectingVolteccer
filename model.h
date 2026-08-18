@@ -48,11 +48,11 @@ private:
 	LPD3DXBUFFER m_pBuffMat;	// マテリアルへのポインタ
 	int *m_pIdx;			// テクスチャインデックスの配列
 	DWORD m_dwNumMat;		// マテリアルの数
-	Vector3 m_pos;		// 位置
-	Vector3 m_posLocal;	// オフセット座標
-	Vector3 m_rot;		// 角度
-	Vector3 m_rotLocal;	// オフセット角度
-	Matrix m_mtxWorld;	// ワールドマトリックス
+	Vector3 m_pos;			// 位置
+	Vector3 m_posLocal;		// オフセット座標
+	Vector3 m_rot;			// 角度
+	Vector3 m_rotLocal;		// オフセット角度
+	Matrix m_mtxWorld;		// ワールドマトリックス
 	CModel *m_pParent;		// 親モデルへのポインタ
 };
 #endif

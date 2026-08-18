@@ -74,22 +74,33 @@ void CTexture::Unload(void)
 //==================================================================================
 // --- テクスチャの登録処理 ---
 //==================================================================================
-UINT CTexture::Register(const char *pFileName)
+UINT CTexture::Register(const std::string_view path)
 { // ファイル名がnullもしくはインデックスが無効値手前の場合失敗
-	if (pFileName == nullptr) return INVALID_TEXID;
+	if (path.empty()) return INVALID_TEXID;
 	if (m_vTexBuff.size() == INVALID_TEXID - 1U) return INVALID_TEXID;
 
 	// 既に読み込んでいないかを確認
 	for (UINT uCntTexture = 0; uCntTexture < m_vTexBuff.size(); uCntTexture++)
 	{
-		if (m_vTexBuff.at(uCntTexture).sFilename == pFileName)
+		if (m_vTexBuff.at(uCntTexture).sFilename == path)
 		{ // 既に読み込み済みのテクスチャなら、そのインデックスを返す
 			return uCntTexture;
 		}
 	}
 
 	// 新規で読み込み
-	return Load(pFileName);
+	return Load(path);
+}
+
+//==================================================================================
+// --- テクスチャの登録処理 (nullptr対策) ---
+//==================================================================================
+UINT CTexture::Register(const char *pPath)
+{ // nullptrの場合、無効値を渡す
+	if (pPath == nullptr) return INVALID_TEXID;
+
+	// 存在すれば正式に処理を呼び出す
+	return Register(std::string_view(pPath));
 }
 
 //==================================================================================
@@ -106,16 +117,16 @@ LPDIRECT3DTEXTURE9 CTexture::GetAddress(const UINT uIdx)
 //==================================================================================
 // --- テクスチャの読み込み処理 ---
 //==================================================================================
-UINT CTexture::Load(const char *pFileName)
+UINT CTexture::Load(const std::string_view path)
 {
 	LPDIRECT3DDEVICE9 pDevice = CManager::GetInstance()->GetRenderer()->GetDevice();	// テクスチャの読み込み
 	UINT uIdxTex = m_vTexBuff.size();		// テクスチャのインデックス
 	HRESULT hr = S_OK;			// 処理結果
-	TEX_BUFFER texbuf = {};		// テクスチャのバッファ
+	BUFFER texbuf = {};			// テクスチャのバッファ
 
 	// テクスチャを読み込み
 	hr = D3DXCreateTextureFromFile(pDevice,
-		pFileName,
+		path.data(),
 		&texbuf.pTexture);
 	if (FAILED(hr))
 	{
@@ -123,7 +134,7 @@ UINT CTexture::Load(const char *pFileName)
 	}
 	
 	// ファイル名を保存
-	texbuf.sFilename.append(pFileName);
+	texbuf.sFilename.append(path);
 
 	// 配列に保存
 	m_vTexBuff.push_back(texbuf);

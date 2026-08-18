@@ -21,6 +21,8 @@
 #include "matrix.h"
 #include "filestream.h"
 #include "motion.h"
+#include "motionLoader.h"
+#include "partsLoader.h"
 #include "utilityPole.h"
 #include "map.h"
 #include "building.h"
@@ -71,6 +73,7 @@ CPlayer *CPlayer::Create(const char *pXFileName, const Vector3 &pos, const Vecto
 		Vector3 pos = CFileStream::ToVector3(&pStr[strPos], nullptr);
 		pos.x = 10.0f;
 	}
+
 #if 0
 	char aStra[] = "POS = 1 1 2";
 	char *pEnd;
@@ -139,13 +142,13 @@ HRESULT CPlayer::Init(const char *pFileName, const Vector3 &pos, const Vector3 &
 	m_rot = rot;
 
 	// モーションを生成
-	m_pMotion = std::make_unique<CMotion>();
+	CMotionLoader *pLoader = CMotionLoader::GetInstance();
+	m_pMotion = pLoader->CreateMotion(pLoader->Register(pFileName));
 	NULLPOINTER_ASSERT(m_pMotion);
 
 	if (m_pMotion == nullptr) return E_FAIL;		// 生成失敗
 
-	// モーションの初期化
-	m_pMotion->Init();
+	CPartsLoader::GetInstance()->Register(pFileName);
 
 	// ファイル読み込み
 	LoadFile(pFileName);
@@ -175,15 +178,15 @@ HRESULT CPlayer::Init(const char *pFileName, const Vector3 &pos, const Vector3 &
 //==================================================================================
 void CPlayer::Uninit(void)
 {
-	for (int nCntModel = 0; nCntModel < MAX_PLAYER_MODEL_NUM; nCntModel++)
+	for (auto &model : m_vpModel)
 	{ // 各モデルを破棄
-		// nullptrならスキップ
-		if (m_apModel[nCntModel] == nullptr) continue;
-
 		// モデルの破棄 + 終了処理
-		m_apModel[nCntModel]->Uninit();
-		m_apModel[nCntModel].reset();
+		model->Uninit();
+		model.reset();
 	}
+
+	// 配列リセット
+	m_vpModel.clear();
 	
 	// モーションの破棄
 	if (m_pMotion != nullptr)
@@ -245,9 +248,9 @@ void CPlayer::Draw(void)
 	//  ワールドマトリックスの設定
 	pDevice->SetTransform(D3DTS_WORLD, &m_mtxWorld);
 
-	for (int nCntModel = 0; nCntModel < m_nNumModel; nCntModel++)
+	for (auto &model : m_vpModel)
 	{ // 各モデルの描画
-		m_apModel[nCntModel]->Draw();
+		model->Draw();
 	}
 }
 
@@ -870,9 +873,9 @@ void CPlayer::OtherUpdate(void)
 {
 	CCamera *pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);		// プレイヤーカメラへのポインタ
 
-	for (int nCntModel = 0; nCntModel < m_nNumModel; nCntModel++)
+	for (auto &model : m_vpModel)
 	{ // 各モデルの更新
-		m_apModel[nCntModel]->Update();
+		model->Update();
 	}
 
 	// モーションの更新
@@ -932,7 +935,7 @@ HRESULT CPlayer::LoadFile(const char *pFilename)
 		{ // 読み取れる場合
 			if (strcmp(aStr, "END_SCRIPT") == 0)
 			{ // モーションにモデルへのポインタと総数を設定
-				m_pMotion->SetModel(m_apModel, m_nNumModel);
+				m_pMotion->SetModel(m_vpModel, m_nNumModel);
 				break;
 			}
 			else if (strcmp(aStr, "CHARACTERSET") == 0)
@@ -953,7 +956,7 @@ HRESULT CPlayer::LoadFile(const char *pFilename)
 			}
 			else if (strcmp(aStr, "MOTIONSET") == 0)
 			{ // モーション情報の読み込み
-				LoadMotionData(pFile);
+				//LoadMotionData(pFile);
 			}
 		}
 	}
@@ -1026,13 +1029,13 @@ void CPlayer::LoadPartsData(CFileStream *pFile, const int nCntModel)
 			{ // 読み込み終了 + モデルの作成
 				if (nIdxModel >= 0 && nIdxModel < MAX_PLAYER_MODEL_PATH)
 				{ // インデックスが範囲内の場合作成
-					m_apModel[nCntModel].reset(CModel::Create(&m_aModelPath[nIdxModel][0],
+					m_vpModel.push_back(std::unique_ptr<CModel>(CModel::Create(&m_aModelPath[nIdxModel][0],
 						pos,
-						rot));
+						rot)));
 
 					if (nIdxParent != -1)
 					{ // 生成したモデルに親マトリックスを設定
-						m_apModel[nCntModel]->SetParent(m_apModel[nIdxParent].get());
+						m_vpModel[nCntModel]->SetParent(m_vpModel[nIdxParent].get());
 					}
 				}
 

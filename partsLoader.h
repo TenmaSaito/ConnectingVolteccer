@@ -1,52 +1,57 @@
 //==================================================================================
 // 
-// テクスチャクラスのヘッダーファイル [texture.h]
+// パーツ読み込みクラスのヘッダーファイル [partsLoader.h]
 // Author : TENMA SAITO
-// Date   : 2026/6/1
+// Date   : 2026/8/19
 // 
 //==================================================================================
-#ifndef _TEXTURE_H_		// インクルードガード
-#define _TEXTURE_H_
+#ifndef _PARTS_LOADER_H_		// インクルードガード
+#define _PARTS_LOADER_H_
 
 //**********************************************************************************
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "main.h"
 #include <vector>
+#include <memory>
 #include <string>
 #include <string_view>
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define INVALID_TEXID	((UINT)-1)	// テクスチャの無効値
+#define INVALID_PATRS_ID	((UINT)-1)	// パーツIDの無効値
 
 //**********************************************************************************
-// *** テクスチャクラス ***
+// *** 前方宣言 ***
 //**********************************************************************************
-class CTexture
+class CModel;
+
+//**********************************************************************************
+// *** パーツ読み込みクラス ***
+//**********************************************************************************
+class CPartsLoader
 {
 public:
-	// テクスチャデータ構造体
+	// 一度読み込んだパーツの情報構造体
 	struct BUFFER
 	{
-		LPDIRECT3DTEXTURE9 pTexture;	// テクスチャポインタ
-		std::string sFilename;			// ファイル名
+		std::vector<std::unique_ptr<CModel>> vpParts;	// ファイルから読み込んだパーツ情報
+		std::string sFilename;		// ファイル名
 	};
 
-	static CTexture *GetInstance(void);
-	HRESULT Load(void);
-	void Unload(void);
+	static CPartsLoader *GetInstance(void);
 	UINT Register(const std::string_view path);
 	UINT Register(const char *pPath);
-	LPDIRECT3DTEXTURE9 GetAddress(const UINT uIdx);
+	std::vector<std::unique_ptr<CModel>> CreateParts(const UINT uIdx) const;
+	void Unload(void);
 
 private:
-	CTexture();
-	~CTexture();
+	CPartsLoader();
+	~CPartsLoader();
 
 	UINT Load(const std::string_view path);
 
-	std::vector<BUFFER> m_vTexBuff;			// テクスチャの配列
+	std::vector<BUFFER> m_vBuffer;		// 読み込んだモーション情報
 };
 #endif

@@ -77,7 +77,8 @@ CPlanet::~CPlanet()
 HRESULT CPlanet::Init(void)
 {
 	// ÉÇÉfÉãì«Ç›çûÇ›
-	m_nIdxModel = CXFile::GetInstance()->Resister("data/MODEL/sphere000.x");
+	constexpr const char *pPlanetPath = "data/MODEL/sphere000.x";
+	m_nIdxModel = CXFile::GetInstance()->Resister(pPlanetPath);
 
 	// îCà”é≤ê›íË
 	m_vecQua = Vec3::Direction(VECTOR3_NULL, Vector3(1.0f, 0.0f, 0.0f));

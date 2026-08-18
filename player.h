@@ -14,6 +14,7 @@
 #include "object.h"
 #include <stdio.h>
 #include <memory>
+#include <vector>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -102,7 +103,7 @@ private:
 	Matrix m_mtxWorld;	// ワールドマトリックス
 	CUtilityPole *m_pRidingPole;		// 乗っている電柱	
 	CUtilityPole *m_pPoleNext;			// 次に乗る電柱	
-	std::unique_ptr<CModel> m_apModel[MAX_PLAYER_MODEL_NUM];		// モデル(パーツ)へのポインタ
+	std::vector<std::unique_ptr<CModel>> m_vpModel;		// 各モデル(パーツ)へのポインタ
 	std::unique_ptr<CMotion> m_pMotion;					// モーションへのポインタ
 	char m_aModelPath[MAX_PLAYER_MODEL_PATH][MAX_PATH];	// 各モデルのパス
 	int m_nNumModel;		// モデルの総数

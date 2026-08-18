@@ -114,7 +114,6 @@ bool CFileStream::OpenFile(const char *pFilename, const bool bBinary)
 bool CFileStream::CreateFile(const char* pFilename, const bool bBinary, const FLAG flag)
 {
 	std::ios::openmode mode = std::ios::out;	// openフラグ
-	size_t size = 0;							// ファイルサイズの一時保存先
 
 	// ファイルを閉じる
 	CloseFile();

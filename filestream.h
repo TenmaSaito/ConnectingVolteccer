@@ -58,10 +58,10 @@ public:
 		const std::string_view s,
 		size_t *pOut = nullptr,
 		const bool bSkip = false);
-	static int ToInt(const char *pStr, char **ppEnd) { return std::strtol(pStr, ppEnd, 0); }
-	static float ToFloat(const char *pStr, char **ppEnd) { return std::strtof(pStr, ppEnd); }
-	static Vector2 ToVector2(const char *pStr, char **ppEnd, const bool bInt = false);
-	static Vector3 ToVector3(const char *pStr, char **ppEnd, const bool bInt = false);
+	static int ToInt(const char *pStr, char **ppEnd = nullptr) { return std::strtol(pStr, ppEnd, 0); }
+	static float ToFloat(const char *pStr, char **ppEnd = nullptr) { return std::strtof(pStr, ppEnd); }
+	static Vector2 ToVector2(const char *pStr, char **ppEnd = nullptr, const bool bInt = false);
+	static Vector3 ToVector3(const char *pStr, char **ppEnd = nullptr, const bool bInt = false);
 	bool IsEoF(void) const;
 
 	template<class T> bool Write(const T &data);
