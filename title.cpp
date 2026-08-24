@@ -18,12 +18,14 @@
 #include "texture.h"
 #include "object2D.h"
 #include "camera.h"
+#include "titlemenu.h"
+#include "observer_pointer.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define LOGO_POSITION		Vector3(WINDOW_MIDDLE.x, 200.0f, 0.0f)		// ロゴの位置
-#define LOGO_SIZE			Vector2(800.0f, 200.0f)		// ロゴのサイズ
+#define LOGO_POSITION		Vector3(400.0f, 150.0f, 0.0f)		// ロゴの位置
+#define LOGO_SIZE			Vector2(700.0f, 200.0f)		// ロゴのサイズ
 #define LOGO_FILEPATH		"data/TEXTURE/titlelogo.png"	// ロゴテクスチャへのパス
 
 //==================================================================================
@@ -32,6 +34,7 @@
 CTitle::CTitle() : CScene(MODE_TITLE)
 { // 親クラスのコンストラクタ呼び出し
 	m_pLogo = nullptr;
+	m_pMenu = nullptr;
 }
 
 //==================================================================================
@@ -63,17 +66,7 @@ void CTitle::Uninit(void)
 // --- 更新処理 ---
 //==================================================================================
 void CTitle::Update(void)
-{
-	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
-	CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();		// キーボードへのポインタ
-	CJoypad *pJoypad = pManager->GetJoypad();			// ジョイパッドへのポインタ
-
-	if (pKeyboard->GetTrigger(DIK_RETURN) || pJoypad->GetTrigger(CJoypad::KEY_A))
-	{ // シーン遷移
-		pManager->SetTransition(CScene::MODE_GAME);
-	}
-
-	// 全カメラの更新処理
+{ // 全カメラの更新処理
 	CCamera::UpdateAll();
 }
 
@@ -89,13 +82,16 @@ void CTitle::Draw(void)
 //==================================================================================
 void CTitle::Start(void)
 {
-	// ロゴ生成
-	m_pLogo = CObject2D::Create(LOGO_POSITION, LOGO_SIZE);
-	m_pLogo->BindTexture(CTexture::GetInstance()->Register(LOGO_FILEPATH));
-
 	// 仮置きでカメラを生成 (自動解放)
 	// TODO : ここのカメラはタイトル用のカメラを作って置き換える事！
 	CCamera *pCamera = new CCamera(CCamera::TYPE_TITLE);
 	pCamera->Init(Vector3(0.0f, 0.0f, -100.0f));
 	pCamera->SetFocus();
+
+	// タイトル画面のメニューを生成
+	m_pMenu = CTitleMenu::Create();
+
+	// ロゴ生成
+	m_pLogo = CObject2D::Create(LOGO_POSITION, LOGO_SIZE);
+	m_pLogo->BindTexture(CTexture::GetInstance()->Register(LOGO_FILEPATH));
 }

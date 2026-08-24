@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <memory>
 #include <vector>
+#include <variant>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -31,10 +32,11 @@
 // *** 前方宣言 ***
 //**********************************************************************************
 class CModel;
-class CFileStream;
 class CMotion;
 class CThunderEffect;
+class CObjectXQuaternion;
 class CUtilityPole;
+class CPowerPlant;
 class CObjectLine;
 
 //**********************************************************************************
@@ -53,6 +55,14 @@ public:
 		MOTIONTYPE_LANDING,			// 着地モーション
 		MOTIONTYPE_MAX
 	} MOTIONTYPE;
+
+	// std::variantに含まれている変数の種類
+	typedef enum
+	{
+		CPOWERPLANT_PTR = 0,	// 発電所へのポインタ
+		CUTILITYPOLE_PTR,		// 電柱へのポインタ
+		PTRTYPE_MAX
+	} PTRTYPE;
 
 	static CPlayer *Create(const char *pFilename,
 		const Vector3 &pos,
@@ -73,7 +83,7 @@ public:
 	const Vector3 *GetOffset(void) const { return &m_offset; }
 	const Vector3 *GetMove(void) const { return &m_move; }
 	const Matrix *GetMatrix(void) const { return &m_mtxWorld; }
-	CUtilityPole *GetRidingPole(void) const { return m_pRidingPole; }
+	const std::variant<CPowerPlant*, CUtilityPole*> *GetRidingObject(void) const { return &m_pRidingObject; }
 	bool IsShotLasso(void) const { return m_bShotLasso; }
 	void ChangeRidingPole(CUtilityPole *pNext);
 
@@ -81,19 +91,13 @@ private:
 	void InputAction(void);
 	void InputMoving(void);
 	void InputPole(void);
-	void InputMap(void);
 	void UpdatePotision(void);
 	void UpdateRotateDest(void);
 	void UpdatePole(void);
 	void DismountPole(void);
 	void CollisionAction(void);
 	void OtherUpdate(void);
-	HRESULT LoadFile(const char *pFilename);
-	void LoadCharactorData(CFileStream *pFile);
-	void LoadPartsData(CFileStream *pFile, const int nCntModel);
-	void LoadMotionData(CFileStream *pFile);
-	bool DeleteComment(char *pStr);
-	template<class... Args> void LoadData(const char *pStr, const char *pFormat, Args... args);
+	CObjectXQuaternion *GetRidingObjectX(void);
 
 	Vector3 m_pos;		// 位置
 	Vector3 m_offset;	// オフセット保存用
@@ -101,29 +105,15 @@ private:
 	Vector3 m_rot;		// 角度
 	Vector3 m_rotDest;	// 目標角度
 	Matrix m_mtxWorld;	// ワールドマトリックス
-	CUtilityPole *m_pRidingPole;		// 乗っている電柱	
-	CUtilityPole *m_pPoleNext;			// 次に乗る電柱	
+	CThunderEffect *m_pThunderEffect;	// 雷エフェクトへのポインタ
+	std::variant<CPowerPlant*, CUtilityPole*> m_pRidingObject;		// 乗っているオブジェクト (発電所 or 電柱)
+	CUtilityPole *m_pPoleNext;	// 次に乗る電柱	
 	std::vector<std::unique_ptr<CModel>> m_vpModel;		// 各モデル(パーツ)へのポインタ
 	std::unique_ptr<CMotion> m_pMotion;					// モーションへのポインタ
 	char m_aModelPath[MAX_PLAYER_MODEL_PATH][MAX_PATH];	// 各モデルのパス
 	int m_nNumModel;		// モデルの総数
-	CThunderEffect *m_pThunderEffect;		// 雷エフェクトへのポインタ
-	bool m_bShotLasso;						// 投げ縄を投げたか
-	Vector3 m_vecQua;			// 回転の任意軸
-	float m_fAngleRest;			// 次の電柱への残りの角度
+	bool m_bShotLasso;		// 投げ縄を投げたか
+	Vector3 m_vecQua;		// 回転の任意軸
+	float m_fAngleRest;		// 次の電柱への残りの角度
 };
-
-//==================================================================================
-// --- データの読み取り処理 ---
-//==================================================================================
-template<class... Args> void CPlayer::LoadData(const char *pStr, const char *pFormat, Args... args)
-{
-	const char *pStart = nullptr;	// =の走査用ポインタ
-
-	// =後のポインタを取得
-	pStart = strchr(pStr, '=');
-
-	// 読み込み
-	(void)sscanf(pStart + 1, pFormat, args...);
-}
 #endif

@@ -131,8 +131,8 @@ void CMotion::Update(void)
 		}
 
 		// 各変数にオフセットを適用
-		UpdatePos += m_ppModel[nCntModel]->GetPositionLocal();
-		UpdateRot = Vec3::FixedRotation(UpdateRot + m_ppModel[nCntModel]->GetRotationLocal());
+		UpdatePos += *m_ppModel[nCntModel]->GetPositionLocal();
+		UpdateRot = Vec3::FixedRotation(UpdateRot + *m_ppModel[nCntModel]->GetRotationLocal());
 
 		// 位置と角度を設定
 		m_ppModel[nCntModel]->SetPosition(UpdatePos);
@@ -217,8 +217,8 @@ void CMotion::Set(const int nType)
 	for (int nCntModel = 0; nCntModel < m_nNumModel; nCntModel++)
 	{ // 位置と角度を設定
 		KEY *pKey = &pInfo->aKeyInfo[m_nKey].aKey[nCntModel];		// キー要素へのポインタ
-		m_ppModel[nCntModel]->SetPosition(pKey->pos + m_ppModel[nCntModel]->GetPositionLocal());
-		m_ppModel[nCntModel]->SetRotation(pKey->rot + m_ppModel[nCntModel]->GetRotationLocal());
+		m_ppModel[nCntModel]->SetPosition(pKey->pos + *m_ppModel[nCntModel]->GetPositionLocal());
+		m_ppModel[nCntModel]->SetRotation(pKey->rot + *m_ppModel[nCntModel]->GetRotationLocal());
 	}
 }
 
@@ -278,8 +278,8 @@ void CMotion::SetByBlend(void)
 		UpdateRot = Vec3::FixedRotation(pKey->rot + (diffRot * fRateKey));	// 更新後の角度
 
 		// 各変数にオフセットを適用
-		UpdatePos += m_ppModel[nCntModel]->GetPositionLocal();
-		UpdateRot = Vec3::FixedRotation(UpdateRot + m_ppModel[nCntModel]->GetRotationLocal());
+		UpdatePos += *m_ppModel[nCntModel]->GetPositionLocal();
+		UpdateRot = Vec3::FixedRotation(UpdateRot + *m_ppModel[nCntModel]->GetRotationLocal());
 
 		// 位置と角度を設定
 		m_ppModel[nCntModel]->SetPosition(UpdatePos);

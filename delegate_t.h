@@ -45,6 +45,7 @@ namespace hyp
 		template<class T> void Add(T *pFunc);
 		template<class T, class Instance> void Add(T pFunc, Instance *pInst);
 		Return InvokeAll(Args... args);
+		void UnregisterAll(void);
 
 	private:
 		template<class T> void *ConvertToVoid(T pFunc);
@@ -159,6 +160,14 @@ namespace hyp
 		{
 			func.pFunc(args...);
 		}
+	}
+
+	//=================================================================================
+	// --- “o˜^Ï‚İƒfƒŠƒQ[ƒ^[‚Ì“o˜^‰ğœˆ— ---
+	//=================================================================================
+	template<class Return, class... Args> void Delegate<Return(Args...)>::UnregisterAll(void)
+	{
+		m_apFunction.clear();
 	}
 
 	// •Ê–¼İ’è

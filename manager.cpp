@@ -48,9 +48,7 @@
 //==================================================================================
 CManager *CManager::GetInstance(void)
 {
-	static CManager manager;		// マネージャのオブジェクト (始めた呼ばれたときのみ生成)
-
-	// マネージャへのポインタを返す
+	static CManager manager;		// インスタンス
 	return &manager;
 }
 
@@ -70,7 +68,6 @@ CManager::CManager()
 	m_pLight = nullptr;
 	m_pTransition = nullptr;
 	m_pScene = nullptr;
-	m_nFrameRate = DEFAULT_APPLICATION_FRAMERATE;
 	m_nCountFPS = 0;
 	m_nCounterFrame = 0;
 	m_nNumPole = 0;

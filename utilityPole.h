@@ -23,6 +23,7 @@
 // *** 前方宣言 ***
 //**********************************************************************************
 class CObjectBillboard;
+class CPowerPlant;
 
 //**********************************************************************************
 // *** 電柱クラス ***
@@ -60,6 +61,7 @@ public:
 	void Draw(void);
 	bool Connect(CUtilityPole *pPole);
 	bool Connected(CUtilityPole *pPole);
+	bool Connected(CPowerPlant *pPowerPlant);
 	void GenerateElectricity(void);
 	void SetEnableSelect(const bool bEnable);
 	ICON GetIconType(void) const { return m_enableType; }
@@ -68,8 +70,9 @@ public:
 	bool IsElectriced(void) const { return m_bElectriced; }
 
 private:
-	CUtilityPole *m_apPole[MAX_CONNECT_POLE];		// 電線でつながっている電柱へのポインタ
+	CUtilityPole *m_pConnect;						// 電線でつながっている電柱へのポインタ
 	CUtilityPole *m_pConnected;						// 接続してきた電柱へのポインタ
+	CPowerPlant *m_pConnectedPowerPlant;			// 接続してきた発電所へのポインタ
 	CObjectBillboard *m_apBillboard[ICON_MAX];		// ビルボードへのポインタ
 	int m_nNumConnect;			// 接続されている電柱の数
 	bool m_bElectriced;			// 既に電流が流れたかどうか

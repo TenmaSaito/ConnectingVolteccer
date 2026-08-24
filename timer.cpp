@@ -12,37 +12,28 @@
 #include "number.h"
 #include "manager.h"
 #include "renderer.h"
+#include "observer_pointer.h"
+#include <vector>
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
 #define INIT_POS		VECTOR3_NULL		// 初期位置
-#define INIT_SIZE		Vector2(50, 65)	// 初期サイズ
+#define INIT_SIZE		Vector2(50, 65)		// 初期サイズ
 #define INIT_TIME		(0)					// 初期タイマー
 #define INIT_NUM		(MAX_TIMERNUM)		// 初期数値数
+#define TIMER_TEXTYPE	(CNumber::TYPE_VOLTNUM_000)		// タイマーの数字のテクスチャの種類
 
 //==================================================================================
 // --- 生成処理 ---
 //==================================================================================
 CTimer *CTimer::Create(const Vector3 &pos, const Vector2 &size, const int nNumNumber)
 {
-	CTimer *pTimer;		// 生成したタイマーへのポインタ
-
-	if (CObject::GetNumAll() >= MAX_OBJECT)
-	{ // オブジェクトの総数が配列の最大数だった場合
-		// 生成せずにNULLを返す
-		return nullptr;
+	CTimer *pTimer = new CTimer;		// 生成したタイマーへのポインタ
+	if (pTimer != nullptr)
+	{ // タイマーを初期化
+		pTimer->Init(pos, size, nNumNumber);
 	}
-
-	// タイマーを生成
-	pTimer = new CTimer;
-	if (pTimer == nullptr)
-	{ // 生成失敗
-		return nullptr;
-	}
-
-	// タイマーを初期化
-	pTimer->Init(pos, size, nNumNumber);
 
 	return pTimer;
 }
@@ -52,23 +43,11 @@ CTimer *CTimer::Create(const Vector3 &pos, const Vector2 &size, const int nNumNu
 //==================================================================================
 CTimer *CTimer::Create(const Vector3 &pos, const Vector2 &size, const int nNumNumber, const int nTime)
 {
-	CTimer *pTimer;		// 生成したタイマーへのポインタ
-
-	if (CObject::GetNumAll() >= MAX_OBJECT)
-	{ // オブジェクトの総数が配列の最大数だった場合
-		// 生成せずにNULLを返す
-		return nullptr;
+	CTimer *pTimer = new CTimer;		// 生成したタイマーへのポインタ
+	if (pTimer != nullptr)
+	{ // タイマーを初期化
+		pTimer->Init(pos, size, nNumNumber, nTime);
 	}
-
-	// タイマーを生成
-	pTimer = new CTimer;
-	if (pTimer == nullptr)
-	{ // 生成失敗
-		return nullptr;
-	}
-
-	// タイマーを初期化
-	pTimer->Init(pos, size, nNumNumber, nTime);
 
 	return pTimer;
 }
@@ -78,7 +57,6 @@ CTimer *CTimer::Create(const Vector3 &pos, const Vector2 &size, const int nNumNu
 //==================================================================================
 CTimer::CTimer(const int nPriority) : CObject(nPriority)
 { // メンバ変数をクリア
-	memset(m_apNumber, 0, sizeof(m_apNumber));
 	m_nTime = 0;
 	m_nNumTime = 0;
 	m_nCounter = 0;
@@ -117,19 +95,19 @@ HRESULT CTimer::Init(void)
 	numSize = INIT_SIZE / static_cast<float>(m_nNumTime);
 
 	// 数値オブジェクトを作成
-	for (int nCntNumber = 0; nCntNumber < m_nNumTime; nCntNumber++)
+	for (UINT uCntNumber = 0; uCntNumber < m_nNumTime; uCntNumber++)
 	{
-		CNumber* pNumber = nullptr;			// 生成した数値オブジェクトへのポインタ
-		Vector3 posCreate = pos;	// 生成位置
+		CNumber *pNumber = nullptr;			// 生成した数値オブジェクトへのポインタ
+		Vector3 posCreate = pos;			// 生成位置
 
 		// 生成位置(X座標)を修正
-		posCreate.x = pos.x + (numSize.x * nCntNumber);
+		posCreate.x = pos.x + (numSize.x * uCntNumber);
 
-		pNumber = CNumber::Create(posCreate, numSize, 0);
+		pNumber = CNumber::Create(TIMER_TEXTYPE, posCreate, numSize, 0);
 		if (pNumber != NULL)
 		{ // 生成成功時
-			// 生成したポインタを保存 (CObjectによって解放されるためdeleteは禁止)
-			m_apNumber[nCntNumber] = pNumber;
+			// 生成したポインタを保存
+			m_apNumber.at(uCntNumber).reset(pNumber);
 		}
 	}
 
@@ -168,11 +146,11 @@ HRESULT CTimer::Init(const Vector3 &pos, const Vector2 &size, const int nNumNumb
 		posCreate.y = pos.y + (numSize.y * 0.5f);
 
 		// 数値オブジェクトを生成
-		pNumber = CNumber::Create(posCreate, numSize, 0);
+		pNumber = CNumber::Create(TIMER_TEXTYPE, posCreate, numSize, 0);
 		if (pNumber != NULL)
 		{ // 生成成功時
-			// 生成したポインタを保存 (CObjectによって解放されるためdeleteは禁止)
-			m_apNumber[nCntNumber] = pNumber;
+			// 生成したポインタを保存
+			m_apNumber.at(nCntNumber).reset(pNumber);
 		}
 		else
 		{ // 生成失敗
@@ -190,7 +168,7 @@ HRESULT CTimer::Init(const Vector3 &pos, const Vector2 &size, const int nNumNumb
 HRESULT CTimer::Init(const Vector3 &pos, const Vector2 &size, const int nNumNumber, const int nTime)
 {
 	Vector2 numSize;	// 数値1個当たりのサイズ
-	int *pNumValue;			// 各桁の数値
+	std::vector<int> vNumValue;		// 各桁の数値
 
 	// 引数を保存
 	m_nTime = nTime;
@@ -207,36 +185,30 @@ HRESULT CTimer::Init(const Vector3 &pos, const Vector2 &size, const int nNumNumb
 	numSize.y = size.y;
 
 	// 桁数分だけメモリを確保
-	pNumValue = new int[m_nNumTime];
+	vNumValue.reserve(m_nNumTime);
 
-	for (int nCntScore = 0; nCntScore < m_nNumTime; nCntScore++)
+	for (UINT uCntScore = 0; uCntScore < static_cast<UINT>(m_nNumTime); uCntScore++)
 	{ // 各桁の数値を求める
-		pNumValue[nCntScore] = nTime % (int)powf(10.0f, (float)(m_nNumTime - nCntScore)) / (int)powf(10.0f, (float)(m_nNumTime - nCntScore) - 1.0f);
+		vNumValue.push_back(nTime % (int)powf(10.0f, (float)(m_nNumTime - uCntScore)) / (int)powf(10.0f, (float)(m_nNumTime - uCntScore) - 1.0f));
 	}
 
 	// 数値オブジェクトを作成
 	for (int nCntNumber = 0; nCntNumber < m_nNumTime; nCntNumber++)
 	{
 		CNumber *pNumber = nullptr;		// 生成した数値オブジェクトへのポインタ
-		Vector3 posCreate;			// 生成位置
+		Vector3 posCreate;				// 生成位置
 
 		// 生成位置(X座標)を修正
 		posCreate.x = pos.x + (numSize.x * nCntNumber) + (numSize.x * 0.5f);
 		posCreate.y = pos.y + (numSize.y * 0.5f);
 
 		// 数値オブジェクトを生成
-		pNumber = CNumber::Create(posCreate, numSize, pNumValue[nCntNumber]);
+		pNumber = CNumber::Create(TIMER_TEXTYPE, posCreate, numSize, vNumValue.at(nCntNumber));
 		if (pNumber != NULL)
 		{ // 生成成功時
-			// 生成したポインタを保存 (CObjectによって解放されるためdeleteは禁止)
-			m_apNumber[nCntNumber] = pNumber;
+			// 生成したポインタを保存
+			m_apNumber.at(nCntNumber).reset(pNumber);
 		}
-	}
-
-	if (pNumValue != nullptr)
-	{ // メモリ解放
-		delete[] pNumValue;
-		pNumValue = nullptr;
 	}
 
 	// 初期化結果を返す
@@ -248,13 +220,12 @@ HRESULT CTimer::Init(const Vector3 &pos, const Vector2 &size, const int nNumNumb
 //==================================================================================
 void CTimer::Uninit(void)
 {
-	for (int nCntNumber = 0; nCntNumber < MAX_TIMERNUM; nCntNumber++)
+	for (auto &pNumber : m_apNumber)
 	{ // タイマーが生成した数値オブジェクトを破棄
-		if (m_apNumber[nCntNumber] != nullptr)
+		if (pNumber != nullptr)
 		{ // NULLではなかった場合、破棄 + 終了処理
-			m_apNumber[nCntNumber]->Uninit();
-			delete m_apNumber[nCntNumber];
-			m_apNumber[nCntNumber] = nullptr;
+			pNumber->Uninit();
+			pNumber.reset();
 		}
 	}
 
@@ -267,18 +238,16 @@ void CTimer::Uninit(void)
 //==================================================================================
 void CTimer::Update(void)
 {
-	auto pManager = CManager::GetInstance();		// マネージャへのポインタ
-
 	if (m_nTime > 0 && m_nCounter % 60 == 0 && m_bUpdate == true)
 	{ // 0秒より大きい且つ60秒経ったらカウントダウン
 		AddTimer(-1);
 	}
 
-	for (int nCntNumber = 0; nCntNumber < MAX_TIMERNUM; nCntNumber++)
+	for (auto &pNumber : m_apNumber)
 	{ // タイマーが生成した数値オブジェクトを更新
-		if (m_apNumber[nCntNumber] != nullptr)
-		{ // NULLではなかった場合、破棄 + 終了処理
-			m_apNumber[nCntNumber]->Update();
+		if (pNumber != nullptr)
+		{ // NULLではなかった場合、更新処理
+			pNumber->Update();
 		}
 	}
 
@@ -291,13 +260,29 @@ void CTimer::Update(void)
 //==================================================================================
 void CTimer::Draw(void)
 {
-	for (int nCntNumber = 0; nCntNumber < MAX_TIMERNUM; nCntNumber++)
-	{ // タイマーが生成した数値オブジェクトを更新
-		if (m_apNumber[nCntNumber] != nullptr)
-		{ // NULLではなかった場合、破棄 + 終了処理
-			m_apNumber[nCntNumber]->Draw();
+	own::ObserverPtr pManager(CManager::GetInstance());		// マネージャへのポインタ
+	own::ObserverPtr pRenderer(pManager->GetRenderer());	// レンダラーへのポインタ
+	own::ObserverPtr pDevice(pRenderer->GetDevice());		// デバイスへのポインタ
+
+	// αテストを有効化
+	pDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
+	pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
+	pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
+	pDevice->SetRenderState(D3DRS_ALPHAREF, 30);
+
+	for (auto &pNumber : m_apNumber)
+	{ // タイマーが生成した数値オブジェクトを描画
+		if (pNumber != nullptr)
+		{ // NULLではなかった場合、描画処理
+			pNumber->Draw();
 		}
 	}
+
+	// αテストを無効化
+	pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
+	pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+	pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_ALWAYS);
+	pDevice->SetRenderState(D3DRS_ALPHAREF, 0);
 }
 
 //==================================================================================
@@ -321,32 +306,26 @@ bool CTimer::GetUpdate(void) const
 //==================================================================================
 void CTimer::SetTimer(const int nTime)
 {
-	int *pNumValue;			// 各桁の数値
+	std::vector<int> vNumValue;		// 各桁の数値
 
 	// タイマーを加算
 	m_nTime = nTime;
 
 	// 桁数分だけメモリを確保
-	pNumValue = new int[m_nNumTime];
+	vNumValue.reserve(m_nNumTime);
 
-	for (int nCntScore = 0; nCntScore < m_nNumTime; nCntScore++)
+	for (int nCntNumber = 0; nCntNumber < m_nNumTime; nCntNumber++) 
 	{ // 各桁の数値を求める
-		pNumValue[nCntScore] = m_nTime % (int)powf(10.0f, (float)(m_nNumTime - nCntScore)) / (int)powf(10.0f, (float)(m_nNumTime - nCntScore) - 1.0f);
+		vNumValue.push_back(nTime % (int)powf(10.0f, (float)(m_nNumTime - nCntNumber)) / (int)powf(10.0f, (float)(m_nNumTime - nCntNumber) - 1.0f));
 	}
 
-	for (int nCntScore = 0; nCntScore < m_nNumTime; nCntScore++)
+	for (int nCntNumber = 0; nCntNumber < m_nNumTime; nCntNumber++)
 	{ // 各桁の数値オブジェクトに適用
-		if (m_apNumber[nCntScore] != nullptr)
+		if (m_apNumber.at(nCntNumber) != nullptr)
 		{ // NULLじゃなければ
 			// 値を変更
-			m_apNumber[nCntScore]->SetNumber(pNumValue[nCntScore]);
+			m_apNumber.at(nCntNumber)->SetNumber(vNumValue.at(nCntNumber));
 		}
-	}
-
-	if (pNumValue != nullptr)
-	{ // メモリ解放
-		delete[] pNumValue;
-		pNumValue = nullptr;
 	}
 }
 
@@ -355,32 +334,26 @@ void CTimer::SetTimer(const int nTime)
 //==================================================================================
 void CTimer::AddTimer(const int nValue)
 {
-	int *pNumValue;			// 各桁の数値
+	std::vector<int> vNumValue;		// 各桁の数値
 
 	// タイマーを加算
 	m_nTime += nValue;
 
 	// 桁数分だけメモリを確保
-	pNumValue = new int[m_nNumTime];
+	vNumValue.reserve(m_nNumTime);
 
-	for (int nCntScore = 0; nCntScore < m_nNumTime; nCntScore++)
+	for (int nCntNumber = 0; nCntNumber < m_nNumTime; nCntNumber++)
 	{ // 各桁の数値を求める
-		pNumValue[nCntScore] = m_nTime % (int)powf(10.0f, (float)(m_nNumTime - nCntScore)) / (int)powf(10.0f, (float)(m_nNumTime - nCntScore) - 1.0f);
+		vNumValue.push_back(m_nTime % (int)powf(10.0f, (float)(m_nNumTime - nCntNumber)) / (int)powf(10.0f, (float)(m_nNumTime - nCntNumber) - 1.0f));
 	}
 
-	for (int nCntScore = 0; nCntScore < m_nNumTime; nCntScore++)
+	for (int nCntNumber = 0; nCntNumber < m_nNumTime; nCntNumber++)
 	{ // 各桁の数値オブジェクトに適用
-		if (m_apNumber[nCntScore] != nullptr)
+		if (m_apNumber.at(nCntNumber) != nullptr)
 		{ // NULLじゃなければ
 			// 値を変更
-			m_apNumber[nCntScore]->SetNumber(pNumValue[nCntScore]);
+			m_apNumber.at(nCntNumber)->SetNumber(vNumValue.at(nCntNumber));
 		}
-	}
-
-	if (pNumValue != nullptr)
-	{ // メモリ解放
-		delete[] pNumValue;
-		pNumValue = nullptr;
 	}
 }
 

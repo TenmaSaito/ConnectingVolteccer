@@ -18,6 +18,7 @@
 //**********************************************************************************
 #define ENABLE_MULTI_TARGET_RENDERING		// マルチターゲットレンダリング
 #define ENABLE_FEEDBACK_EFFECT				// フィードバックエフェクト
+#define FEEDBACK_TEX_NUM		(2)			// フィードバックエフェクト用バッファの配列数
 
 //**********************************************************************************
 // *** レンダラークラス ***
@@ -42,6 +43,7 @@ public:
 #ifdef ENABLE_FEEDBACK_EFFECT
 	LPDIRECT3DTEXTURE9 GetTextureMT(void) { return m_apTextureMT[0]; }
 	void SetEnableFeedBack(const bool bEnable) { m_bEnableFeedBack = bEnable; }
+	bool GetEnableFeedBack(void) const { return m_bEnableFeedBack; }
 #else
 	LPDIRECT3DTEXTURE9 GetTextureMT(void) { return m_pTextureMT; }
 #endif
@@ -60,8 +62,8 @@ private:
 	Matrix m_mtxProjDef;			// 〃プロジェクションマトリックス
 	Matrix m_mtxViewDef;			// 〃ビューマトリックス
 #ifdef ENABLE_FEEDBACK_EFFECT
-	LPDIRECT3DTEXTURE9 m_apTextureMT[2];	// レンダリングターゲット用テクスチャ
-	LPDIRECT3DSURFACE9 m_apRenderMT[2];		// テクスチャレンダリング用インターフェース
+	LPDIRECT3DTEXTURE9 m_apTextureMT[FEEDBACK_TEX_NUM];		// レンダリングターゲット用テクスチャ
+	LPDIRECT3DSURFACE9 m_apRenderMT[FEEDBACK_TEX_NUM];		// テクスチャレンダリング用インターフェース
 	LPDIRECT3DVERTEXBUFFER9 m_pVtxBuffMT;	// フィードバックエフェクト用頂点バッファ
 	bool m_bEnableFeedBack;					// フィードバックエフェクトの有無
 #else

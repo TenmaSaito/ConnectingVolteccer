@@ -27,6 +27,15 @@
 class CTexture
 {
 public:
+	// 事前に読み込むテクスチャの種類
+	typedef enum
+	{
+		TYPE_TRIANGLE = 0,		// 三角図形
+		TYPE_CIRCLE,			// 円形
+		TYPE_STAR,				// 星形
+		TYPE_MAX
+	} TYPE;
+
 	// テクスチャデータ構造体
 	struct BUFFER
 	{

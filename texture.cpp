@@ -11,11 +11,25 @@
 #include "texture.h"
 #include "manager.h"
 #include "renderer.h"
+#include <string_view>
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
 #define DEFAULT_CAPACITY		(64)		// インスタンス生成時確保するTEX_BUFFERの初期サイズ
+
+//**********************************************************************************
+// *** 図形のファイル名 ***
+//**********************************************************************************
+namespace
+{
+	constexpr std::string_view c_sPrimitivePath[CTexture::TYPE_MAX] =	// 図形テクスチャのパス
+	{
+		"data/TEXTURE/base/triangle.png",	// 三角形
+		"data/TEXTURE/base/circle.png",		// 円形
+		"data/TEXTURE/base/star.png",		// 星型
+	};
+}
 
 //==================================================================================
 // --- インスタンス取得処理 ---
@@ -23,7 +37,6 @@
 CTexture *CTexture::GetInstance(void)
 {
 	static CTexture instance;		// インスタンス
-
 	return &instance;
 }
 
@@ -47,6 +60,11 @@ CTexture::~CTexture()
 //==================================================================================
 HRESULT CTexture::Load(void)
 {
+	for (const auto &path : c_sPrimitivePath)
+	{ // 事前に用意されたテクスチャを読み込み
+		Register(path);
+	}
+
 	return S_OK;
 }
 

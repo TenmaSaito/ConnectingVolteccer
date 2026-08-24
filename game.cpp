@@ -18,13 +18,19 @@
 #include "camera.h"
 #include "map.h"
 #include "timer.h"
+#include "combo.h"
 #include "delegate_t.h"
+#include "building.h"
+#include "stopwatch.h"
 #include <string>
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define LOAD_MAP_PATH		"data/map2.txt"		// 読み込むマップ情報へのパス
+#define TIMER_POS			Vector3(WINDOW_MIDDLE.x - 75.0f, 35.0f, 0.0f)		// タイマーの座標
+#define TIMER_SIZE			Vector2(150.0f, 85.0f)				// タイマーのサイズ
+#define COMBO_POS			Vector3(1000.0f, 200.0f, 0.0f)		// コンボ表示の座標
+#define PLAYER_MOTION_PATH	"data/SCRIPT/motion_nabeatsu.txt"	// プレイヤーのモーションパス
 
 //==================================================================================
 // --- コンストラクタ ---
@@ -35,6 +41,8 @@ CGame::CGame() : CScene(MODE_GAME)
 	m_pPlayer = nullptr;
 	m_pPlanet = nullptr;
 	m_pTimer = nullptr;
+	m_pCombo = nullptr;
+	m_bEdit = false;
 	m_bPause = false;
 	m_nCounterFrame = 0;
 }
@@ -50,8 +58,7 @@ CGame::~CGame()
 // --- 初期化処理 ---
 //==================================================================================
 HRESULT CGame::Init(void)
-{
-	// 開始処理
+{ // 開始処理
 	Start();
 
 	return S_OK;
@@ -79,10 +86,19 @@ void CGame::Update(void)
 		pManager->SetEnablePause(!pManager->GetEnablePause());
 	}
 
+	if (pKeyboard->GetPress(DIK_LSHIFT) && pKeyboard->GetTrigger(DIK_E))
+	{ // エディットモードの変更！
+		m_bEdit = !m_bEdit;
+		m_pTimer->SetUpdate(!m_bEdit);
+	}
+
 	if (pManager->GetEnablePause() == true)
 	{ // ポーズ中
 		pProc->Print("[現在ポーズ中！]\n");
 	}
+
+	// 経過時間を表示
+	pProc->Print("[モード開始後からの経過時間 : {:.2f}]\n", m_pStopWatch->GetElapsed<float, std::ratio<1>>());
 
 	// モードの遷移
 	pProc->Print("<9/0で遷移 : ゲームオーバー画面 / ゲームクリア画面>\n");
@@ -109,15 +125,17 @@ void CGame::Update(void)
 		strftime(aTime, sizeof(aTime), "%Y-%m-%d-%H-%M-%S", pTime);
 
 		// ファイル名作成
-		filePath = "data/";
+		filePath = "data/Maps/";
 		filePath += aTime;
 		filePath += ".bin";
 
+		// マップを保存
 		CMap::GetInstance()->Save(filePath.c_str());
 	}
-	else if (pKeyboard->GetTrigger(DIK_U))
-	{
-		CMap::GetInstance()->Load("data/2026-07-24-10-18-18.txt");
+
+	if (m_bEdit == true)
+	{ // エディットモードの場合
+		UpdateEdit();
 	}
 
 	// 全カメラの更新処理
@@ -146,16 +164,68 @@ void CGame::Start(void)
 	CMap *pMap = CMap::GetInstance();		// マップへのポインタ
 
 	// タイマー生成
-	m_pTimer = CTimer::Create(Vector3(WINDOW_MIDDLE.x - 75.0f, 35.0f, 0.0f), Vector2(150.0f, 85.0f), 3, 120);
+	m_pTimer = CTimer::Create(TIMER_POS, TIMER_SIZE, 3, 120);
+
+	// コンボ表示生成
+	m_pCombo = CCombo::Create(COMBO_POS, VECTOR3_NULL);
 
 	// プレイヤー出現
-	m_pPlayer = CPlayer::Create("data/SCRIPT/motion_nabeatsu.txt", Vector3(0.0f, 1125.0f, 0.0f), VECTOR3_NULL);
+	m_pPlayer = CPlayer::Create(PLAYER_MOTION_PATH, Vector3(0.0f, 1125.0f, 0.0f), VECTOR3_NULL);
 	NULLPOINTER_ASSERT(m_pPlayer);
 
 	// 惑星配置
 	m_pPlanet = CPlanet::Create();
 	NULLPOINTER_ASSERT(m_pPlanet);
 
+	// ストップウォッチを生成 + スタート
+	m_pStopWatch = std::make_unique<CStopWatch>();
+	m_pStopWatch->Start();
+
 	// マップ読み込み
-	CMap::GetInstance()->Load("data/2026-08-11-00-25-32.bin");
+	CMap::GetInstance()->LoadLatest();
+}
+
+//==================================================================================
+// --- エディットモードの更新処理 ---
+//==================================================================================
+void CGame::UpdateEdit(void)
+{
+	// マップ関連
+	MapEdit();
+}
+
+//==================================================================================
+// --- マップのエディット処理 ---
+//==================================================================================
+void CGame::MapEdit(void)
+{
+	CManager *pManager = CManager::GetInstance();					// マネージャーへのポインタ
+	CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();		// キーボードへのポインタ
+	Vector3 pos = Vector3(0.0f, m_pPlayer->GetPosition()->y, 0.0f);	// 設置位置
+	CMap *pMap = CMap::GetInstance();			// マップへのポインタ
+
+	if (pKeyboard->GetTrigger(DIK_1))
+	{ // 建物0生成
+		pMap->AddBulding(CBuilding::TYPE_0, pos);
+	}
+	else if (pKeyboard->GetTrigger(DIK_2))
+	{ // 建物1生成
+		pMap->AddBulding(CBuilding::TYPE_1, pos);
+	}
+	else if (pKeyboard->GetTrigger(DIK_3))
+	{ // 建物2生成
+		pMap->AddBulding(CBuilding::TYPE_2, pos);
+	}
+	else if (pKeyboard->GetTrigger(DIK_4))
+	{ // 建物3生成
+		pMap->AddBulding(CBuilding::TYPE_3, pos);
+	}
+	else if (pKeyboard->GetTrigger(DIK_5))
+	{ // 電柱生成
+		pMap->AddUtilityPole(pos);
+	}
+	else if (pKeyboard->GetTrigger(DIK_6))
+	{ // 発電所生成
+		pMap->AddPowerPlant(pos);
+	}
 }

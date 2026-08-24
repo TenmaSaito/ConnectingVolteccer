@@ -37,7 +37,8 @@ public:
 	struct BUFFER
 	{
 		std::vector<std::unique_ptr<CModel>> vpParts;	// ファイルから読み込んだパーツ情報
-		std::string sFilename;		// ファイル名
+		std::string sFilename;			// ファイル名
+		std::vector<UINT> vParentIdx;	// 親モデルのパーツのインデックス
 	};
 
 	static CPartsLoader *GetInstance(void);

@@ -18,11 +18,17 @@
 #include "game.h"
 #include "planet.h"
 #include "building.h"
+#include "powerPlant.h"
 #include <vector>
 #include <string>
 #include <iostream>
 #include <iomanip>
 #include <locale>
+
+//**********************************************************************************
+// *** マクロ定義 ***
+//**********************************************************************************
+#define LATEST_MAPFILE		"data/Maps/latestMapPath.bin"		// 直近のマップパスを書いてあるファイル
 
 //**********************************************************************************
 // *** マップ情報構造体 ***
@@ -43,6 +49,7 @@ struct THIS_FILE_OBJECT_TYPEINFO
 {
 	int nBuildingType;		// ファイル作成時の建物のタイプのインデックス
 	int nPoleType;			// ファイル作成時の電柱のタイプのインデックス
+	int nPowerPlantType;	// ファイル作成時の発電所のタイプのインデックス
 };
 
 //==================================================================================
@@ -97,25 +104,29 @@ void CMap::AddUtilityPole(const Vector3 &pos)
 // --- 建造物設置処理 ---
 //==================================================================================
 void CMap::AddBulding(const int nType, const Vector3 &pos)
-{
-	CGame *pGame = CManager::GetInstance()->GetScene<CGame>();
-	auto pPlanet = pGame->GetPlanet();
-	Vector3 vecQua = VECTOR3_NULL;
-	float fAngle = 0.0f;
+{ // 建造物設置
+	CBuilding::Create(static_cast<CBuilding::TYPE>(nType), pos);
+}
 
-	
+//==================================================================================
+// --- 発電所設置処理 ---
+//==================================================================================
+void CMap::AddPowerPlant(const Vector3 &pos)
+{ // 発電所設置
+	CPowerPlant::Create(pos);
 }
 
 //==================================================================================
 // --- マップ書き出し処理 ---
 //==================================================================================
-void CMap::Save(const char *pMapFile)
+void CMap::Save(std::string_view sMapFile)
 {
 	std::vector<std::string> filepath;			// ファイルパス
 	std::vector<CBuilding::TYPE> aIdxModel;		// モデルインデックス
 	std::vector<IODATA> outData;			// 出力データ群
-	long long flag = OBJTYPE_TO_BITFLAG(CObject::TYPE_POLE);
-	flag |= OBJTYPE_TO_BITFLAG(CObject::TYPE_BUILDING);
+	constexpr long long flag = OBJTYPE_TO_BITFLAG(CObject::TYPE_POLE) 
+		| OBJTYPE_TO_BITFLAG(CObject::TYPE_BUILDING) 
+		| OBJTYPE_TO_BITFLAG(CObject::TYPE_POWERPLANT);
 
 	for (int nCntPriority = 0; nCntPriority < MAX_OBJPRIORITY; nCntPriority++)
 	{
@@ -160,7 +171,7 @@ void CMap::Save(const char *pMapFile)
 	std::unique_ptr<CFileStream> pFile(new CFileStream);		// ファイルストリーム
 	std::ofstream *pOfs = pFile->GetOutStream();		// 出力ストリームへのポインタ
 
-	if (pFile->CreateFile(pMapFile, true, CFileStream::FLAG_OVERWRITE))
+	if (pFile->CreateFile(sMapFile, true, CFileStream::FLAG_OVERWRITE))
 	{
 		// 書き出し時に小数第2位まで書き出すことを指定
 		(*pOfs) << std::fixed << std::setprecision(2);
@@ -171,7 +182,8 @@ void CMap::Save(const char *pMapFile)
 		// 今回のオブジェクトのタイプを事前に保存
 		objTypeInfo.nBuildingType = CObject::TYPE_BUILDING;		// 建物のタイプを保存
 		objTypeInfo.nPoleType = CObject::TYPE_POLE;				// 電柱のタイプを保存
-
+		objTypeInfo.nPowerPlantType = CObject::TYPE_POWERPLANT;	// 発電所のタイプを保存
+		
 		// オブジェクトのタイプを書き出し
 		pFile->Write(&objTypeInfo, sizeof(THIS_FILE_OBJECT_TYPEINFO));
 
@@ -194,14 +206,27 @@ void CMap::Save(const char *pMapFile)
 		// ファイルを閉じる
 		pFile->CloseFile();
 	}
+	else
+	{ // ファイル作成失敗
+		return;
+	}
+
+	if (pFile->CreateFile(LATEST_MAPFILE, true, CFileStream::FLAG_OVERWRITE))
+	{ // ファイル作成成功
+		// ファイル名を保存
+		pFile->WriteString(sMapFile);
+	}
+	else
+	{ // ファイル作成失敗
+		return;
+	}
 }
 
 //==================================================================================
 // --- マップ読み込み処理 ---
 //==================================================================================
-void CMap::Load(const char *pMapFile)
+void CMap::Load(std::string_view sMapFile)
 {
-#ifdef ENABLE_PLANET
 	int nNumModelIdx = 0;	// モデルのインデックスの数
 	int nNumModel = 0;		// モデルの数
 	int nIdxModel = 0;		// モデルのインデックス
@@ -210,7 +235,7 @@ void CMap::Load(const char *pMapFile)
 	// データ読み込み
 	std::unique_ptr<CFileStream> pFile(new CFileStream);	// ファイルストリーム
 
-	if (pFile->OpenFile(pMapFile, true))
+	if (pFile->OpenFile(sMapFile, true))
 	{ // ファイルが開けた場合
 		THIS_FILE_OBJECT_TYPEINFO fileTypeInfo = {};		// 読み込んだファイルのオブジェクトタイプ情報
 
@@ -251,64 +276,36 @@ void CMap::Load(const char *pMapFile)
 					in.fAngle);
 				pPole->SetParent(pMtxPlanet);
 			}
-		}
-
-		// ファイルを閉じる
-		pFile->CloseFile();
-	}
-#else
-	std::vector<std::string> filepath;		// ファイルパス
-	int nNumModelIdx = 0;	// モデルのインデックスの数
-	int nNumModel = 0;		// モデルの数
-	int nIdxModel = 0;		// モデルのインデックス
-
-	// データ読み込み
-	std::unique_ptr<CFileStream> pFile(new CFileStream);		// ファイルストリーム
-
-	if (pFile->OpenFile(pMapFile, false))
-	{ // 開けた場合
-		// ファイル数を読み込み
-		pFile->Read(nNumModelIdx);
-
-		// 改行文字を破棄
-		(*pFile->GetInStream()).ignore(512, '\n');
-
-		for (int nCntModelIdx = 0; nCntModelIdx < nNumModelIdx; nCntModelIdx++)
-		{ // ファイル数分データを読み込み
-			std::string path;
-			pFile->Read(path);
-
-			filepath.push_back(path);
-		}
-
-		// モデル数読み込み
-		*pFile >> nNumModel;
-
-		for (int nCntModel = 0; nCntModel < nNumModel; nCntModel++)
-		{ // モデル数分データ読み込み
-			IODATA in = { 0 };		// 出力データ
-
-			pFile->Read(in.type);
-			pFile->Read(in.nIdxModel);
-			pFile->Read(in.pos.x);
-			pFile->Read(in.pos.y);
-			pFile->Read(in.pos.z);
-			pFile->Read(in.rot.x);
-			pFile->Read(in.rot.y);
-			pFile->Read(in.rot.z);
-
-			// タイプ別でオブジェクトを配置
-			CObject::TYPE type = static_cast<CObject::TYPE>(in.type);
-			if (type == CObject::TYPE_XMODEL)
-			{ // Xモデル配置
-				CObjectX::Create(filepath[in.nIdxModel].c_str(),
-					in.pos,
-					in.rot);
+			else if (type == fileTypeInfo.nPowerPlantType)
+			{ // 発電所配置
+				CPowerPlant::Create(in.pos,
+					in.vecQua,
+					in.fAngle);
 			}
 		}
 
 		// ファイルを閉じる
 		pFile->CloseFile();
 	}
-#endif
+}
+
+//==================================================================================
+// --- 直近で作成されたマップの読み込み処理 ---
+//==================================================================================
+void CMap::LoadLatest(void)
+{
+	// データ読み込み
+	std::unique_ptr<CFileStream> pFile(new CFileStream);	// ファイルストリーム
+	std::string sPath;		// マップファイル名
+
+	if (pFile->OpenFile(LATEST_MAPFILE, true))
+	{ // ファイルオープン成功
+		pFile->ReadString(sPath);
+
+		// ファイルを閉じる
+		pFile->CloseFile();
+	}
+
+	// ファイル読み込み
+	Load(sPath);
 }

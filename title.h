@@ -12,12 +12,14 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "scene.h"
+#include <memory>
 
 //**********************************************************************************
 // *** 前方宣言 ***
 //**********************************************************************************
 class CTitleCamera;
 class CObject2D;
+class CTitleMenu;
 
 //**********************************************************************************
 // *** タイトルクラス ***
@@ -33,10 +35,14 @@ public:
 	void Update(void) override;
 	void Draw(void) override;
 	CObject2D *GetLogo(void) const { return m_pLogo; }
+	CTitleMenu *GetMenu(void) const { return m_pMenu; }
+
+	static constexpr MODE GetMyMode(void) { return CScene::MODE_TITLE; }
 
 private:
 	void Start(void);
 
 	CObject2D *m_pLogo;		// ロゴ
+	CTitleMenu *m_pMenu;	// メニュー
 };
 #endif

@@ -15,6 +15,9 @@
 #include "utilityPole.h"
 #include "vec3math.h"
 #include "effect.h"
+#include "particle.h"
+#include "color.h"
+#include "texture.h"
 #include <string_view>
 #include <array>
 
@@ -22,13 +25,14 @@
 // *** マクロ定義 ***
 //**********************************************************************************
 #define SCALE_VALUE		(1.0f / 15.0f)		// 線形補間の増減値
+#define PARTICLE_PATH	"data/TEXTURE/effect000.jpg"	// エフェクトのパス
 
 //**********************************************************************************
-// *** 静的メンバ変数 ***
+// *** 定数宣言 ***
 //**********************************************************************************
 namespace
 {
-	constexpr std::string_view m_sBuildingPath[CBuilding::TYPE_MAX] =	// 建物モデルのパス
+	constexpr std::string_view c_asBuildingPath[CBuilding::TYPE_MAX] =	// 建物モデルのパス
 	{
 		"data/MODEL/house000.x",		// 建物0
 		"data/MODEL/house001.x",		// 建物1
@@ -92,8 +96,8 @@ CBuilding *CBuilding::Create(const TYPE type, const Vector3 &position)
 CBuilding::CBuilding(const TYPE type, const int nPriority) : CObjectXQuaternion(nPriority)
 { // メンバ変数のクリア
 	m_pNearPole = nullptr;
-	m_bHitByPlayerCamRay = false;
-	m_bFind = false;
+	m_bFound = false;
+	m_bLighting = false;
 	m_fLerp = 0.0f;
 	m_fValue = 0.0f;
 	m_buildingType = type;
@@ -121,19 +125,18 @@ HRESULT CBuilding::Init(const Vector3 &position,
 	CPlanet *pPlanet = pGame->GetPlanet();		// 惑星へのポインタ
 
 	// 親クラスの初期化
-	hr = CObjectXQuaternion::Init(m_sBuildingPath[m_buildingType].data(), position, vecQua, fAngle);
+	hr = CObjectXQuaternion::Init(c_asBuildingPath[m_buildingType].data(), position, vecQua, fAngle);
 
 	// 親を惑星に設定
 	SetParent(pPlanet->GetMatrix());
 
 	// 増減値を設定
 	m_fValue = SCALE_VALUE;
-
-	return S_OK;
+	return hr;
 }
 
 //==================================================================================
-// --- 初期化処理 ---
+// --- 初期化処理 (任意軸と角度を現在の惑星から自動設定) ---
 //==================================================================================
 HRESULT CBuilding::Init(const Vector3 &position)
 {
@@ -154,15 +157,14 @@ HRESULT CBuilding::Init(const Vector3 &position)
 	fAngle *= -1;
 
 	// 親クラスの初期化
-	hr = CObjectXQuaternion::Init(m_sBuildingPath[m_buildingType].data(), position, vecQua, fAngle);
+	hr = CObjectXQuaternion::Init(c_asBuildingPath[m_buildingType].data(), position, vecQua, fAngle);
 
 	// 親を惑星に設定
 	SetParent(pPlanet->GetMatrix());
 
 	// 増減値を設定
 	m_fValue = SCALE_VALUE;
-
-	return S_OK;
+	return hr;
 }
 
 //==================================================================================
@@ -177,12 +179,12 @@ void CBuilding::Uninit(void)
 // --- 更新処理 ---
 //==================================================================================
 void CBuilding::Update(void) 
-{ // TODO : ここに将来電柱に電気が通ったらずんずん動く処理を書く
-	if (m_bFind == false)
+{ 
+	// まだ電柱が登録されていなければ
+	if (m_bFound == false)
 	{ // 最も近い電柱を探す
 		FindUtilityPole();
-
-		m_bFind = true;
+		m_bFound = true;		// 検索済みフラグを立てる
 	}
 	
 	if (m_pNearPole != nullptr)
@@ -202,9 +204,26 @@ void CBuilding::Update(void)
 			scale.y *= (m_fValue > 0) ? 0.99f : 1.01f;
 
 			SetScale(scale);
+
+			if (m_bLighting != true)
+			{ // 始めて電流が流れたとき
+				auto pParticle = CParticleQuaternion::Create(Vector3(0.0f, 0.0, 0.0f),
+					Vector2(15.0f, 15.0f),
+					Colors::GetColor(Colors::C_ORANGE),
+					*GetVecQua(),
+					GetAngle(),
+					3,
+					100);
+
+				// 親マトリックスとテクスチャを設定
+				pParticle->SetParent(GetMatrix());
+				pParticle->BindTexture(CTexture::GetInstance()->Register(PARTICLE_PATH));
+				m_bLighting = true;
+			}
 		}
 	}
 
+	// 親クラスの更新
 	CObjectXQuaternion::Update();
 }
 

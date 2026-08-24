@@ -49,8 +49,7 @@ CSound::INFO const CSound::m_aInfo[CSound::LABEL_MAX] =		// サウンド情報
 // --- コンストラクタ ---
 //==================================================================================
 CSound::CSound()
-{
-	// メンバ変数のクリア
+{ // メンバ変数のクリア
 	m_pXAudio2 = nullptr;
 	m_pMasteringVoice = nullptr;
 	ZeroMemory(&m_apSourceVoice[0], sizeof(m_apSourceVoice));

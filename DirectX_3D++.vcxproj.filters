@@ -309,6 +309,21 @@
     <ClCompile Include="partsLoader.cpp">
       <Filter>ソース ファイル\manager\buffer</Filter>
     </ClCompile>
+    <ClCompile Include="titlemenu.cpp">
+      <Filter>ソース ファイル\object\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="combo.cpp">
+      <Filter>ソース ファイル\object\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="powerPlant.cpp">
+      <Filter>ソース ファイル\object\building</Filter>
+    </ClCompile>
+    <ClCompile Include="stopwatch.cpp">
+      <Filter>ソース ファイル\util</Filter>
+    </ClCompile>
+    <ClCompile Include="particle.cpp">
+      <Filter>ソース ファイル\object\effect</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="model.h">
@@ -533,6 +548,24 @@
     <ClInclude Include="partsLoader.h">
       <Filter>ヘッダー ファイル\manager\buffer</Filter>
     </ClInclude>
+    <ClInclude Include="titlemenu.h">
+      <Filter>ヘッダー ファイル\object\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="observer_pointer.h">
+      <Filter>ヘッダー ファイル\manager\base</Filter>
+    </ClInclude>
+    <ClInclude Include="combo.h">
+      <Filter>ヘッダー ファイル\object\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="powerPlant.h">
+      <Filter>ヘッダー ファイル\object\building</Filter>
+    </ClInclude>
+    <ClInclude Include="stopwatch.h">
+      <Filter>ヘッダー ファイル\util</Filter>
+    </ClInclude>
+    <ClInclude Include="particle.h">
+      <Filter>ヘッダー ファイル\object\effect</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="vec3math.inl">
@@ -540,6 +573,9 @@
     </None>
     <None Include="vec2math.inl">
       <Filter>ヘッダー ファイル\util\calc</Filter>
+    </None>
+    <None Include="data\2026-08-11-00-25-32.bin">
+      <Filter>リソース ファイル</Filter>
     </None>
   </ItemGroup>
 </Project>

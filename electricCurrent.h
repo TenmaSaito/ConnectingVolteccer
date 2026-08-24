@@ -21,6 +21,7 @@
 //**********************************************************************************
 // *** 前方宣言 ***
 //**********************************************************************************
+class CObjectXQuaternion;
 class CUtilityPole;
 class CThunderEffect;
 
@@ -30,14 +31,14 @@ class CThunderEffect;
 class CElectricCurrent : public CObject
 {
 public:
-	static CElectricCurrent *Create(CUtilityPole *pStart, 
+	static CElectricCurrent *Create(CObjectXQuaternion *pStart,
 		CUtilityPole *pEnd,
 		const float fTotalTime = DEFAULT_ELECTRIC_TIME);
 
 	CElectricCurrent();
 	~CElectricCurrent();
 
-	HRESULT Init(CUtilityPole *pStart, 
+	HRESULT Init(CObjectXQuaternion *pStart,
 		CUtilityPole *pEnd,
 		const float fTotalTime);
 	void Uninit(void);
@@ -46,8 +47,8 @@ public:
 	void SetParent(const Matrix *pMtxParent) { m_pMtxParent = pMtxParent; }
 
 private:
-	CUtilityPole *m_pStart;		// 始まりの電柱
-	CUtilityPole *m_pEnd;		// 終わりの電柱
+	CObjectXQuaternion *m_pStart;	// 始まりのオブジェクトへのポインタ	(電柱もしくは発電所)
+	CUtilityPole *m_pEnd;			// 終わりのオブジェクトへのポインタ (電柱)
 	CThunderEffect *m_pThunder;		// 生成した電流エフェクトへのポインタ
 	Matrix m_mtxWorld;			// ワールドマトリックス
 	const Matrix *m_pMtxParent;	// 親マトリックスへのポインタ

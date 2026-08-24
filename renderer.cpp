@@ -18,8 +18,8 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define FEEDBACK_SIZE		(10.0f)		// フィードバック用ポリゴンの差分
-#define FEEDBACK_ALPHA		(0.99f)	// フィードバック用ポリゴンのα値
+#define FEEDBACK_SIZE		(8.0f)		// フィードバック用ポリゴンの差分
+#define FEEDBACK_ALPHA		(0.80f)		// フィードバック用ポリゴンのα値
 
 //==================================================================================
 // --- コンストラクタ ---
@@ -264,7 +264,7 @@ void CRenderer::Uninit(void)
 	SafeRelease(m_pZBuffDef);
 
 	// レンダリングターゲット用テクスチャとテクスチャインターフェースの破棄
-	for (int nCntMulti = 0; nCntMulti < 2; nCntMulti++)
+	for (int nCntMulti = 0; nCntMulti < FEEDBACK_TEX_NUM; nCntMulti++)
 	{
 		SafeRelease(m_apTextureMT[nCntMulti]);
 		SafeRelease(m_apRenderMT[nCntMulti]);

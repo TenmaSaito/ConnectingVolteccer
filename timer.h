@@ -13,6 +13,8 @@
 //**********************************************************************************
 #include "main.h"
 #include "object.h"
+#include <memory>
+#include <array>
 
 //**********************************************************************************
 // *** 前方宣言 ***
@@ -50,7 +52,7 @@ public:
 	int GetTimer(void) const;
 
 private:
-	CNumber *m_apNumber[MAX_TIMERNUM];			// 数値表示オブジェクトへのポインタ
+	std::array<std::unique_ptr<CNumber>, MAX_TIMERNUM> m_apNumber;		// 数値表示オブジェクトへのポインタ
 	int m_nNumTime;		// タイマーの桁数
 	int m_nTime;		// 現在のタイマー
 	int m_nCounter;		// フレームカウンター

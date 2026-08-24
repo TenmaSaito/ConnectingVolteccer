@@ -97,7 +97,7 @@ HRESULT CEffect::Init(const Vector3 &pos,
 	Vector2 size = {};		// ポリゴンサイズ
 
 	// 親クラスの初期化
-	hr = CObjectBillboard::Init(pos, Vec2::ToSquareSize(fRadius));
+	hr = CObjectBillboard::Init(pos, VECTOR3_NULL, Vec2::ToSquareSize(fRadius), nLife);
 
 	// 引数を保存
 	m_move = move;

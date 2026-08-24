@@ -11,6 +11,7 @@
 #include "playerCamera.h"
 #include "manager.h"
 #include "input.h"
+#include "joypad.h"
 #include "player.h"
 #include "vec3math.h"
 #include "debugproc.h"
@@ -26,7 +27,7 @@
 #define DEFAULT_ZN			(1.0f)		// 最短距離
 #define DEFAULT_ZF			(10000.0f)	// 最遠距離
 #define DEFAULT_SPD			(1.0f)		// 移動速度
-#define DEFAULT_ROTSPD		(0.01f)		// 回転速度
+#define DEFAULT_ROTSPD		(0.03f)		// 回転速度
 #define DEFAULT_LENGTH		(1000.0f)	// 注視点との距離
 #define LENGTH_MINLIMIT		(10.0f)		// 注視点との最小距離
 #define LENGTH_MAXLIMIT		(100000.0f)	// 注視点との最大距離
@@ -112,11 +113,13 @@ void CPlayerCamera::Update(void)
 {
 	CManager *pManager = CManager::GetInstance();	// マネージャへのポインタ
 	auto pKeyboard = pManager->GetInputKeyboard();	// キーボードへのポインタ
+	auto pJoypad = pManager->GetJoypad();			// ジョイパッドへのポインタ
 	auto pProc = pManager->GetDebugProc();			// デバッグ表示へのポインタ
-	auto pPlayer = m_pPlayer;					// プレイヤーへのポインタ
+	auto pPlayer = m_pPlayer;				// プレイヤーへのポインタ
 	Vector3 posV = *CCamera::GetPosV();		// 視点座標
 	Vector3 posR = *CCamera::GetPosR();		// 注視点座標
-	Vector3 rot = *CCamera::GetRotate();		// 角度
+	Vector3 rot = *CCamera::GetRotate();	// 角度
+	Vector3 stick;		// スティックの入力
 
 #ifndef ENABLE_PLANET
 	/*** 視点の平行移動！ ***/
@@ -209,7 +212,7 @@ void CPlayerCamera::Update(void)
 		rot.z -= DEFAULT_ROTSPD;
 		rot = Vec3::FixedRotation(rot);
 	}
-#else
+#elif _DEBUG
 	if (pKeyboard->GetPress(DIK_SPACE))
 	{
 		/*** カメラの回転！(注視点中心) ***/
@@ -238,76 +241,24 @@ void CPlayerCamera::Update(void)
 	}
 #endif
 
-#ifdef _DEBUG
-	// カメラの回転！(注視点中心)
-	if (pKeyboard->GetPress(DIK_E))
-	{ // 角度をずらして修正
-		rot.y += DEFAULT_ROTSPD;
-		rot = Vec3::FixedRotation(rot);
-	}
-	else if (pKeyboard->GetPress(DIK_Q))
-	{ // 角度をずらして修正
-		rot.y -= DEFAULT_ROTSPD;
-		rot = Vec3::FixedRotation(rot);
-	}
-
-	// カメラの上下回転！
-	if (pKeyboard->GetPress(DIK_Y))
-	{ // 角度をずらして修正
-		rot.z += DEFAULT_ROTSPD;
-		rot = Vec3::FixedRotation(rot);
-	}
-	else if (pKeyboard->GetPress(DIK_N))
-	{ // 角度をずらして修正
-		rot.z -= DEFAULT_ROTSPD;
-		rot = Vec3::FixedRotation(rot);
-	}
-
-	// カメラの距離変更
-	if (pKeyboard->GetPress(DIK_DOWN) && m_fLengthPlayer < LENGTH_MAXLIMIT)
-	{ // 距離増加
-		m_fLengthPlayer += DEFAULT_LENGTHSPD;
-		if (m_fLengthPlayer > LENGTH_MAXLIMIT)
-		{
-			m_fLengthPlayer = LENGTH_MAXLIMIT;
-		}
-	}
-	else if (pKeyboard->GetPress(DIK_UP) && m_fLengthPlayer > LENGTH_MINLIMIT)
-	{ // 距離減少
-		m_fLengthPlayer -= DEFAULT_LENGTHSPD;
-		if (m_fLengthPlayer < LENGTH_MINLIMIT)
-		{
-			m_fLengthPlayer = LENGTH_MINLIMIT;
-		}
-	}
-#else
-	if (m_focus == FOCUS_RIDING)
+	if (m_state == STATE_RIDING)
 	{ // 電柱に載っている場合は視点移動を可能にする
 		// カメラの回転！(注視点中心)
-		if (pKeyboard->GetPress(DIK_E))
+		if (pKeyboard->GetPress(DIK_D))
 		{ // 角度をずらして修正
 			rot.y += DEFAULT_ROTSPD;
 			rot = Vec3::FixedRotation(rot);
 		}
-		else if (pKeyboard->GetPress(DIK_Q))
+		else if (pKeyboard->GetPress(DIK_A))
 		{ // 角度をずらして修正
 			rot.y -= DEFAULT_ROTSPD;
 			rot = Vec3::FixedRotation(rot);
 		}
-
-		// カメラの上下回転！
-		if (pKeyboard->GetPress(DIK_Y))
-		{ // 角度をずらして修正
-			rot.z += DEFAULT_ROTSPD;
-			rot = Vec3::FixedRotation(rot);
-		}
-		else if (pKeyboard->GetPress(DIK_N))
-		{ // 角度をずらして修正
-			rot.z -= DEFAULT_ROTSPD;
-			rot = Vec3::FixedRotation(rot);
+		else if (pJoypad->GetStick(CJoypad::STICK_LEFT, &stick) && Vec3::Length(stick) > STICK_DEADZONE)
+		{
+			rot.y += Vec3::Normalize(stick).x * DEFAULT_ROTSPD;
 		}
 	}
-#endif
 
 	if (m_state == STATE_PLAYER)
 	{ // プレイヤーの位置取得

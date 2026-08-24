@@ -12,6 +12,8 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "main.h"
+#include <vector>
+#include <string>
 
 //**********************************************************************************
 // *** モデルクラス ***
@@ -33,20 +35,24 @@ public:
 	void Update(void);
 	void Draw(void);
 	void SetParent(CModel *pParent) { m_pParent = pParent; }
-	Matrix GetMtxWorld(void) const { return m_mtxWorld; }
+	const CModel *GetParent(void) const { return m_pParent; }
+	const Matrix *GetMtxWorld(void) const { return &m_mtxWorld; }
 	void SetPosition(const Vector3 &position) { m_pos = position; }
-	Vector3 GetPosition(void) const { return m_pos; }
+	const Vector3 *GetPosition(void) const { return &m_pos; }
 	void SetRotation(const Vector3 &rotation) { m_rot = rotation; }
-	Vector3 GetRotation(void) const { return m_rot; }
+	const Vector3 *GetRotation(void) const { return &m_rot; }
 	void SetPositionLocal(const Vector3& position) { m_posLocal = position; }
-	Vector3 GetPositionLocal(void) const { return m_posLocal; }
+	const Vector3 *GetPositionLocal(void) const { return &m_posLocal; }
 	void SetRotationLocal(const Vector3& rotation) { m_rotLocal = rotation; }
-	Vector3 GetRotationLocal(void) const { return m_rotLocal; }
+	const Vector3 *GetRotationLocal(void) const { return &m_rotLocal; }
+	const char *GetFileName(void) const { return m_sFileName.c_str(); }
+	CModel *CreateCopy(void) const;
 
 private:
 	LPD3DXMESH m_pMesh;			// メッシュ(頂点情報)へのポインタ
 	LPD3DXBUFFER m_pBuffMat;	// マテリアルへのポインタ
-	int *m_pIdx;			// テクスチャインデックスの配列
+	std::string m_sFileName;	// ファイル名
+	std::vector<int> m_vIdx;	// テクスチャインデックスの配列
 	DWORD m_dwNumMat;		// マテリアルの数
 	Vector3 m_pos;			// 位置
 	Vector3 m_posLocal;		// オフセット座標

@@ -32,7 +32,7 @@
 template<class T> void SafeRelease(T *&pRelease)
 { // 安全なCOMオブジェクト解放処理
 	if (pRelease != nullptr)
-	{ // nullptr出なければ破棄
+	{ // nullptrでなければ解放
 		pRelease->Release();
 		pRelease = nullptr;
 	}

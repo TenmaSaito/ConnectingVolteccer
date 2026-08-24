@@ -16,6 +16,7 @@
 #include <string>
 #include <string_view>
 #include <format>
+#include <functional>
 
 //**********************************************************************************
 // *** ファイル入出力クラス ***
@@ -33,14 +34,14 @@ public:
 	} FLAG;
 
 	CFileStream() noexcept;
-	CFileStream(const char *pFilename, const bool bBinary);
-	CFileStream(const char *pFilename, const bool bBinary, const FLAG flag);
+	CFileStream(std::string_view sFilename, const bool bBinary);
+	CFileStream(std::string_view sFilename, const bool bBinary, const FLAG flag);
 	CFileStream(const CFileStream &file) = delete;
 	CFileStream(CFileStream &&other) noexcept;
 	~CFileStream();
 
-	bool OpenFile(const char *pFilename, const bool bBinary);
-	bool CreateFile(const char *pFilename, const bool bBinary, const FLAG flag);
+	bool OpenFile(std::string_view sFilename, const bool bBinary);
+	bool CreateFile(std::string_view sFilename, const bool bBinary, const FLAG flag);
 	void CloseFile(void);
 	bool IsOpen(void) const;
 	bool CheckFile(void) const;
@@ -53,7 +54,8 @@ public:
 	template<class T> bool Read(T &data);
 	template<class T> bool Read(T *pData, const int nArray);
 	template<class T> bool Read(T *pData, const size_t size);
-	bool Read(std::string &string);
+	bool ReadByFunc(std::function<void(std::ifstream&)> readFunc);
+	bool ReadString(std::string &string);
 	static bool FindString(const std::string_view source, 
 		const std::string_view s,
 		size_t *pOut = nullptr,
@@ -67,7 +69,8 @@ public:
 	template<class T> bool Write(const T &data);
 	template<class T> bool Write(const T *pData, const int nArray);
 	template<class T> bool Write(const T *pData, const size_t size);
-	bool Write(const std::string &string);
+	bool WriteByFunc(std::function<void(std::ofstream&)> writeFunc);
+	bool WriteString(const std::string_view &string);
 	template<class... Args> static std::string ToString(std::_Fmt_string<Args...> fmt, Args... args);
 
 	CFileStream &operator=(const CFileStream &file) = delete;

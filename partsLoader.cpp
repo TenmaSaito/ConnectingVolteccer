@@ -21,7 +21,7 @@
 // *** プロトタイプ宣言 ***
 //**********************************************************************************
 void LoadCharactor(std::unique_ptr<CFileStream> &rpFile, 
-	std::vector<std::unique_ptr<CModel>> &rvParts,
+	CPartsLoader::BUFFER &rBuffer,
 	const std::vector<std::string> &rsPathParts);
 
 //==================================================================================
@@ -81,29 +81,35 @@ UINT CPartsLoader::Register(const char *pPath)
 }
 
 //==================================================================================
-// --- 読み込んだモーションの生成処理 ---
+// --- 読み込んだパーツの生成処理 ---
 //==================================================================================
 std::vector<std::unique_ptr<CModel>> CPartsLoader::CreateParts(const UINT uIdx) const
 { // 無効なインデックスならnullptrを返す
 	if (uIdx >= m_vBuffer.size() || uIdx == INVALID_PATRS_ID) return std::vector<std::unique_ptr<CModel>>();
 
-	const auto &source = m_vBuffer.at(uIdx).vpParts;	// 保存済みのパーツ配列への参照
-	std::vector<std::unique_ptr<CModel>> ret;		// 各パーツのポインタ
+	auto &buffer = m_vBuffer.at(uIdx);			// 保存済みのバッファへの参照
+	auto &source = buffer.vpParts;				// 保存済みのパーツ配列への参照
+	std::vector<std::unique_ptr<CModel>> ret;	// 各パーツのポインタ
 
 	// サイズを配列のサイズに拡張
 	ret.reserve(source.size());
 
 	for (const auto &pSourceParts : source)
 	{ // 各パーツのコピーを生成
-		std::unique_ptr<CModel> pParts(new CModel);		// パーツのコピーを生成
-		if (pParts != nullptr)
-		{ // 生成できていれば
-			// 保存済みのパーツの情報を代入
-			*pParts = *pSourceParts;
-		}
+		std::unique_ptr<CModel> pParts(pSourceParts->CreateCopy());		// パーツのコピーを生成
 
 		// 配列に追加
-		ret.push_back(std::move(pParts));
+		ret.emplace_back(std::move(pParts));
+	}
+
+	// 各パーツの親パーツを設定
+	for (UINT uCntParts = 0U; uCntParts < ret.size(); uCntParts++)
+	{ // -1の場合スキップ
+		UINT uIdxParent = buffer.vParentIdx.at(uCntParts);		// 親パーツのインデックス
+		if (uIdxParent == -1) continue;
+
+		// 親パーツを設定
+		ret.at(uCntParts)->SetParent(ret.at(uIdxParent).get());
 	}
 
 	// 生成したパーツ配列のコピーを返す
@@ -155,7 +161,7 @@ UINT CPartsLoader::Load(const std::string_view path)
 	}
 
 	// ファイルオープン
-	if (pFile->OpenFile(path.data(), false) == false)
+	if (pFile->OpenFile(path, false) == false)
 	{ // ファイルオープン失敗
 		return INVALID_PATRS_ID;
 	}
@@ -163,7 +169,7 @@ UINT CPartsLoader::Load(const std::string_view path)
 	while (1)
 	{ // SCRIPTの走査ループ
 		// 一行読み込み
-		pFile->Read(line);
+		pFile->ReadString(line);
 		if (line.empty() == true) continue;
 
 		// コメント消去
@@ -188,7 +194,7 @@ UINT CPartsLoader::Load(const std::string_view path)
 	while (1)
 	{ // SCRIPTの走査ループ
 		// 一行読み込み
-		pFile->Read(line);
+		pFile->ReadString(line);
 		if (line.empty() == true) continue;
 
 		// コメント消去
@@ -201,7 +207,7 @@ UINT CPartsLoader::Load(const std::string_view path)
 		}
 		else if (CFileStream::FindString(line, "CHARACTERSET"))
 		{ // キャラクター読み込み開始位置を見つけた場合、読み込み開始
-			LoadCharactor(pFile, buf.vpParts, vPathParts);
+			LoadCharactor(pFile, buf, vPathParts);
 		}
 		else if (pFile->IsEoF() == true || CFileStream::FindString(line, "END_SCRIPT"))
 		{ // ループ終了
@@ -221,7 +227,7 @@ UINT CPartsLoader::Load(const std::string_view path)
 // --- CHARACTOR部分の読み込み処理 ---
 //==================================================================================
 void LoadCharactor(std::unique_ptr<CFileStream> &rpFile, 
-	std::vector<std::unique_ptr<CModel>> &rvParts,
+	CPartsLoader::BUFFER &rBuffer,
 	const std::vector<std::string> &rsPathParts)
 {
 	std::string line;	// 読み取った一行
@@ -235,7 +241,7 @@ void LoadCharactor(std::unique_ptr<CFileStream> &rpFile,
 	while (1)
 	{ // キャラクター読み込み
 		// 一行読み込み
-		rpFile->Read(line);
+		rpFile->ReadString(line);
 		if (line.empty() == true) continue;
 
 		// コメント消去
@@ -250,7 +256,7 @@ void LoadCharactor(std::unique_ptr<CFileStream> &rpFile,
 			while (1)
 			{ // パーツ読み込み
 				// 一行読み込み
-				rpFile->Read(line);
+				rpFile->ReadString(line);
 				if (line.empty() == true) continue;
 
 				// コメント消去
@@ -259,14 +265,12 @@ void LoadCharactor(std::unique_ptr<CFileStream> &rpFile,
 				if (CFileStream::FindString(line, "END_PARTSSET"))
 				{ // 読み込み終了
 					// パーツを生成
-					rvParts.push_back(std::move(std::unique_ptr<CModel>(CModel::Create(rsPathParts[nIdxModel].c_str(),
+					rBuffer.vpParts.emplace_back(std::move(std::unique_ptr<CModel>(CModel::Create(rsPathParts[nIdxModel].c_str(),
 						pos,
 						rot))));
 
-					if (nIdxParent != -1)
-					{ // 生成したモデルに親マトリックスを設定
-						rvParts.at(nCntModel)->SetParent(rvParts[nIdxParent].get());
-					}
+					// 親パーツのインデックスを保存
+					rBuffer.vParentIdx.push_back(nIdxParent);
 
 					// 生成したモデルの総数を増やして終了
 					nCntModel++;

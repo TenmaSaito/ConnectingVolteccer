@@ -159,6 +159,7 @@
     <ClCompile Include="building.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="color.cpp" />
+    <ClCompile Include="combo.cpp" />
     <ClCompile Include="debugproc.cpp" />
     <ClCompile Include="directX.cpp" />
     <ClCompile Include="directXSubDrawer.cpp" />
@@ -196,6 +197,7 @@
     <ClCompile Include="objectLine.cpp" />
     <ClCompile Include="objectX.cpp" />
     <ClCompile Include="objectXQuaternion.cpp" />
+    <ClCompile Include="particle.cpp" />
     <ClCompile Include="partsLoader.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -205,15 +207,18 @@
     <ClCompile Include="player.cpp" />
     <ClCompile Include="playerCamera.cpp" />
     <ClCompile Include="polygon2D.cpp" />
+    <ClCompile Include="powerPlant.cpp" />
     <ClCompile Include="rand.cpp" />
     <ClCompile Include="ray.cpp" />
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="scene.cpp" />
     <ClCompile Include="sceneTransition.cpp" />
     <ClCompile Include="circleTransition.cpp" />
+    <ClCompile Include="stopwatch.cpp" />
     <ClCompile Include="textureRenderer.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="title.cpp" />
+    <ClCompile Include="titlemenu.cpp" />
     <ClCompile Include="util.cpp" />
     <ClCompile Include="windowCapture.cpp" />
     <ClCompile Include="sound.cpp" />
@@ -230,6 +235,7 @@
     <ClInclude Include="building.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="color.h" />
+    <ClInclude Include="combo.h" />
     <ClInclude Include="cpu.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="debugproc.h" />
@@ -247,6 +253,8 @@
     <ClInclude Include="instancingModel.h" />
     <ClInclude Include="objectLine.h" />
     <ClInclude Include="objectXQuaternion.h" />
+    <ClInclude Include="observer_pointer.h" />
+    <ClInclude Include="particle.h" />
     <ClInclude Include="partsLoader.h" />
     <ClInclude Include="planet.h" />
     <ClInclude Include="effect.h" />
@@ -278,16 +286,19 @@
     <ClInclude Include="player.h" />
     <ClInclude Include="playerCamera.h" />
     <ClInclude Include="polygon2D.h" />
+    <ClInclude Include="powerPlant.h" />
     <ClInclude Include="rand.h" />
     <ClInclude Include="ray.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="scene.h" />
     <ClInclude Include="sceneTransition.h" />
     <ClInclude Include="circleTransition.h" />
+    <ClInclude Include="stopwatch.h" />
     <ClInclude Include="textureRenderer.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="title.h" />
     <ClInclude Include="titleCamera.h" />
+    <ClInclude Include="titlemenu.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="windowCapture.h" />
     <ClInclude Include="sound.h" />
@@ -302,6 +313,7 @@
     <ClInclude Include="xfile.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="data\2026-08-11-00-25-32.bin" />
     <None Include="vec2math.inl" />
     <None Include="vec3math.inl" />
   </ItemGroup>

@@ -12,7 +12,7 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "main.h"
-#include <string>
+#include <string_view>
 #include <vector>
 
 //**********************************************************************************
@@ -34,8 +34,10 @@ public:
 
 	void AddUtilityPole(const Vector3 &pos);
 	void AddBulding(const int nType, const Vector3 &pos);
-	void Save(const char *pMapFile);
-	void Load(const char *pMapFile);
+	void AddPowerPlant(const Vector3 &pos);
+	void Save(std::string_view sMapFile);
+	void Load(std::string_view sMapFile);
+	void LoadLatest(void);
 	static CMap *GetInstance(void);
 };
 #endif

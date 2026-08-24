@@ -14,12 +14,12 @@
 #include "main.h"
 #include "scene.h"
 #include <memory>
-#include <concepts>
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define DEFAULT_APPLICATION_FRAMERATE		(120)		// デフォルトのフレームレート
+#define DEFAULT_APPLICATION_UPDATE_PER_SECOND	(60)	// 一秒間にUpdateする回数
+#define DEFAULT_APPLICATION_DRAW_PER_SECOND		(60)	// 一秒間にDrawする回数
 #define ENABLE_PLANET		// 惑星モードの切り替え(定義されているとクォータニオンでの仕様)
 
 //**********************************************************************************
@@ -49,8 +49,6 @@ public:
 	void Draw(void);
 	void SetPause(const bool bPause) { m_bPause = bPause; }
 	bool GetPause(void) { return m_bPause; }
-	void SetFrameRate(const int nFrameRate) { m_nFrameRate = nFrameRate; }
-	int GetFrameRate(void) { return m_nFrameRate; }
 	void SetFPS(const int nFPS) { m_nCountFPS = nFPS; }
 	int GetFPS(void) { return m_nCountFPS; }
 	void SetEnablePause(const bool bEnable) { m_bPause = bEnable; }
@@ -67,11 +65,17 @@ public:
 	HRESULT SetMode(const CScene::MODE modeNext);
 	CScene::MODE GetMode(void) const { return m_pScene->GetMode(); }
 	void SetTransition(const CScene::MODE modeNext);
-	template<class T> requires std::derived_from<T, CScene> T *GetScene(T **ppOut = nullptr) const;
+	template<IsScene T> T *GetScene(T **ppOut = nullptr) const;
 	CScene *GetScene(void) const { return m_pScene.get(); }
 	HWND GetWindowHandle(void) const { return m_hWnd; }
 
 	static CManager *GetInstance(void);
+	static constexpr int SecToFrame(const int nSeconds) { return nSeconds * DEFAULT_APPLICATION_UPDATE_PER_SECOND; }
+	static constexpr float SecToFrame(const float fSeconds) { return fSeconds * static_cast<float>(DEFAULT_APPLICATION_UPDATE_PER_SECOND); }
+	static constexpr int FrameToSec(const int nFrame) { return nFrame / DEFAULT_APPLICATION_UPDATE_PER_SECOND; }
+	static constexpr float FrameToSec(const float fFrame) { return fFrame / static_cast<float>(DEFAULT_APPLICATION_UPDATE_PER_SECOND); }
+	static constexpr float RatioToSec(const float fT) { return FrameToSec(1.0f / fT); }
+	static constexpr float SecToRatio(const float fSec) { return 1.0f / SecToFrame(fSec); }
 
 private:
 	CManager();
@@ -88,7 +92,6 @@ private:
 	std::unique_ptr<CLight> m_pLight;					// ライトオブジェクトへのポインタ
 	std::unique_ptr<CScene> m_pScene;					// シーンへのポインタ
 	std::unique_ptr<CSceneTransition> m_pTransition;	// 遷移演出へのポインタ
-	int m_nFrameRate;					// フレームレート
 	int m_nCountFPS;					// FPSカウント
 	int m_nCounterFrame;				// フレームカウンター
 	int m_nNumPole;						// ポールの数
@@ -98,8 +101,13 @@ private:
 //==================================================================================
 // --- キャスト後シーン取得処理 ---
 //==================================================================================
-template<class T> requires std::derived_from<T, CScene> T *CManager::GetScene(T **ppOut) const
+template<IsScene T> T *CManager::GetScene(T **ppOut) const
 {
+	if (m_pScene->GetMode() != T::GetMyMode())
+	{ // 取得しようとしたモードと現在のモードが異なる場合
+		return nullptr;
+	}
+
 	T *pScene = nullptr;		// キャスト先
 
 	// シーンのポインタをキャスト

@@ -21,7 +21,9 @@
 //**********************************************************************************
 // *** 前方宣言 ***
 //**********************************************************************************
+class CObjectXQuaternion;
 class CUtilityPole;
+class CPowerPlant;
 
 //**********************************************************************************
 // *** オブジェクトXクラス ***
@@ -29,14 +31,14 @@ class CUtilityPole;
 class CElectricalCable : public CObject
 {
 public:
-	static CElectricalCable *Create(const CUtilityPole *pStart, 
-		const CUtilityPole *pEnd);
+	static CElectricalCable *Create(const CObjectXQuaternion *pStart,
+		const CObjectXQuaternion *pEnd);
 
 	CElectricalCable();
 	~CElectricalCable();
 
-	HRESULT Init(const CUtilityPole *pStart, 
-		const CUtilityPole *pEnd);
+	HRESULT Init(const CObjectXQuaternion *pStart,
+		const CObjectXQuaternion *pEnd);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
@@ -45,12 +47,10 @@ public:
 
 private:
 	LPDIRECT3DVERTEXBUFFER9 m_pVtxBuff;		// 頂点バッファへのポインタ
-	int m_nIdxTexture;			// テクスチャインデックス
-	CUtilityPole *m_pStart;		// 電線の始点電柱
-	CUtilityPole *m_pEnd;		// 電線の終点電柱
+	int m_nIdxTexture;		// テクスチャインデックス
 	Vector3 m_pos;			// 位置
 	Vector3 m_vecQua;		// 任意軸
-	float m_fAngle;				// 軸角度
+	float m_fAngle;			// 軸角度
 	Quaternion m_qua;		// クォータニオン
 	Matrix m_mtxWorld;		// ワールドマトリックス
 	const Matrix *m_pMtxParent;		// 親のワールドマトリックス

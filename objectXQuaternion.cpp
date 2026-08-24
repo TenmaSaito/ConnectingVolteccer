@@ -11,6 +11,7 @@
 #include "objectXQuaternion.h"
 #include "manager.h"
 #include "renderer.h"
+#include "game.h"
 #include "texture.h"
 #include "input.h"
 #include "vec3math.h"
@@ -147,16 +148,17 @@ void CObjectXQuaternion::Uninit(void)
 void CObjectXQuaternion::Update(void)
 {
 	auto pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);
-	Vector3 posV = *pPlayerCam->GetPosV();
-	Vector3 posLocalV;
-	Vector3 ray = pPlayerCam->GetRay();
-	Vector3 posLocalRay;
-	Vector3 posWorld = GetWorldPosition();
-	BOOL bResult = FALSE;
-	FLOAT fLength;
-	HRESULT hr;
-	Matrix mtxInv;
+	Vector3 posV = *pPlayerCam->GetPosV();		// 視点
+	Vector3 posLocalV;							// ローカル座標系へ変換した視点
+	Vector3 ray = pPlayerCam->GetRay();			// プレイヤーカメラのレイベクトル
+	Vector3 posLocalRay;						// ローカル座標系へ変換したプレイヤーカメラのレイベクトル
+	Vector3 posWorld = GetWorldPosition();		// 自身の絶対座標
+	BOOL bResult = FALSE;		// 衝突判定結果
+	FLOAT fLength;				// 衝突座標との距離
+	HRESULT hr;					// 処理結果
+	Matrix mtxInv;				// 逆行列
 
+	// 球形から平面へ変形
 	posWorld.y = posV.y;
 
 	if (CRay(posV, *pPlayerCam->GetPosR()).GetLength() >= Vec3::Length(posV, posWorld))
@@ -169,6 +171,7 @@ void CObjectXQuaternion::Update(void)
 		D3DXVec3TransformNormal(&posLocalRay, &ray, &mtxInv);
 		ray = Vec3::Normalize(ray);
 
+		// 変換したレイベクトルとオブジェクトの衝突判定
 		hr = D3DXIntersect(m_pMesh,
 			&posLocalV,
 			&posLocalRay,
@@ -181,7 +184,21 @@ void CObjectXQuaternion::Update(void)
 			nullptr);
 	}
 
+	// 結果
 	m_bHitByPlayerCamRay = (bResult) ? true : false;
+
+	CManager *pManager = CManager::GetInstance();				// マネージャへのポインタ
+	CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();	// キーボードへのポインタ
+	CGame *pGame = nullptr;		// ゲームシーンへのポインタ
+	if (pManager->GetScene(&pGame))
+	{ // ゲームシーンの取得に成功した場合
+		if (pGame->GetEnableEdit() 
+			&& (pKeyboard->GetPress(DIK_LSHIFT) && pKeyboard->GetTrigger(DIK_BACK))
+			&& m_bHitByPlayerCamRay == true)
+		{ // エディットモードが有効且つレイと衝突しているの場合、左シフト+BackSpaceでオブジェクトを削除
+			Uninit();
+		}
+	}
 }
 
 //==================================================================================

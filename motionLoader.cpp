@@ -139,7 +139,7 @@ UINT CMotionLoader::Load(const std::string_view path)
 	}
 
 	// ファイルオープン
-	if (pFile->OpenFile(path.data(), false) == false)
+	if (pFile->OpenFile(path, false) == false)
 	{ // ファイルオープン失敗
 		return INVALID_MOTION_ID;
 	}
@@ -147,7 +147,7 @@ UINT CMotionLoader::Load(const std::string_view path)
 	while (1)
 	{ // SCRIPTの走査ループ
 		// 一行読み込み
-		pFile->Read(line);
+		pFile->ReadString(line);
 		if (line.empty() == true) continue;
 
 		// コメント消去
@@ -163,9 +163,6 @@ UINT CMotionLoader::Load(const std::string_view path)
 		}
 	}
 
-	// 一列消去
-	line.clear();
-
 	// バッファ作成
 	buf.sFilename = path;
 	buf.pMotion = std::make_unique<CMotion>();
@@ -173,7 +170,7 @@ UINT CMotionLoader::Load(const std::string_view path)
 	while (1)
 	{ // SCRIPTの走査ループ
 		// 一行読み込み
-		pFile->Read(line);
+		pFile->ReadString(line);
 		if (line.empty() == true) continue;
 
 		// コメント消去
@@ -210,7 +207,7 @@ void LoadMotion(std::unique_ptr<CFileStream> &pFile, std::unique_ptr<CMotion> &p
 	while (1)
 	{ // モーションの読み込み
 		// 一行読み取る
-		pFile->Read(line);
+		pFile->ReadString(line);
 		if (line.empty() == true) continue;
 
 		// コメント消去
@@ -259,7 +256,7 @@ void LoadKey(std::unique_ptr<CFileStream> &pFile,
 	while (1)
 	{ // 読み込みループ
 		// 一行読み取る
-		pFile->Read(line);
+		pFile->ReadString(line);
 		if (line.empty() == true) continue;
 
 		// コメント消去
@@ -273,11 +270,8 @@ void LoadKey(std::unique_ptr<CFileStream> &pFile,
 		{ // キー情報の設定
 			while (1)
 			{ // 読み込みループ
-				// 文字列初期化
-				line.clear();
-
 				// 一行読み取る
-				pFile->Read(line);
+				pFile->ReadString(line);
 				if (line.empty() == true) continue;
 
 				// コメント消去

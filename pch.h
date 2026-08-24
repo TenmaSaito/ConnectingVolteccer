@@ -13,13 +13,13 @@
 //**********************************************************************************
 #include <Windows.h>						// Windowsシステムに必要
 #include <imm.h>							// IME無効化に必要
+#include <assert.h>							// アサーションに必要
+#include <time.h>							// 時刻取得に必要
 #include "d3dx9.h"							// 描画処理に必要
 #define DIRECTINPUT_VERSION		(0x0800)	// dinputの警告対処マクロ
 #include "dinput.h"							// 入力処理に必要(先に上のマクロを定義する)
 #include "xinput.h"							// ジョイパッド処理に必要
 #include "xaudio2.h"						// サウンド処理に必要
-#include <assert.h>							// アサーションに必要
-#include <time.h>							// 時刻取得に必要
 
 //**********************************************************************************
 // *** ライブラリのリンク ***
@@ -38,19 +38,20 @@
 //**********************************************************************************
 #define SCREEN_WIDTH		(1280)			// ウィンドウの横幅
 #define SCREEN_HEIGHT		(720)			// ウィンドウの縦幅
-#define FVF_VERTEX_2D		(D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1)		// 2D頂点フォーマット
-#define FVF_VERTEX_3D		(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX1)						// 3D頂点フォーマット
-#define FVF_VERTEX_3D_MULTI	(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEX2)		// マルチテクスチャ3D頂点フォーマット
+#define DOUBLE_PI			(D3DX_PI * 2.0f)	// 2π
+#define HALF_PI				(D3DX_PI * 0.5f)	// 1/2π
+#define QUARTER_PI			(D3DX_PI * 0.25f)	// 1/4π
 #define VECTOR2_NULL		Vector2(0.0f, 0.0f)			// Vector2の0クリア
 #define VECTOR2_ONE			Vector2(1.0f, 1.0f)			// Vector2の1クリア
 #define VECTOR3_NULL		Vector3(0.0f, 0.0f, 0.0f)	// Vector3の0クリア
 #define VECTOR3_ONE			Vector3(1.0f, 1.0f, 1.0f)	// Vector3の1クリア
-#define WINDOW_MIDDLE		Vector3(SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f, 0.0f)		// ウィンドウの真ん中
 #define COLOR_NULL			Color(0.0f, 0.0f, 0.0f, 0.0f)	// Colorの0クリア
 #define COLOR_ONE			Color(1.0f, 1.0f, 1.0f, 1.0f)	// Colorの1クリア
-#define DOUBLE_PI			(D3DX_PI * 2.0f)				// 2π
-#define HALF_PI				(D3DX_PI * 0.5f)				// 1/2π
-#define QUARTER_PI			(D3DX_PI * 0.25f)				// 1/4π
+#define WINDOW_SIZE			Vector2(SCREEN_WIDTH, SCREEN_HEIGHT)						// ウィンドウのサイズ
+#define WINDOW_MIDDLE		Vector3(SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f, 0.0f)	// ウィンドウの真ん中
+#define FVF_VERTEX_2D		(D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1)								// 2D頂点フォーマット
+#define FVF_VERTEX_3D		(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX1)					// 3D頂点フォーマット
+#define FVF_VERTEX_3D_MULTI	(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEX2)	// マルチテクスチャ3D頂点フォーマット
 
 //**********************************************************************************
 // *** エイリアス宣言 ***

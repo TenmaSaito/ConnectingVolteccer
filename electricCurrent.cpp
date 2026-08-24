@@ -26,7 +26,7 @@
 //==================================================================================
 // --- 生成処理 ---
 //==================================================================================
-CElectricCurrent *CElectricCurrent::Create(CUtilityPole *pStart, 
+CElectricCurrent *CElectricCurrent::Create(CObjectXQuaternion *pStart,
 	CUtilityPole *pEnd,
 	const float fTotalTime)
 {
@@ -73,7 +73,7 @@ CElectricCurrent::~CElectricCurrent()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CElectricCurrent::Init(CUtilityPole *pStart, 
+HRESULT CElectricCurrent::Init(CObjectXQuaternion *pStart,
 	CUtilityPole *pEnd,
 	const float fTotalTime)
 {
@@ -102,7 +102,6 @@ HRESULT CElectricCurrent::Init(CUtilityPole *pStart,
 	m_pThunder = CThunderEffect::Create(THUNDER_MIN, THUNDER_MAX, &m_mtxWorld);
 
 	// 電流が流れたため電柱のフラグを立てる
-	pStart->SetEnableElectriced(true);
 	pEnd->SetEnableElectriced(true);
 
 	return S_OK;

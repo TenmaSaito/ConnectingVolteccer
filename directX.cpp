@@ -75,22 +75,22 @@ void CDirectX::DirectXProc(HINSTANCE hInstance, HWND hWnd, BOOL bWindowed)
 					dwFrameCount = 0;						// フレームカウントをクリア
 				}
 
-				if ((dwCurrentTime - dwExecLastTimeUpdate) >= static_cast<DWORD>(1000 / UPDATE_FRAMERATE))
+				if ((dwCurrentTime - dwExecLastTimeUpdate) >= static_cast<DWORD>(1000 / DEFAULT_APPLICATION_UPDATE_PER_SECOND))
 				{ // 60分の1秒経過
-					dwExecLastTimeUpdate = dwCurrentTime;			// 処理開始時刻[現在時刻]を保存
+					dwExecLastTimeUpdate = dwCurrentTime;		// 処理開始時刻[現在時刻]を保存
 
 					// マネージャの更新処理
 					pManager->Update();
 				}
 
-				if ((dwCurrentTime - dwExecLastTimeDraw) >= static_cast<DWORD>(1000 / pManager->GetFrameRate()))
+				if ((dwCurrentTime - dwExecLastTimeDraw) >= static_cast<DWORD>(1000 / DEFAULT_APPLICATION_DRAW_PER_SECOND))
 				{ // 1 / フレームレート秒経過
 					dwExecLastTimeDraw = dwCurrentTime;			// 処理開始時刻[現在時刻]を保存
 
 					// マネージャの描画処理
 					pManager->Draw();
 
-					dwFrameCount++;							// フレームカウントを加算
+					dwFrameCount++;								// フレームカウントを加算
 				}
 			}
 		}

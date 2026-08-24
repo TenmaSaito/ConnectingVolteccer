@@ -12,6 +12,7 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "scene.h"
+#include <memory>
 
 //**********************************************************************************
 // *** 前方宣言 ***
@@ -19,6 +20,8 @@
 class CPlayer;
 class CPlanet;
 class CTimer;
+class CCombo;
+class CStopWatch;
 
 //**********************************************************************************
 // *** タイトルクラス ***
@@ -34,17 +37,26 @@ public:
 	void Update(void) override;
 	void Draw(void) override;
 	void SetEnablePause(const bool bEnable) { m_bPause = bEnable; }
-	CPlayer *GetPlayer(void) const { return m_pPlayer; }
-	CPlanet *GetPlanet(void) const { return m_pPlanet; }
+	bool GetEnableEdit(void) { return m_bEdit; }
+	constexpr CPlayer *GetPlayer(void) const { return m_pPlayer; }
+	constexpr CPlanet *GetPlanet(void) const { return m_pPlanet; }
+	constexpr CTimer *GetTimer(void) const { return m_pTimer; }
+	constexpr CCombo *GetCombo(void) const { return m_pCombo; }
+
+	static constexpr MODE GetMyMode(void) { return CScene::MODE_GAME; }
 
 private:
 	void Start(void);
+	void UpdateEdit(void);
+	void MapEdit(void);
 
+	std::unique_ptr<CStopWatch> m_pStopWatch;		// ストップウォッチへのポインタ
 	CPlayer *m_pPlayer;		// プレイヤーへのポインタ
 	CPlanet *m_pPlanet;		// 惑星へのポインタ
 	CTimer *m_pTimer;		// タイマーへのポインタ
+	CCombo *m_pCombo;		// コンボ表示へのポインタ
+	bool m_bEdit;			// エディットモードフラグ
 	bool m_bPause;			// ポーズ状態
 	int m_nCounterFrame;	// フレームカウント
 };
-
 #endif

@@ -19,6 +19,7 @@
 #include "matrix.h"
 #include "effect.h"
 #include "planet.h"
+#include "powerPlant.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -26,10 +27,10 @@
 #define CABLE_HEIGHT		(10.0f)		// ケーブルの太さ
 
 //==================================================================================
-// --- 生成処理 ---
+// --- 生成処理 (CObjectXQuaternion -> CObjectXQuaternion) ---
 //==================================================================================
-CElectricalCable *CElectricalCable::Create(const CUtilityPole *pStart,
-	const CUtilityPole *pEnd)
+CElectricalCable *CElectricalCable::Create(const CObjectXQuaternion *pStart,
+	const CObjectXQuaternion *pEnd)
 {
 	CElectricalCable *pCable = NULL;		// 生成したオブジェクトへのポインタ
 
@@ -53,8 +54,6 @@ CElectricalCable::CElectricalCable()
 { // メンバ変数をクリア
 	m_pVtxBuff = nullptr;
 	m_nIdxTexture = -1;
-	m_pStart = nullptr;
-	m_pEnd = nullptr;
 	m_pMtxParent = nullptr;
 	m_pos = VECTOR3_NULL;
 #ifndef ENABLE_QUATERNION
@@ -79,8 +78,8 @@ CElectricalCable::~CElectricalCable()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CElectricalCable::Init(const CUtilityPole *pStart, 
-	const CUtilityPole *pEnd)
+HRESULT CElectricalCable::Init(const CObjectXQuaternion *pStart,
+	const CObjectXQuaternion *pEnd)
 {
 	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pManager->GetRenderer()->GetDevice();		// デバイスへのポインタ

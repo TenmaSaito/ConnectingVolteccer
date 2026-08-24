@@ -33,6 +33,8 @@ public:
 	void Draw(void) override;
 	CObject2D *GetLogo(void) const { return m_pLogo; }
 
+	static constexpr MODE GetMyMode(void) { return CScene::MODE_GAMEOVER; }
+
 private:
 	void Start(void);
 

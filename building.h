@@ -18,6 +18,9 @@
 //**********************************************************************************
 class CUtilityPole;
 
+// 各モデルには、電気のついていない窓とついている窓のポリゴンがそれぞれ別のマテリアルで設定されている
+// その為、基本は一番最後のマテリアルは描画せず、電気がついた場合のみ描画するようにすること
+
 //**********************************************************************************
 // *** 建造物クラス ***
 //**********************************************************************************
@@ -35,12 +38,12 @@ public:
 	} TYPE;
 
 	static CBuilding *Create(const TYPE type,
-		const Vector3 &position = VECTOR3_NULL,
-		const Vector3 &vecQua = VECTOR3_NULL,
-		const float fAngle = 0.0f);
+		const Vector3 &position,
+		const Vector3 &vecQua,
+		const float fAngle);
 
 	static CBuilding *Create(const TYPE type,
-		const Vector3 &position = VECTOR3_NULL);
+		const Vector3 &position);
 
 	CBuilding(const TYPE type, const int nPriority = DEFAULT_OBJ_PRIORITY);
 	~CBuilding();
@@ -58,8 +61,8 @@ private:
 	void FindUtilityPole(void);
 
 	const CUtilityPole *m_pNearPole;		// 最も近い電柱
-	bool m_bHitByPlayerCamRay;				// プレイヤーカメラとのレイ判定
-	bool m_bFind;				// 検索
+	bool m_bFound;				// 最も近い電柱の検索済みフラグ
+	bool m_bLighting;			// 電流が流れたか
 	float m_fLerp;				// 線形補間用変数
 	float m_fValue;				// 補間時の変化量
 	TYPE m_buildingType;		// 建物の種類

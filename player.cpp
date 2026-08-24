@@ -9,7 +9,6 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "player.h"
-#include "model.h"
 #include "manager.h"
 #include "renderer.h"
 #include "game.h"
@@ -19,30 +18,28 @@
 #include "debugproc.h"
 #include "meshField.h"
 #include "matrix.h"
-#include "filestream.h"
 #include "motion.h"
 #include "motionLoader.h"
+#include "model.h"
 #include "partsLoader.h"
 #include "utilityPole.h"
-#include "map.h"
+#include "powerPlant.h"
 #include "building.h"
 #include "planet.h"
 #include "ray.h"
 #include "util.h"
 #include "lasso.h"
+#include "combo.h"
 #include "vec2math.h"
 #include "vec3math.h"
-#include <string>
-#include <vector>
+#include "observer_pointer.h"
 #include <algorithm>
-#include <regex>
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define PLAYER_SPD			(1.75f)		// モデルの移動スピード
+#define PLAYER_SPD			(2.5f)		// モデルの移動スピード
 #define PLAYER_ROTSPD		(0.1f)		// モデルの回転スピード
-#define STICK_DEADZONE		(0.05f)		// 動いたと感知するデッドゾーン
 #define RESIST_POW			(0.25f)		// 摩擦
 #define RIDE_LENGTH			(120.0f)	// 電柱に乗れる距離
 #define POLE_MOVE_SPEED		(0.01f)		// 電柱を乗り移る際の角度
@@ -58,47 +55,10 @@
 CPlayer *CPlayer::Create(const char *pXFileName, const Vector3 &pos, const Vector3 &rot)
 {
 	CPlayer *pPlayer = new CPlayer;		// 生成したオブジェクトへのポインタ
-	NULLPOINTER_ASSERT(pPlayer);
-
 	if (pPlayer != nullptr)
 	{ // 初期化処理
 		pPlayer->Init(pXFileName, pos, rot);
 	}
-
-#pragma region std::regex test
-	size_t strPos;
-	constexpr const char *pStr = "POS = 1.00 1.00 2.00";
-	if (CFileStream::FindString(pStr, "POS =", &strPos, true))
-	{
-		Vector3 pos = CFileStream::ToVector3(&pStr[strPos], nullptr);
-		pos.x = 10.0f;
-	}
-
-#if 0
-	char aStra[] = "POS = 1 1 2";
-	char *pEnd;
-	long l = std::strtol(aStra, &pEnd, 0);
-
-	constexpr const char *floatRegex = R"([-+]?[0-9]*\.?[0-9]+)";
-	char aStr[] = "ROT = 1.0, 3.14, 1.00";
-	std::regex rotRegex(floatRegex);
-	std::cregex_iterator regIter(std::cbegin(aStr), std::cend(aStr), rotRegex);
-	std::cregex_iterator end;
-	std::cmatch result;
-	Vector3 rotReg;
-	int n = 0;
-
-	while (regIter != end)
-	{
-		auto &&result = *regIter;
-		float fValue = static_cast<float>(std::atof(result.str().c_str()));
-
-		Vec3::AssignAxis(rotReg, static_cast<Vec3::Axis>(n), fValue);
-		n++;
-		regIter++;
-	}
-#endif
-#pragma endregion
 
 	return pPlayer;
 }
@@ -116,7 +76,6 @@ CPlayer::CPlayer(const int nPriority) : CObject(nPriority)
 	m_vecQua = VECTOR3_NULL;
 	m_pMotion = nullptr;
 	m_pThunderEffect = nullptr;
-	m_pRidingPole = nullptr;
 	m_pPoleNext = nullptr;
 	m_bShotLasso = false;
 	m_fAngleRest = 0.0f;
@@ -142,18 +101,17 @@ HRESULT CPlayer::Init(const char *pFileName, const Vector3 &pos, const Vector3 &
 	m_rot = rot;
 
 	// モーションを生成
-	CMotionLoader *pLoader = CMotionLoader::GetInstance();
-	m_pMotion = pLoader->CreateMotion(pLoader->Register(pFileName));
+	CMotionLoader *pMotionLoader = CMotionLoader::GetInstance();
+	m_pMotion = pMotionLoader->CreateMotion(pMotionLoader->Register(pFileName));
 	NULLPOINTER_ASSERT(m_pMotion);
 
 	if (m_pMotion == nullptr) return E_FAIL;		// 生成失敗
 
-	CPartsLoader::GetInstance()->Register(pFileName);
-
-	// ファイル読み込み
-	LoadFile(pFileName);
+	CPartsLoader *pPartsLoader = CPartsLoader::GetInstance();
+	m_vpModel = pPartsLoader->CreateParts(pPartsLoader->Register(pFileName));
 
 	// モーションの設定
+	m_pMotion->SetModel(m_vpModel, m_vpModel.size());
 	m_pMotion->Set(0);
 
 	// プレイヤー用カメラの生成
@@ -242,7 +200,7 @@ void CPlayer::Draw(void)
 	D3DXMatrixIdentity(&m_mtxWorld);
 
 	// ワールドマトリックスの設定
-	const Matrix *pMtxParent = (m_pRidingPole == nullptr) ? nullptr : m_pRidingPole->GetMatrix();
+	const Matrix *pMtxParent = (GetRidingObjectX() == nullptr) ? nullptr : GetRidingObjectX()->GetMatrix();
 	Mtx::CalcWorld(&m_mtxWorld, pMtxParent, m_pos, m_rot);
 
 	//  ワールドマトリックスの設定
@@ -266,8 +224,8 @@ void CPlayer::ChangeRidingPole(CUtilityPole *pNext)
 	// 内積の角度分、次の電柱への角度へ回転させる
 	Vector3 planetToRiding = VECTOR3_NULL;		// 惑星からプレイヤーの乗っている電柱へのベクトル
 	Vector3 planetToNext = VECTOR3_NULL;		// 惑星から次に乗る予定の電柱へのベクトル
-	Vector3 ridingWorldPos = m_pRidingPole->GetWorldPosition();		// 乗っている電柱の絶対座標
-	Vector3 nextWorldPos = pNext->GetWorldPosition();				// 次に乗る予定の電柱の絶対座標
+	Vector3 ridingWorldPos = GetRidingObjectX()->GetWorldPosition();	// 乗っているオブジェクトの絶対座標
+	Vector3 nextWorldPos = pNext->GetWorldPosition();					// 次に乗る予定の電柱の絶対座標
 
 	// ベクトルを求める
 	planetToRiding = Vec3::Direction(ridingWorldPos, *pPlanet->GetPosition());
@@ -302,6 +260,10 @@ void CPlayer::ChangeRidingPole(CUtilityPole *pNext)
 	DismountPole();
 
 	m_pPoleNext = pNext;			// 次の電柱を保存
+
+	// コンボ追加
+	own::ObserverPtr pCombo(pGame->GetCombo());		// コンボ表示へのポインタ
+	pCombo->AddCombo(1);
 }
 
 //==================================================================================
@@ -314,9 +276,6 @@ void CPlayer::InputAction(void)
 
 	// 電柱関連の入力
 	InputPole();
-
-	// マップエディタ関連の入力
-	InputMap();
 }
 
 //==================================================================================
@@ -331,9 +290,14 @@ void CPlayer::InputMoving(void)
 	const Vector3 *pCameraRot = pPlayerCam->GetRotate();		// カメラの角度
 	Vector3 move = m_move;						// 代入予定の移動量
 	Vector3 stick = VECTOR3_NULL;				// ジョイパッドのスティック入力
-	MOTIONTYPE type = MOTIONTYPE_NEUTRAL;			// モーションタイプ
-	int nFrameBleand = 0;							// ブレンド時間
+	MOTIONTYPE type = MOTIONTYPE_NEUTRAL;		// モーションタイプ
+	int nFrameBleand = 0;						// ブレンド時間
 	bool bMove = true;			// 動いたか
+
+	if (m_bShotLasso == true)
+	{ // 投げ縄を投げている最中もしくは電線を移動している最中なら、移動処理はスキップ
+		return;
+	}
 
 	if (pKeyboard->GetPress(DIK_W))
 	{ // Wを押したとき
@@ -472,7 +436,7 @@ void CPlayer::InputMoving(void)
 		bMove = false;			// 操作されていないためfalse
 	}
 
-	if (m_pRidingPole == nullptr)
+	if (GetRidingObjectX() == nullptr)
 	{ // 親が存在しない場合、移動 + モーションを遷移
 		m_move = move;
 
@@ -506,45 +470,48 @@ void CPlayer::InputPole(void)
 	CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera*>(CCamera::GetCamera(CCamera::TYPE_PLAYER));
 
 	// プレイヤーの行動
-	if ((pKeyboard->GetTrigger(DIK_BACK) || pJoypad->GetTrigger(CJoypad::KEY_A)) && !m_bShotLasso)
+	if ((pKeyboard->GetTrigger(DIK_SPACE) || pJoypad->GetTrigger(CJoypad::KEY_A)) && !m_bShotLasso)
 	{ // 押された場合
-		if (m_pRidingPole == nullptr)
+		if (GetRidingObjectX() == nullptr)
 		{ // 電柱に載っていない場合
-			CObject *pObject = CObject::GetTop(UTILITYPOLE_PRIORITY);		// 最初のオブジェクト
-			float fLengthMin = RIDE_LENGTH;			// 現状最も近い電柱との距離
-			CUtilityPole *pPoleNear = nullptr;		// 最も近い電柱へのポインタ
+			CObject *pObject = CObject::GetTop(POWERPLANT_PRIORITY);		// 最初のオブジェクト
+			float fLengthMin = RIDE_LENGTH;			// 現状最も近い発電所との距離
+			CPowerPlant *pPlantNear = nullptr;		// 最も近い発電所へのポインタ
 
 			while (pObject != nullptr)
 			{ // オブジェクトを走査
 				CObject *pObjectNext = pObject->GetNext();			// 次のオブジェクトへのポインタ
 
-				if (pObject->GetType() == CObject::TYPE_POLE)
+				if (pObject->GetType() == CObject::TYPE_POWERPLANT)
 				{ // もしオブジェクトが電柱であれば、ポインタをキャスト
-					CUtilityPole *pPole = static_cast<CUtilityPole *>(pObject);
+					CPowerPlant *pPlant = static_cast<CPowerPlant*>(pObject);
 
 					Vector3 posPole;			// マトリックスのキャスト用
 					Vector3 pos = m_pos;		// マトリックスのキャスト用
 
 					// 各座標をマトリックスでワールド座標に変換
 					D3DXVec3TransformCoord(&pos, &pos, &m_mtxWorld);
-					D3DXVec3TransformCoord(&posPole, pPole->GetPosition(), pPole->GetMatrix());
+					D3DXVec3TransformCoord(&posPole, pPlant->GetPosition(), pPlant->GetMatrix());
 
 					// 距離を計算
 					float fLength = Vec3::Length(posPole, pos);
 					if (fLength < fLengthMin)
 					{ // もし前回の距離よりも近いなら、ポインタ保存 + 距離更新
 						fLengthMin = fLength;
-						m_pRidingPole = pPole;
+						pPlantNear = pPlant;
 					}
 				}
 
 				pObject = pObjectNext;		// ポインタ更新
 			}
 
-			if (m_pRidingPole != nullptr)
-			{ // もし乗れるポールが存在した場合
+			if (pPlantNear != nullptr)
+			{ // もし乗れる発電所が存在した場合
+				// ポインタを保存
+				m_pRidingObject = pPlantNear;
+
 				// オフセットを電柱に設定し、マトリックスを設定
-				m_pos.y = m_pRidingPole->GetVtxMax()->y;
+				m_pos.y = pPlantNear->GetVtxMax()->y;
 
 				// カメラを電柱上フォーカスに変更
 				pPlayerCam->SetState(CPlayerCamera::STATE_RIDING);
@@ -561,6 +528,10 @@ void CPlayer::InputPole(void)
 			// 電柱から降りる処理を実行
 			DismountPole();
 
+			// コンボリセット
+			CCombo *pCombo(pManager->GetScene<CGame>()->GetCombo());		// コンボ表示へのポインタ
+			pCombo->ResetCombo();
+
 			// カメラをプレイヤーフォーカスに変更
 			pPlayerCam->SetState(CPlayerCamera::STATE_PLAYER);
 
@@ -571,7 +542,7 @@ void CPlayer::InputPole(void)
 
 	if ((pKeyboard->GetTrigger(DIK_RETURN)
 		|| pJoypad->GetTrigger(CJoypad::KEY_B)) 
-		&& m_pRidingPole != nullptr
+		&& GetRidingObjectX() != nullptr
 		&& m_bShotLasso == false)
 	{ // 投げ縄を飛ばす
 		CObject *pObject = CObject::GetTop(UTILITYPOLE_PRIORITY);		// 最初のオブジェクト
@@ -583,11 +554,19 @@ void CPlayer::InputPole(void)
 
 			if (pObject->GetType() == CObject::TYPE_POLE)
 			{ // もしオブジェクトが電柱であれば、ポインタをキャスト
-				CUtilityPole *pPole = static_cast<CUtilityPole *>(pObject);
+				CUtilityPole *pPole = static_cast<CUtilityPole*>(pObject);
 
-				if (pPole->IsSelected() == true && pPole != m_pRidingPole)
-				{ // もし前回の距離よりも近いなら、ポインタ保存 + 距離更新
-					pPoleSelected = pPole;
+				if (pPole->IsSelected() == true)
+				{ // もし前回の距離よりも近い場合
+					if (m_pRidingObject.index() == 0)
+					{ // 発電所に載っている場合、ポインタを保存
+						pPoleSelected = pPole;
+					}
+					else if(m_pRidingObject.index() == 1)
+					{ // 電柱に載っている場合、自身の乗っている電柱でなければポインタを保存
+						if(std::get<CUtilityPole*>(m_pRidingObject) != pPole) pPoleSelected = pPole;
+					}
+
 					break;
 				}
 			}
@@ -601,9 +580,10 @@ void CPlayer::InputPole(void)
 		// 選ばれた電柱が存在すれば
 		if (pPoleSelected)
 		{ // 投げ縄生成
-			CLasso *pLasso = CLasso::Create(Vector3(0.0f, m_offset.y + m_pRidingPole->GetVtxMax()->y, 0.0f),
-				m_pRidingPole, 
-				pPoleSelected);
+			Vector3 pos = Vector3(0.0f, m_offset.y + GetRidingObjectX()->GetVtxMax()->y, 0.0f);		// 発生位置
+			
+			// 投げ縄生成
+			CLasso *pLasso = std::visit([&](auto &x) { return CLasso::Create(pos, x, pPoleSelected); }, m_pRidingObject);
 			pLasso->SetParent(pPlanet->GetMatrix());
 
 			// カメラの角度に合わせて、モデルの目標角度を求める！
@@ -612,38 +592,6 @@ void CPlayer::InputPole(void)
 			// 投げ縄を投げた為フラグを立てる
 			m_bShotLasso = true;
 		}
-	}
-}
-
-//==================================================================================
-// --- マップ関連の入力処理 ---
-//==================================================================================
-void CPlayer::InputMap(void)
-{
-	CManager *pManager = CManager::GetInstance();					// マネージャーへのポインタ
-	CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();		// キーボードへのポインタ
-	CMap *pMap = CMap::GetInstance();						// マップへのポインタ
-	Vector3 pos = Vector3(0.0f, m_pos.y, 0.0f);		// 設置位置
-
-	if (pKeyboard->GetTrigger(DIK_1))
-	{ // 建物0生成
-		pMap->AddBulding(CBuilding::TYPE_0, pos);
-	}
-	else if (pKeyboard->GetTrigger(DIK_2))
-	{ // 建物1生成
-		pMap->AddBulding(CBuilding::TYPE_1, pos);
-	}
-	else if (pKeyboard->GetTrigger(DIK_3))
-	{ // 建物2生成
-		pMap->AddBulding(CBuilding::TYPE_2, pos);
-	}
-	else if (pKeyboard->GetTrigger(DIK_4))
-	{ // 建物3生成
-		pMap->AddBulding(CBuilding::TYPE_3, pos);
-	}
-	else if (pKeyboard->GetTrigger(DIK_5))
-	{ // 電柱生成
-		pMap->AddUtilityPole(pos);
 	}
 }
 
@@ -693,12 +641,18 @@ void CPlayer::UpdateRotateDest(void)
 //==================================================================================
 void CPlayer::UpdatePole(void)
 {
-	if (m_pPoleNext != nullptr)
+	CManager *pManager = CManager::GetInstance();			// マネージャへのポインタ
+	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
+	CGame *pGame = pManager->GetScene(&pGame);			// ゲームシーンへのポインタ
+
+	if (m_pPoleNext != nullptr && pGame != nullptr)
 	{ // 次に移動するべき電柱がある場合
-		CGame *pGame = CManager::GetInstance()->GetScene(&pGame);		// シーンへのポインタ
 		CPlanet *pPlanet = pGame->GetPlanet();		// 惑星へのポインタ
 		Quaternion quaMultiply;				// 乗算するクォータニオン
 		float fVolume = POLE_MOVE_SPEED;	// 回転する角度
+
+		// フィードバックエフェクトを有効化
+		pRenderer->SetEnableFeedBack(true);
 
 		// 残りの角度をオーバーしないか確認
 		if (m_fAngleRest - fVolume < 0.0f)
@@ -721,10 +675,10 @@ void CPlayer::UpdatePole(void)
 		if (m_fAngleRest <= 0.0f)
 		{ // その電柱に乗り移る
 			CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera*>(CCamera::GetCamera(CCamera::TYPE_PLAYER));
-			m_pRidingPole = m_pPoleNext;
+			m_pRidingObject = m_pPoleNext;
 
 			// オフセットを電柱に設定し、マトリックスを設定
-			m_pos.y = m_pRidingPole->GetVtxMax()->y;
+			m_pos.y = GetRidingObjectX()->GetVtxMax()->y;
 
 			// 投げ縄を投げたフラグを下し、乗り移る電柱へのポインタも破棄
 			m_bShotLasso = false;
@@ -733,16 +687,47 @@ void CPlayer::UpdatePole(void)
 
 		m_fAngleRest -= fVolume;
 	}
+	else
+	{ // フィードバックエフェクトを無効化
+		pRenderer->SetEnableFeedBack(false);
+	}
 
-	if (m_pRidingPole != nullptr)
-	{ // 電柱に乗っている場合
-		CCamera *pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);		// プレイヤーカメラへのポインタ
+	if (GetRidingObjectX() != nullptr)
+	{ // オブジェクトに乗っている場合
+		CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera*>(CCamera::GetCamera(CCamera::TYPE_PLAYER));		// プレイヤーカメラへのポインタ
 		CObject *pObject = CObject::GetTop(UTILITYPOLE_PRIORITY);		// 最初のオブジェクト
 		Vector3 vecCam = VECTOR3_NULL;				// カメラの方向ベクトル
 		Vector3 vecPlayerToPole = VECTOR3_NULL;		// プレイヤーから電柱への方向ベクトル
 		float fLengthMin = RIDE_LENGTH;			// 現状最も近い電柱との距離
 		CUtilityPole *pPoleNear = nullptr;		// 最も画面の中心に近い電柱へのポインタ
 		float fDotMax = 0.0f;					// 内積の最小値
+
+		// ゲームシーンの取得
+		if (pGame != nullptr)
+		{ // 取得成功時
+			CCombo *pCombo = pGame->GetCombo();		// コンボ表示へのポインタ
+			if (pCombo->GetDisp() == false
+				&& m_pRidingObject.index() == CUTILITYPOLE_PTR
+				&& m_bShotLasso == false)
+			{ // コンボ表示が消えた且つ投げ縄を投げていないなら、電柱から強制的におろす
+				// オフセットを元に戻す
+				m_pos.y = m_offset.y;
+
+				// 電柱から降りる処理を実行
+				DismountPole();
+
+				// コンボリセット
+				CCombo *pCombo(pManager->GetScene<CGame>()->GetCombo());		// コンボ表示へのポインタ
+				pCombo->ResetCombo();
+
+				// カメラをプレイヤーフォーカスに変更
+				pPlayerCam->SetState(CPlayerCamera::STATE_PLAYER);
+
+				// モーションを終了
+				m_pMotion->Set(MOTIONTYPE_NEUTRAL, 10);
+				return;
+			}
+		}
 
 		// カメラの方向ベクトルを求める
 		vecCam = pPlayerCam->GetRay();
@@ -765,7 +750,7 @@ void CPlayer::UpdatePole(void)
 				// ポールの選択フラグをおろす
 				pPole->SetEnableSelect(false);
 
-				if (m_pRidingPole != pPole && pPole->GetIconType() == CUtilityPole::ICON_CAN)
+				if (GetRidingObjectX() != pPole && pPole->GetIconType() == CUtilityPole::ICON_CAN)
 				{ // プレイヤーの乗っている電柱ではなく、選択可能なら計算開始
 					// 各座標をマトリックスでワールド座標に変換
 					posPole.y = pPole->GetVtxMax()->y;
@@ -817,7 +802,7 @@ void CPlayer::DismountPole(void)
 	Vector3 planetToPlayer = VECTOR3_NULL;		// 惑星からプレイヤーへのベクトル
 	Vector3 planetToRiding = VECTOR3_NULL;		// 惑星からプレイヤーの乗っていた電柱へのベクトル
 	Vector3 playerWorldPos = m_pos;				// 降りた後の自身の絶対座標(プレイヤーのXZ座標は動かない為posを代入)
-	Vector3 ridingWorldPos = m_pRidingPole->GetWorldPosition();		// 乗っていた電柱の絶対座標
+	Vector3 ridingWorldPos = GetRidingObjectX()->GetWorldPosition();		// 乗っていた電柱の絶対座標
 	Vector3 vecQua;			// 任意軸
 	Quaternion quaMultiply;	// 乗算するクォータニオン
 
@@ -855,7 +840,7 @@ void CPlayer::DismountPole(void)
 	pPlanet->MultiplyQuaternion(quaMultiply);
 
 	// 電柱をnullに変更
-	m_pRidingPole = nullptr;
+	m_pRidingObject = static_cast<CUtilityPole*>(nullptr);
 }
 
 //==================================================================================
@@ -883,345 +868,9 @@ void CPlayer::OtherUpdate(void)
 }
 
 //==================================================================================
-// --- ファイルの読み込み処理 ---
+// --- variantの持つポインタの親クラスのポインタへの変換処理 ---
 //==================================================================================
-HRESULT CPlayer::LoadFile(const char *pFilename)
-{ // TODO : この処理はモーションクラス側に持たせるべき
-	CFileStream *pFile = nullptr;		// ファイルの入出力クラス
-	bool bResult = true;				// 処理結果
-	std::string line;					// 読み取った一行
-	char aStr[MAX_PATH] = {};			// パース用文字列
-	int nNumModel = 0;					// 読み込むモデルパス数
-	int nCntModel = 0;					// 読み込んだモデルパス数
-
-	// ファイル入出力オブジェクト作成
-	pFile = new CFileStream;
-	if (pFile == nullptr) return E_FAIL;
-
-	// ファイルを開く
-	if (pFile->OpenFile(pFilename, false) != true)
-	{ // ファイルオープンに失敗
-		return E_FAIL;
-	}
-
-	while (1)
-	{ // SCRIPTの走査ループ
-		// 一行読み取る
-		pFile->Read(line);
-
-		// その行をコピーして、コメントを消去
-		strcpy(aStr, line.c_str());
-		if (DeleteComment(aStr))
-		{ // 読み取れる場合
-			if (CFileStream::FindString(aStr, "SCRIPT"))
-			{ // 見つかった場合、読み込み開始
-				break;
-			}
-			else if (pFile->IsEoF() == true)
-			{ // 見つからず終端に着いた場合、読み込み失敗
-				return E_FAIL;
-			}
-		}
-	}
-
-	while (1)
-	{ // 読み込みループ
-		// 一行読み取る
-		pFile->Read(line);
-
-		// その行をコピーして、コメントを消去
-		strcpy(aStr, line.c_str());
-		if (DeleteComment(aStr))
-		{ // 読み取れる場合
-			if (strcmp(aStr, "END_SCRIPT") == 0)
-			{ // モーションにモデルへのポインタと総数を設定
-				m_pMotion->SetModel(m_vpModel, m_nNumModel);
-				break;
-			}
-			else if (strcmp(aStr, "CHARACTERSET") == 0)
-			{ // キャラクターデータ読み込み
-				LoadCharactorData(pFile);
-			}
-			else if (strstr(aStr, "NUM_MODEL") != nullptr)
-			{ // モデルパス数読み込み
-				LoadData(aStr, "%d", &nNumModel);
-			}
-			else if (strstr(aStr, "MODEL_FILENAME") != nullptr)
-			{ // モデルパス読み込み
-				if (nCntModel <= nNumModel)
-				{ // パス数分を超えていなければ読み込み
-					LoadData(aStr, "%s", &m_aModelPath[nCntModel][0]);
-					nCntModel++;
-				}
-			}
-			else if (strcmp(aStr, "MOTIONSET") == 0)
-			{ // モーション情報の読み込み
-				//LoadMotionData(pFile);
-			}
-		}
-	}
-
-	// ファイル入出力オブジェクトを破棄
-	pFile->CloseFile();
-	delete pFile;
-	pFile = nullptr;
-
-	return S_OK;
-}
-
-//==================================================================================
-// --- キャラクターデータの読み込み処理 ---
-//==================================================================================
-void CPlayer::LoadCharactorData(CFileStream *pFile)
+CObjectXQuaternion *CPlayer::GetRidingObjectX(void)
 {
-	std::string line;					// 読み取った一行
-	char aStr[MAX_PATH] = {};			// パース用文字列
-	int nCntModel = 0;					// 生成したモデル数
-
-	while (1)
-	{ // 読み込みループ
-		// 一行読み取る
-		pFile->Read(line);
-
-		// その行をコピーして、コメントを消去
-		strcpy(aStr, line.c_str());
-		if (DeleteComment(aStr))
-		{ // 読み取れる場合
-			if (strcmp(aStr, "END_CHARACTERSET") == 0)
-			{ // 読み込み終了
-				break;
-			}
-			else if (strcmp(aStr, "PARTSSET") == 0)
-			{ // パーツデータの読み込み
-				LoadPartsData(pFile, nCntModel);
-				nCntModel++;		// モデル数増加
-			}
-			else if(strstr(aStr, "NUM_PARTS") != nullptr)
-			{ // パーツ数の読み込み
-				LoadData(aStr, "%d", &m_nNumModel);
-			}
-		}
-	}
-}
-
-//==================================================================================
-// --- パーツデータの読み込み処理 ---
-//==================================================================================
-void CPlayer::LoadPartsData(CFileStream *pFile, const int nCntModel)
-{
-	std::string line;					// 読み取った一行
-	char aStr[MAX_PATH] = {};			// パース用文字列
-	int nIdxParent = -1;				// 親モデルのインデックス
-	int nIdxModel = -1;					// モデルのインデックス
-	Vector3 pos = VECTOR3_NULL;		// オフセット位置
-	Vector3 rot = VECTOR3_NULL;		// 角度
-
-	while (1)
-	{ // 読み込みループ
-		// 一行読み取る
-		pFile->Read(line);
-
-		// その行をコピーして、コメントを消去
-		strcpy(aStr, line.c_str());
-		if (DeleteComment(aStr))
-		{ // 読み取れる場合
-			if (strcmp(aStr, "END_PARTSSET") == 0)
-			{ // 読み込み終了 + モデルの作成
-				if (nIdxModel >= 0 && nIdxModel < MAX_PLAYER_MODEL_PATH)
-				{ // インデックスが範囲内の場合作成
-					m_vpModel.push_back(std::unique_ptr<CModel>(CModel::Create(&m_aModelPath[nIdxModel][0],
-						pos,
-						rot)));
-
-					if (nIdxParent != -1)
-					{ // 生成したモデルに親マトリックスを設定
-						m_vpModel[nCntModel]->SetParent(m_vpModel[nIdxParent].get());
-					}
-				}
-
-				break;
-			}
-			else if (strstr(aStr, "INDEX") != nullptr)
-			{ // モデルのインデックス読み込み
-				LoadData(aStr, "%d", &nIdxModel);
-			}
-			else if (strstr(aStr, "PARENT") != nullptr)
-			{ // 親モデルのインデックス読み込み
-				LoadData(aStr, "%d", &nIdxParent);
-			}
-			else if (strstr(aStr, "POS") != nullptr)
-			{ // オフセット座標読み込み
-				LoadData(aStr, "%f %f %f", &pos.x, &pos.y, &pos.z);
-			}
-			else if (strstr(aStr, "ROT") != nullptr)
-			{ // 角度読み込み
-				LoadData(aStr, "%f %f %f", &rot.x, &rot.y, &rot.z);
-			}
-		}
-	}
-}
-
-//==================================================================================
-// --- モーション情報の読み込み処理 ---
-//==================================================================================
-void CPlayer::LoadMotionData(CFileStream* pFile)
-{
-	std::string line;					// 読み取った一行
-	char aStr[MAX_PATH] = {};			// パース用文字列
-	CMotion::INFO info = {};			// モーション情報
-	int nKeyInfo = 0;		// 現在設定しているキー情報の番号
-	int nKey = 0;			// 現在設定しているキー要素の番号
-	int nLoop = 0;			// 読み込んだループの有無
-
-	while (1)
-	{ // モーションの読み込み
-		// 文字列初期化
-		line.clear();
-
-		// 一行読み取る
-		pFile->Read(line);
-
-		// その行をコピーして、コメントを消去
-		strcpy(aStr, line.c_str());
-
-		// 読み取れないならスキップ
-		if (!DeleteComment(aStr)) continue;
-
-		if (strcmp(aStr, "END_MOTIONSET") == 0)
-		{ // モーション情報の読み込み終了
-			// モーション情報の設定及び番号の初期化
-			m_pMotion->SetInfo(info);
-			nKeyInfo = 0;
-			nKey = 0;
-			break;
-		}
-		else if (strcmp(aStr, "KEYSET") == 0)
-		{ // キー情報の設定
-			while (1)
-			{ // 読み込みループ
-				// 文字列初期化
-				line.clear();
-
-				// 一行読み取る
-				pFile->Read(line);
-
-				// その行をコピーして、コメントを消去
-				strcpy(aStr, line.c_str());
-
-				// 読み取れないならスキップ
-				if (!DeleteComment(aStr)) continue;
-
-				if (strcmp(aStr, "END_KEYSET") == 0)
-				{ // キー情報の読み込み終了
-					// キー情報の番号を進め、キー要素の番号をリセット
-					nKeyInfo++;
-					nKey = 0;
-					break;
-				}
-				else if (strcmp(aStr, "KEY") == 0)
-				{ // キー情報の設定
-					while (1)
-					{ // 読み込みループ
-						// 文字列初期化
-						line.clear();
-
-						// 一行読み取る
-						pFile->Read(line);
-
-						// その行をコピーして、コメントを消去
-						strcpy(aStr, line.c_str());
-
-						// 読み取れないならスキップ
-						if (!DeleteComment(aStr)) continue;
-
-						if (strcmp(aStr, "END_KEY") == 0)
-						{ // キー要素の読み込み終了
-							// キー要素の番号を進める
-							nKey++;
-							break;
-						}
-						else if (strstr(aStr, "POS") != nullptr)
-						{ // 位置の読み込み
-							LoadData(aStr, "%f %f %f",
-								&info.aKeyInfo[nKeyInfo].aKey[nKey].pos.x,
-								&info.aKeyInfo[nKeyInfo].aKey[nKey].pos.y,
-								&info.aKeyInfo[nKeyInfo].aKey[nKey].pos.z);
-						}
-						else if (strstr(aStr, "ROT") != nullptr)
-						{ // 角度の読み込み
-							LoadData(aStr, "%f %f %f",
-								&info.aKeyInfo[nKeyInfo].aKey[nKey].rot.x,
-								&info.aKeyInfo[nKeyInfo].aKey[nKey].rot.y,
-								&info.aKeyInfo[nKeyInfo].aKey[nKey].rot.z);
-						}
-					}
-				}
-				else if (strstr(aStr, "FRAME") != nullptr)
-				{ // 再生フレーム数の読み込み
-					LoadData(aStr, "%d", &info.aKeyInfo[nKeyInfo].nFrame);
-				}
-			}
-		}
-		else if (strstr(aStr, "LOOP") != nullptr)
-		{ // ループの有無の読み込み
-			LoadData(aStr, "%d", &nLoop);
-
-			// 1以上ならループ有
-			info.bLoop = nLoop > 0;
-		}
-		else if (strstr(aStr, "NUM_KEY") != nullptr)
-		{ // キー情報の総数のの読み込み
-			LoadData(aStr, "%d", &info.nNumKey);
-		}
-	}
-}
-
-//==================================================================================
-// --- #のコメント消去処理 ---
-//==================================================================================
-bool CPlayer::DeleteComment(char *pStr)
-{
-	std::string line;		// パース用文字列
-
-	// nullptrの場合、スキップ
-	if (pStr == nullptr) return false;
-
-	// 引数の文字列を代入
-	line.append(pStr);
-
-	while (1)
-	{ // #がなくなるまで走査
-		auto Iter = std::find(line.begin(), line.end(), '#');
-		if (Iter == line.cbegin())
-		{ // 一文字目なら、読み込みスキップ
-			return false;
-		}
-		else if (Iter != line.cend())
-		{ // 途中にあるなら、それ以降の文字列をスキップ
-			line.erase(Iter, line.cend());
-		}
-		else
-		{ // 見つからなかった場合、終了
-			break;
-		}
-	}
-
-	while (1)
-	{ // タブスペースがなくなるまで走査
-		auto Iter = std::find(line.begin(), line.end(), '\t');
-		if (Iter == line.cend())
-		{ // 見つからなかった場合、終了
-			break;
-		}
-		else
-		{ // 見つかった場合、消去
-			line.erase(Iter);
-		}
-	}
-
-	// パース後の文字列を引数にコピー
-	strcpy(pStr, line.c_str());
-
-	// 読み込み開始
-	return true;
+	return std::visit([&](auto &x) { return static_cast<CObjectXQuaternion*>(x); }, m_pRidingObject);
 }

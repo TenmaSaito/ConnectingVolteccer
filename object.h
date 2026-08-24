@@ -43,10 +43,13 @@ public:
 		TYPE_OBJ_LINE,		// ObjectLine
 		TYPE_OBJ_X,			// ObjectX
 		TYPE_OBJ_X_QUA,		// ObjectXQuaternion
+		TYPE_PARTICLE,		// パーティクル
 		TYPE_PLAYER,		// プレイヤー
 		TYPE_PLANET,		// 惑星
 		TYPE_SCORE,			// スコア
 		TYPE_TIMER,			// タイマー
+		TYPE_TITLEMENU,		// タイトルメニュー
+		TYPE_COMBO,			// コンボ表示
 		TYPE_EFFECT,		// エフェクト
 		TYPE_POLE,			// 電柱
 		TYPE_CABLE,			// 電線
@@ -57,6 +60,7 @@ public:
 		TYPE_MESHFIELD,		// メッシュフィールド
 		TYPE_MESHSPHERE,	// メッシュスフィア
 		TYPE_BUILDING,		// 建物
+		TYPE_POWERPLANT,	// 発電所
 		TYPE_MAX
 	} TYPE;
 
