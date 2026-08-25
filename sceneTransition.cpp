@@ -9,6 +9,8 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "sceneTransition.h"
+#include "circleTransition.h"
+#include "lineScaleUpTransition.h"
 
 //==================================================================================
 // --- トランジションの作成 ---
@@ -16,6 +18,20 @@
 CSceneTransition *CSceneTransition::Create(const TYPE type)
 {
 	CSceneTransition *pTransition = nullptr;		// 生成したトランジションへのポインタ
+
+	switch (type)
+	{
+	case TYPE_CIRCLE:				// 円状遷移演出
+		pTransition = new CCircleTransition;
+		break;
+
+	case TYPE_LINE_SCALE_UP:		// 線拡大遷移演出
+		pTransition = new CLineScaleUpTransition;
+		break;
+
+	default:
+		break;
+	}
 
 	if (pTransition)
 	{ // 生成に成功していれば、初期化
@@ -29,7 +45,9 @@ CSceneTransition *CSceneTransition::Create(const TYPE type)
 // --- コンストラクタ ---
 //==================================================================================
 CSceneTransition::CSceneTransition()
-{
+{ // メンバ変数の初期化
+	m_modeNext = CScene::MODE_NONE;
+	m_state = STATE_STAY;
 }
 
 //==================================================================================

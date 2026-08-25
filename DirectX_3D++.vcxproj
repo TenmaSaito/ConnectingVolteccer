@@ -107,7 +107,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level4</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
@@ -176,14 +176,17 @@
     <ClCompile Include="joypad.cpp" />
     <ClCompile Include="lasso.cpp" />
     <ClCompile Include="light.cpp" />
+    <ClCompile Include="lineScaleUpTransition.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="manager.cpp" />
     <ClCompile Include="map.cpp" />
     <ClCompile Include="matrix.cpp" />
     <ClCompile Include="memdbg.cpp" />
     <ClCompile Include="mesh.cpp" />
+    <ClCompile Include="mesh2D.cpp" />
     <ClCompile Include="mesh3D.cpp" />
     <ClCompile Include="meshField.cpp" />
+    <ClCompile Include="meshOrbit2D.cpp" />
     <ClCompile Include="meshOrbit3D.cpp" />
     <ClCompile Include="meshSphere.cpp" />
     <ClCompile Include="model.cpp" />
@@ -246,6 +249,9 @@
     <ClInclude Include="gameclear.h" />
     <ClInclude Include="gameover.h" />
     <ClInclude Include="lasso.h" />
+    <ClInclude Include="lineScaleUpTransition.h" />
+    <ClInclude Include="mesh2D.h" />
+    <ClInclude Include="meshOrbit2D.h" />
     <ClInclude Include="meshSphere.h" />
     <ClInclude Include="motionLoader.h" />
     <ClInclude Include="number.h" />

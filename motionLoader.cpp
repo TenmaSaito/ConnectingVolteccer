@@ -23,7 +23,6 @@
 //**********************************************************************************
 void LoadMotion(std::unique_ptr<CFileStream> &pFile, std::unique_ptr<CMotion> &pMotion);
 void LoadKey(std::unique_ptr<CFileStream> &pFile,
-	std::unique_ptr<CMotion> &pMotion,
 	CMotion::INFO *pInfo,
 	const int nKeyInfo);
 
@@ -222,7 +221,7 @@ void LoadMotion(std::unique_ptr<CFileStream> &pFile, std::unique_ptr<CMotion> &p
 		}
 		else if (CFileStream::FindString(line, "KEYSET"))
 		{ // キー情報の設定
-			LoadKey(pFile, pMotion, &info, nKeyInfo);
+			LoadKey(pFile, &info, nKeyInfo);
 
 			// キー情報の番号を進める
 			nKeyInfo++;
@@ -245,7 +244,6 @@ void LoadMotion(std::unique_ptr<CFileStream> &pFile, std::unique_ptr<CMotion> &p
 // --- キー情報の読み込み処理 ---
 //==================================================================================
 void LoadKey(std::unique_ptr<CFileStream> &pFile,
-	std::unique_ptr<CMotion> &pMotion,
 	CMotion::INFO *pInfo,
 	const int nKeyInfo)
 {

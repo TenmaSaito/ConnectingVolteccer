@@ -400,7 +400,6 @@ HRESULT	CObjectXQuaternion::LoadXFile(const char* pXFileName)
 	nNumVtx = m_pMesh->GetNumVertices();
 
 	// 頂点フォーマットのサイズを取得
-	DWORD dwFvf = m_pMesh->GetFVF();
 	dwSizeFVF = D3DXGetFVFVertexSize(m_pMesh->GetFVF());
 
 	// 頂点バッファをロック

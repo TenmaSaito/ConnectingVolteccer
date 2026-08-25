@@ -20,6 +20,8 @@
 #include "effect.h"
 #include "planet.h"
 #include "powerPlant.h"
+#include "color.h"
+#include "player.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -63,6 +65,7 @@ CElectricalCable::CElectricalCable()
 	m_fAngle = 0.0f;
 	D3DXQuaternionIdentity(&m_qua);
 #endif
+	m_bElectric = false;
 
 	// タイプの指定
 	CObject::SetType(TYPE_CABLE);
@@ -129,10 +132,11 @@ HRESULT CElectricalCable::Init(const CObjectXQuaternion *pStart,
 	pVtx[3].nor = Vector3(0.0f, 0.0f, -1.0f);
 
 	// 頂点カラー設定
-	pVtx[0].col = Color(0.0f, 1.0f, 0.0f, 1.0f);
-	pVtx[1].col = Color(0.0f, 1.0f, 0.0f, 1.0f);
-	pVtx[2].col = Color(0.0f, 1.0f, 0.0f, 1.0f);
-	pVtx[3].col = Color(0.0f, 1.0f, 0.0f, 1.0f);
+	Color col = Colors::GetColor(Colors::C_GRAY);
+	pVtx[0].col = col;
+	pVtx[1].col = col;
+	pVtx[2].col = col;
+	pVtx[3].col = col;
 
 	// テクスチャ座標設定
 	pVtx[0].tex = Vector2(0.0f, 0.0f);
@@ -178,6 +182,34 @@ void CElectricalCable::Uninit(void)
 //==================================================================================
 void CElectricalCable::Update(void)
 {
+	if (m_bElectric == false)
+	{ // まだ電流が流れていなければ
+		CGame *pGame = CManager::GetInstance()->GetScene(&pGame);
+		if (pGame)
+		{ // ゲームシーンなら
+			CPlayer *pPlayer = pGame->GetPlayer();		// プレイヤーへのポインタ
+
+			// まだプレイヤーが端についていなければ、スキップ
+			if (pPlayer->IsShotLasso() == true) return;
+
+			VERTEX_3D *pVtx;		// 頂点へのポインタ
+
+			// 頂点バッファをロック
+			m_pVtxBuff->Lock(0, 0, (void **)&pVtx, 0);
+
+			// 頂点カラー設定
+			Color col = Colors::GetColor(Colors::C_YELLOW);
+			pVtx[0].col = col;
+			pVtx[1].col = col;
+			pVtx[2].col = col;
+			pVtx[3].col = col;
+
+			// ロック解除
+			m_pVtxBuff->Unlock();
+			
+			m_bElectric = true;		// 電流が流れたためフラグを立てる
+		}
+	}
 }
 
 //==================================================================================

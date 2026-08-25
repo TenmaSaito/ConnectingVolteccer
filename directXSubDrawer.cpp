@@ -26,7 +26,7 @@
 void CDirectXSubDrawer::DirectXSubDrawerProc(void)
 {
 	CManager *pManager = nullptr;		// マネージャへのポインタ
-	DWORD dwCurrentTime;		// 現在時刻
+	DWORD dwCurrentTime;			// 現在時刻
 	DWORD dwExecLastTimeUpdate;		// 最後に処理した時刻
 	DWORD dwExecLastTimeDraw;		// 最後に処理した時刻
 	DWORD dwFrameCount;				// フレームカウント

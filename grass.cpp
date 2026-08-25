@@ -231,7 +231,6 @@ void CGrass::Draw(void)
 //==================================================================================
 bool CGrass::Collision(const Vector3 &pos, const float fRadius)
 {
-	CManager *pManager = CManager::GetInstance();	// マネージャーへのポインタ
 	Vector3 vecToGrass = VECTOR3_NULL;			// プレイヤーから草へのベクトル
 	Vector3 norVec = VECTOR3_NULL;	// 正規化されたベクトル
 	Vector3 rot = VECTOR3_NULL;		// 計算後の角度

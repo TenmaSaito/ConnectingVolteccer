@@ -14,12 +14,10 @@
 #include "texture.h"
 
 //**********************************************************************************
-// *** インクルードファイル ***
+// *** マクロ定義 ***
 //**********************************************************************************
-// フレーム無しの円のテクスチャパス
-#define NOFRAME_CIRCLE_PATH		"data/TEXTURE/Transition/Circle/noFrame.png"	
-// フレーム有りの円のテクスチャパス
-#define FRAME_CIRCLE_PATH		"data/TEXTURE/Transition/Circle/frame.png"
+#define NOFRAME_CIRCLE_PATH		"data/TEXTURE/Transition/Circle/noFrame.png"	// フレーム無しの円のテクスチャパス
+#define FRAME_CIRCLE_PATH		"data/TEXTURE/Transition/Circle/frame.png"		// フレーム有りの円のテクスチャパス
 #define MAX_RADIUS				(SCREEN_WIDTH)		// 半径の最大値
 #define RADIUS_INCREASE			(23.0f)		// 半径の増加値
 #define RADIUS_DECREASE			(23.0f)		// 半径の減少値
@@ -77,7 +75,7 @@ HRESULT CCircleTransition::Init(void)
 		circle.nIdxTexture = nIdxNoFrame;
 
 		// 座標を中心に設定し、角度をリセット
-		*pPos = WINDOW_MIDDLE;
+		*pPos = SCREEN_MIDDLE;
 		*pRot = VECTOR3_NULL;
 
 		// 頂点ロック

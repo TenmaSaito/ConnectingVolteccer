@@ -12,6 +12,7 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "main.h"
+#include <functional>
 
 //**********************************************************************************
 // *** ポリゴンクラス ***
@@ -29,9 +30,9 @@ public:
 	HRESULT Init(const Vector3 &pos,
 		const Vector3 &rot, 
 		const Vector2 &size);
-	void Uninit();
-	void Update();
-	void Draw();
+	void Uninit(void);
+	void Update(void);
+	void Draw(void);
 	void SetPosition(const Vector3 &position);
 	const Vector3 *GetPosition(void) const { return &m_pos; }
 	void SetRotation(const Vector3 &rotation);
@@ -45,6 +46,8 @@ public:
 	bool GetDisp(void) const { return m_bDisp; }
 	void BindTexture(LPDIRECT3DTEXTURE9 pTexture);
 	void BindTexture(const int nIdxTexture);
+	void SetStateFunctionBeforeDraw(std::function<void(LPDIRECT3DDEVICE9)> before) { m_beforeDraw = before; }
+	void SetStateFunctionAfterDraw(std::function<void(LPDIRECT3DDEVICE9)> after) { m_afterDraw = after; }
 
 private:
 	LPDIRECT3DVERTEXBUFFER9 m_pVtxBuff = nullptr;		// 頂点バッファ
@@ -58,5 +61,7 @@ private:
 	float m_fAngle = 0.0f;			// 対角線の角度
 	bool m_bUseIndex = false;		// テクスチャインデックスを使用するか
 	bool m_bDisp = true;			// 描画フラグ
+	std::function<void(LPDIRECT3DDEVICE9)> m_beforeDraw;	// 描画前の呼び出し関数
+	std::function<void(LPDIRECT3DDEVICE9)> m_afterDraw;		// 描画後の呼び出し関数
 };
 #endif

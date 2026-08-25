@@ -22,12 +22,14 @@
 #include "delegate_t.h"
 #include "building.h"
 #include "stopwatch.h"
+#include "directXSubDrawer.h"
+#include "sceneTransition.h"
 #include <string>
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define TIMER_POS			Vector3(WINDOW_MIDDLE.x - 75.0f, 35.0f, 0.0f)		// タイマーの座標
+#define TIMER_POS			Vector3(SCREEN_MIDDLE.x - 75.0f, 35.0f, 0.0f)		// タイマーの座標
 #define TIMER_SIZE			Vector2(150.0f, 85.0f)				// タイマーのサイズ
 #define COMBO_POS			Vector3(1000.0f, 200.0f, 0.0f)		// コンボ表示の座標
 #define PLAYER_MOTION_PATH	"data/SCRIPT/motion_nabeatsu.txt"	// プレイヤーのモーションパス
@@ -59,7 +61,17 @@ CGame::~CGame()
 //==================================================================================
 HRESULT CGame::Init(void)
 { // 開始処理
+	// DirectXの処理を別スレッドにて開始
+	std::unique_ptr<CDirectXSubDrawer> pSubDrawer = std::make_unique<CDirectXSubDrawer>();
+	hyp::Action<> draw;		// 描画時に呼び出す関数
+	draw.Add(&CSceneTransition::Draw, CManager::GetInstance()->GetTransition());
+	pSubDrawer->FunctionSetUp(CDirectXSubDrawer::FUNCTION_DRAW, draw);
+	std::thread thSubDrawer(&CDirectXSubDrawer::DirectXSubDrawerProc, pSubDrawer.get());
+
 	Start();
+
+	pSubDrawer->Quit();
+	thSubDrawer.join();
 
 	return S_OK;
 }
@@ -141,7 +153,7 @@ void CGame::Update(void)
 	// 全カメラの更新処理
 	CCamera::UpdateAll();
 
-	if (m_pTimer->GetTimer() <= 0)
+	if (m_pTimer->GetTimer() <= 0 && pManager->GetTransition()->GetState() == CSceneTransition::STATE_STAY)
 	{ // 0以下になった場合ゲームオーバー
 		pManager->SetTransition(MODE_GAMEOVER);
 	}
@@ -161,8 +173,6 @@ void CGame::Draw(void)
 //==================================================================================
 void CGame::Start(void)
 {
-	CMap *pMap = CMap::GetInstance();		// マップへのポインタ
-
 	// タイマー生成
 	m_pTimer = CTimer::Create(TIMER_POS, TIMER_SIZE, 3, 120);
 

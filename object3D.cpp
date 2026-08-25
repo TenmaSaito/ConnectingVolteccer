@@ -300,6 +300,8 @@ void CObject3D::SetSize(const Vector2& size)
 { // サイズの変更及び変更フラグを立てる
 	VERTEX_3D *pVtx = nullptr;		// 頂点情報へのポインタ
 
+	m_size = size;		// サイズを保存
+
 	// 頂点バッファをロック
 	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
 

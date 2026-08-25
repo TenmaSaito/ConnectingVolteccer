@@ -1,45 +1,39 @@
 //==================================================================================
 // 
-// タイトルクラスのヘッダーファイル [title.h]
+// メッシュ2Dクラスのヘッダーファイル [mesh2D.h]
 // Author : TENMA SAITO
-// Date   : 2026/7/1
+// Date   : 2026/5/30
 // 
 //==================================================================================
-#ifndef _TITLE_H_		// インクルードガード
-#define _TITLE_H_
+#ifndef _MESH2D_H_
+#define _MESH2D_H_
 
 //**********************************************************************************
 // *** インクルードファイル ***
 //**********************************************************************************
-#include "scene.h"
-#include <memory>
+#include "main.h"
+#include "mesh.h"
 
 //**********************************************************************************
-// *** 前方宣言 ***
+// *** マクロ定義 ***
 //**********************************************************************************
-class CTitleCamera;
-class CTitleMenu;
 
 //**********************************************************************************
-// *** タイトルクラス ***
+// *** メッシュ2Dクラス ***
 //**********************************************************************************
-class CTitle : public CScene
+class CMesh2D : public CMesh
 {
 public:
-	CTitle();
-	~CTitle();
+	static CMesh2D *Create(const int nNumVtx, const int nNumIdx, const int nNumPrim);
 
-	HRESULT Init(void) override;
+	CMesh2D();
+	~CMesh2D();
+
+	HRESULT Init(const int nNumVtx, const int nNumIdx, const int nNumPrim, const size_t vtxSize, const DWORD nFlags) override;
 	void Uninit(void) override;
 	void Update(void) override;
 	void Draw(void) override;
-	CTitleMenu *GetMenu(void) const { return m_pMenu; }
-
-	static constexpr MODE GetMyMode(void) { return CScene::MODE_TITLE; }
 
 private:
-	void Start(void);
-
-	CTitleMenu *m_pMenu;	// メニュー
 };
 #endif

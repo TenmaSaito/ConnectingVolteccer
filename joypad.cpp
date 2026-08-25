@@ -150,7 +150,7 @@ bool CJoypad::GetStick(const STICK stick, const float fRange, const int nPadID)
 		}
 		else
 		{ // ‰º‚à‚µ‚­‚Í¶‚É“|‚³‚ê‚Ä‚¢‚é‚©”»’è‚µ‚½‚¢ê‡
-			return (sThumb <= sRange) ? true : false;
+			return (sThumb <= -sRange) ? true : false;
 		}
 	}
 	else
@@ -164,7 +164,7 @@ bool CJoypad::GetStick(const STICK stick, const float fRange, const int nPadID)
 		}
 		else
 		{ // ‰º‚à‚µ‚­‚Í¶‚É“|‚³‚ê‚Ä‚¢‚é‚©”»’è‚µ‚½‚¢ê‡
-			return (sThumb <= sRange) ? true : false;
+			return (sThumb <= -sRange) ? true : false;
 		}
 	}
 }

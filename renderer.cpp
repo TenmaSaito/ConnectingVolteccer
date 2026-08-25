@@ -295,7 +295,6 @@ void CRenderer::Draw(void)
 {
 	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
 	CDebugProc *pDebugProc = pManager->GetDebugProc();	// デバッグ表示へのポインタ
-	CScene *pScene = pManager->GetScene();
 
 	// 画面クリア(バックバッファとZバッファのクリア)
 	m_pD3DDevice->Clear(0, NULL,

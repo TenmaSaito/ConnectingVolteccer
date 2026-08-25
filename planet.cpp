@@ -109,7 +109,6 @@ void CPlanet::Uninit(void)
 void CPlanet::Update(void)
 {
 	CManager *pManager = CManager::GetInstance();					// マネージャーへのポインタ
-	CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();		// キーボードへのポインタ
 	CPlayer *pPlayer = pManager->GetScene<CGame>()->GetPlayer();	// プレイヤーへのポインタ
 	Quaternion quaMove;				// 計算先
 	float fVecRot = 0.0f;				// 回転時の計算用変数

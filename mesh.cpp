@@ -130,6 +130,11 @@ void CMesh::Draw(void)
 	// テクスチャの設定
 	pDevice->SetTexture(0, pTexture->GetAddress(m_nIdxTexture));
 
+	// 加算合成開始
+	pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+	pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+	pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
+
 	//*** インデックスを利用したポリゴンの描画 ***/
 	pDevice->DrawIndexedPrimitive(D3DPT_TRIANGLESTRIP,
 		0,
@@ -137,4 +142,9 @@ void CMesh::Draw(void)
 		m_nNumVtx,		// 頂点数
 		0,
 		m_nNumPrim);	// 描画するプリミティブ(三角ポリゴン)の数
+
+	// 加算合成終了
+	pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+	pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+	pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
 }

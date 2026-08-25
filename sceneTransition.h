@@ -33,6 +33,7 @@ public:
 	{
 		TYPE_FADE = 0,		// 基本の暗転フェード
 		TYPE_CIRCLE,		// 円状にポリゴンが画面を埋め尽くす
+		TYPE_LINE_SCALE_UP,	// 一本の線が画面中央に引かれ、それが拡大する
 		TYPE_MAX
 	} TYPE;
 

@@ -54,5 +54,6 @@ private:
 	Quaternion m_qua;		// クォータニオン
 	Matrix m_mtxWorld;		// ワールドマトリックス
 	const Matrix *m_pMtxParent;		// 親のワールドマトリックス
+	bool m_bElectric;		// プレイヤーが端に着き、電流が流れたか
 };
 #endif

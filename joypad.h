@@ -18,6 +18,9 @@
 //**********************************************************************************
 #define MAX_JOYPAD			(2)			// ジョイパッドの最大数
 #define STICK_DEADZONE		(0.05f)		// 動いたと感知するデッドゾーン
+#define DEFAULT_WAIT_PRESS	(60)		// リピートの連続入力までの待機時間
+#define DEFAULT_INTERVAL	(30)		// リピートの連続入力の間隔
+#define DEFAULT_STICK_RANGE	(0.5f)		// スティックを倒したと判定する範囲
 
 //**********************************************************************************
 // *** ジョイパッドクラス ***
@@ -77,9 +80,18 @@ public:
 	bool GetPress(const KEY key, const int nPadID = 0);
 	bool GetTrigger(const KEY key, const int nPadID = 0);
 	bool GetRelease(const KEY key, const int nPadID = 0);
-	bool GetRepeat(const KEY key, const int nWaitPress, const int nInterval, const int nPadID = 0);
-	bool GetStick(const STICK stick, const float fRange, const int nPadID = 0);
-	bool GetStick(const STICK stick, Vector3 *pOut, const int nPadID = 0);
+	bool GetRepeat(const KEY key,
+		const int nWaitPress = DEFAULT_WAIT_PRESS,
+		const int nInterval = DEFAULT_INTERVAL,
+		const int nPadID = 0);
+
+	bool GetStick(const STICK stick,
+		const float fRange = DEFAULT_STICK_RANGE,
+		const int nPadID = 0);
+
+	bool GetStick(const STICK stick, 
+		Vector3 *pOut, 
+		const int nPadID = 0);
 
 private:
 	//******************************************************************************

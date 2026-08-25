@@ -674,7 +674,6 @@ void CPlayer::UpdatePole(void)
 		// 残りの角度が0.0f以下になった場合
 		if (m_fAngleRest <= 0.0f)
 		{ // その電柱に乗り移る
-			CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera*>(CCamera::GetCamera(CCamera::TYPE_PLAYER));
 			m_pRidingObject = m_pPoleNext;
 
 			// オフセットを電柱に設定し、マトリックスを設定
@@ -698,7 +697,6 @@ void CPlayer::UpdatePole(void)
 		CObject *pObject = CObject::GetTop(UTILITYPOLE_PRIORITY);		// 最初のオブジェクト
 		Vector3 vecCam = VECTOR3_NULL;				// カメラの方向ベクトル
 		Vector3 vecPlayerToPole = VECTOR3_NULL;		// プレイヤーから電柱への方向ベクトル
-		float fLengthMin = RIDE_LENGTH;			// 現状最も近い電柱との距離
 		CUtilityPole *pPoleNear = nullptr;		// 最も画面の中心に近い電柱へのポインタ
 		float fDotMax = 0.0f;					// 内積の最小値
 
@@ -856,8 +854,6 @@ void CPlayer::CollisionAction(void)
 //==================================================================================
 void CPlayer::OtherUpdate(void)
 {
-	CCamera *pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);		// プレイヤーカメラへのポインタ
-
 	for (auto &model : m_vpModel)
 	{ // 各モデルの更新
 		model->Update();

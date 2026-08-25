@@ -47,8 +47,8 @@
 #define VECTOR3_ONE			Vector3(1.0f, 1.0f, 1.0f)	// Vector3の1クリア
 #define COLOR_NULL			Color(0.0f, 0.0f, 0.0f, 0.0f)	// Colorの0クリア
 #define COLOR_ONE			Color(1.0f, 1.0f, 1.0f, 1.0f)	// Colorの1クリア
-#define WINDOW_SIZE			Vector2(SCREEN_WIDTH, SCREEN_HEIGHT)						// ウィンドウのサイズ
-#define WINDOW_MIDDLE		Vector3(SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f, 0.0f)	// ウィンドウの真ん中
+#define SCREEN_SIZE			Vector2(SCREEN_WIDTH, SCREEN_HEIGHT)						// ウィンドウのサイズ
+#define SCREEN_MIDDLE		Vector3(SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f, 0.0f)	// ウィンドウの真ん中
 #define FVF_VERTEX_2D		(D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1)								// 2D頂点フォーマット
 #define FVF_VERTEX_3D		(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX1)					// 3D頂点フォーマット
 #define FVF_VERTEX_3D_MULTI	(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEX2)	// マルチテクスチャ3D頂点フォーマット

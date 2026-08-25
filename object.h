@@ -56,7 +56,9 @@ public:
 		TYPE_THUNDER,		// 雷エフェクト
 		TYPE_SPARK,			// スパークエフェクト
 		TYPE_ELECTRICCURRENT,		// 電流
-		TYPE_ORBIT3D,		// メッシュオービット
+		TYPE_MESH2D,		// メッシュ2D
+		TYPE_ORBIT2D,		// メッシュオービット3D
+		TYPE_ORBIT3D,		// メッシュオービット3D
 		TYPE_MESHFIELD,		// メッシュフィールド
 		TYPE_MESHSPHERE,	// メッシュスフィア
 		TYPE_BUILDING,		// 建物

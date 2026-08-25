@@ -236,8 +236,7 @@ HRESULT CManager::Init(const HINSTANCE hInstance, const HWND hWnd, const BOOL bW
 	m_pLight->Init();
 
 	// 遷移演出の作成
-	m_pTransition = std::make_unique<CCircleTransition>();
-	m_pTransition->Init();
+	m_pTransition.reset(CSceneTransition::Create(CSceneTransition::TYPE_LINE_SCALE_UP));
 
 	// テクスチャの読み込み
 	CTexture::GetInstance()->Load();
@@ -428,5 +427,5 @@ HRESULT CManager::SetMode(const CScene::MODE modeNext)
 //==================================================================================
 void CManager::SetTransition(const CScene::MODE modeNext)
 {
-	m_pTransition->StartTransition(60, modeNext);
+	m_pTransition->StartTransition(120, modeNext);
 }

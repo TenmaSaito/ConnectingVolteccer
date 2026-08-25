@@ -324,6 +324,15 @@
     <ClCompile Include="particle.cpp">
       <Filter>ソース ファイル\object\effect</Filter>
     </ClCompile>
+    <ClCompile Include="lineScaleUpTransition.cpp">
+      <Filter>ソース ファイル\manager\transition</Filter>
+    </ClCompile>
+    <ClCompile Include="mesh2D.cpp">
+      <Filter>ソース ファイル\object\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="meshOrbit2D.cpp">
+      <Filter>ソース ファイル\object\mesh</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="model.h">
@@ -565,6 +574,15 @@
     </ClInclude>
     <ClInclude Include="particle.h">
       <Filter>ヘッダー ファイル\object\effect</Filter>
+    </ClInclude>
+    <ClInclude Include="lineScaleUpTransition.h">
+      <Filter>ヘッダー ファイル\manager\transition</Filter>
+    </ClInclude>
+    <ClInclude Include="mesh2D.h">
+      <Filter>ヘッダー ファイル\object\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="meshOrbit2D.h">
+      <Filter>ヘッダー ファイル\object\mesh</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

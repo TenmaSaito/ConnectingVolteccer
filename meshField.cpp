@@ -865,8 +865,6 @@ void CMeshField::Draw(void)
 {
 	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pManager->GetRenderer()->GetDevice();		// デバイスへのポインタ
-	VERTEX_3D *pVtx = nullptr;				// 頂点バッファへのポインタ
-	int nNumVtx = CMesh::GetVertexNum();	// 頂点数
 
 	// マトリックスを初期化
 	D3DXMatrixIdentity(&m_mtxWorld);
@@ -895,7 +893,6 @@ void CMeshField::Draw(void)
 float CMeshField::GetHeight(const Vector3 &pos)
 {
 	CManager *pManager = CManager::GetInstance();	// マネージャーへのポインタ
-	auto pProc = pManager->GetDebugProc();			// デバッグ表示へのポインタ
 	Vector3 aVtx[4] = { VECTOR3_NULL };		// 当たり判定をする頂点座標
 	Vector3 posStart = VECTOR3_NULL;		// 割合計算の開始地点
 	float fHeight = 0.0f;			// 計算結果

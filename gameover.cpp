@@ -22,7 +22,7 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define LOGO_POSITION		Vector3(WINDOW_MIDDLE.x, 200.0f, 0.0f)		// ロゴの位置
+#define LOGO_POSITION		Vector3(SCREEN_MIDDLE.x, 200.0f, 0.0f)		// ロゴの位置
 #define LOGO_SIZE			Vector2(800.0f, 200.0f)		// ロゴのサイズ
 #define LOGO_FILEPATH		"data/TEXTURE/gameoverlogo.png"	// ロゴテクスチャへのパス
 

@@ -227,9 +227,7 @@ void CMap::Save(std::string_view sMapFile)
 //==================================================================================
 void CMap::Load(std::string_view sMapFile)
 {
-	int nNumModelIdx = 0;	// モデルのインデックスの数
 	int nNumModel = 0;		// モデルの数
-	int nIdxModel = 0;		// モデルのインデックス
 	const Matrix *pMtxPlanet = CManager::GetInstance()->GetScene<CGame>()->GetPlanet()->GetMatrix();
 
 	// データ読み込み

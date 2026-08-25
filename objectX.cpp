@@ -78,7 +78,6 @@ HRESULT CObjectX::Init(const char *pXFileName, const Vector3 &pos, const Vector3
 {
 	CManager *pManager = CManager::GetInstance();			// マネージャーへのポインタ
 	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
-	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
 
 	// Xファイル読み込み
 	LoadXFile(pXFileName);
@@ -214,7 +213,6 @@ HRESULT	CObjectX::LoadXFile(const char *pXFileName)
 	nNumVtx = m_pMesh->GetNumVertices();
 
 	// 頂点フォーマットのサイズを取得
-	DWORD dwFvf = m_pMesh->GetFVF();
 	dwSizeFVF = D3DXGetFVFVertexSize(m_pMesh->GetFVF());
 
 	// 頂点バッファをロック

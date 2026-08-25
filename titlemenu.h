@@ -51,6 +51,7 @@ private:
 
 	std::array<std::unique_ptr<CPolygon2D>, TYPE_MAX> m_apMenu;		// 各メニューのポリゴンへのポインタ
 	std::unique_ptr<CPolygon2D> m_pCircle;	// メニュー選択肢の土台のポリゴンへのポインタ
+	std::unique_ptr<CPolygon2D> m_pLogo;	// ロゴのポリゴンへのポインタ
 	TYPE m_lastType = TYPE_START;			// 直前のメニュータイプ
 	TYPE m_currentType = TYPE_START;		// 現在のメニュータイプ
 	float m_fTypeDest = 0.0f;			// 目標タイプ

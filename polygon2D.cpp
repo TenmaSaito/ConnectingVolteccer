@@ -51,7 +51,7 @@ HRESULT CPolygon2D::Init(const Vector3 &pos,
 	const Vector3 &rot, 
 	const Vector2 &size)
 {
-	VERTEX_2D* pVtx = NULL;		// 頂点情報へのポインタ
+	VERTEX_2D *pVtx = NULL;		// 頂点情報へのポインタ
 	CRenderer *pRenderer = CManager::GetInstance()->GetRenderer();	// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();				// デバイスへのポインタ
 
@@ -161,10 +161,16 @@ void CPolygon2D::Draw(void)
 	// 頂点フォーマット設定
 	pDevice->SetFVF(FVF_VERTEX_2D);
 
+	// 登録されている描画前関数を呼び出し
+	if (m_beforeDraw) m_beforeDraw(pDevice);
+
 	// ポリゴンの描画
 	pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP,
 		0,
 		2);
+
+	// 登録されている描画後関数を呼び出し
+	if (m_afterDraw) m_afterDraw(pDevice);
 }
 
 //==================================================================================
