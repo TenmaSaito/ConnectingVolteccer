@@ -248,8 +248,9 @@ void LoadKey(std::unique_ptr<CFileStream> &pFile,
 	const int nKeyInfo)
 {
 	std::string line;					// 読み取った一行
-	size_t strPos;			// 読み込み開始するオフセット
-	int nKey = 0;			// 現在設定しているキー要素の番号
+	size_t strPos = 0U;					// 読み込み開始するオフセット
+	CMotion::KEY_INFO keyInfo = {};	// キー情報
+	int nKey = 0;					// 現在設定しているキー要素の番号
 
 	while (1)
 	{ // 読み込みループ
@@ -262,10 +263,13 @@ void LoadKey(std::unique_ptr<CFileStream> &pFile,
 
 		if (CFileStream::FindString(line, "END_KEYSET"))
 		{ // キー情報の読み込み終了
+			pInfo->vKeyInfo.push_back(keyInfo);
 			break;
 		}
 		else if (CFileStream::FindString(line, "KEY"))
 		{ // キー情報の設定
+			CMotion::KEY key = {};		// キー要素
+
 			while (1)
 			{ // 読み込みループ
 				// 一行読み取る
@@ -276,24 +280,26 @@ void LoadKey(std::unique_ptr<CFileStream> &pFile,
 				if (line.find('#') != std::string::npos) line.erase(line.begin() + line.find('#'), line.end());
 
 				if (CFileStream::FindString(line, "END_KEY"))
-				{ // キー要素の読み込み終了
+				{ // キー要素の読み込み終了 + キー情報へ追加
+					keyInfo.vKey.push_back(key);
+
 					// キー要素の番号を進める
 					nKey++;
 					break;
 				}
 				else if (CFileStream::FindString(line, "POS =", &strPos, true))
 				{ // 位置の読み込み
-					pInfo->aKeyInfo[nKeyInfo].aKey[nKey].pos = CFileStream::ToVector3(&line.at(strPos));
+					key.pos = CFileStream::ToVector3(&line.at(strPos));
 				}
 				else if (CFileStream::FindString(line, "ROT =", &strPos, true))
 				{ // 角度の読み込み
-					pInfo->aKeyInfo[nKeyInfo].aKey[nKey].rot = CFileStream::ToVector3(&line.at(strPos));
+					key.rot = CFileStream::ToVector3(&line.at(strPos));
 				}
 			}
 		}
 		else if (CFileStream::FindString(line, "FRAME =", &strPos, true))
 		{ // 再生フレーム数の読み込み
-			pInfo->aKeyInfo[nKeyInfo].nFrame = CFileStream::ToInt(&line.at(strPos));
+			keyInfo.nFrame = CFileStream::ToInt(&line.at(strPos));
 		}
 	}
 }

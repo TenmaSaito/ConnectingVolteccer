@@ -14,11 +14,6 @@
 #include "main.h"
 
 //**********************************************************************************
-// *** マクロ定義 ***
-//**********************************************************************************
-#define VEC2_INLINE				// 各関数をインライン展開するか
-
-//**********************************************************************************
 // *** Vector2計算関連名前空間 ***
 //**********************************************************************************
 namespace Vec2
@@ -41,6 +36,7 @@ namespace Vec2
 	Vector2 Direction(const float fAngle);
 	float Direction(const Vector2 &To, const Vector2 &From);
 	Vector2 Random(void);
+	Vector2 Random(const Vector2 &min, const Vector2 &max);
 	Vector2 Clamp(const Vector2 &vec, const Vector2 &min, const Vector2 &max);
 	Vector2 FixedRotation(const Vector2 &Rot);
 	Vector2 Arc(const float fRadius, const float fRadian, const Vector2 &offset = VECTOR2_NULL);
@@ -51,8 +47,4 @@ namespace Vec2
 	Vector2 ToDegree(const Vector2 &radian, const bool bFixed = false);
 	Vector3 ToVector3(const Vector2 &vec, const float fZ = 0.0f);
 }
-
-#ifdef VEC2_INLINE
-#include "vec2math.inl"
-#endif
 #endif

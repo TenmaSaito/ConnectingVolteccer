@@ -16,7 +16,7 @@
 #include "texture.h"
 #include "electricalCable.h"
 #include "electricCurrent.h"
-#include "objectBillboard.h"
+#include "objectBillboard3D.h"
 #include "effect.h"
 #include "player.h"
 #include "planet.h"
@@ -93,12 +93,12 @@ HRESULT CUtilityPole::Init(const Vector3 &pos, const Vector3 &vecQua, const floa
 	posIcon = Vector3(0.0f, GetVtxMax()->y, 0.0f);
 
 	// ビルボード生成
-	m_apBillboard[ICON_CAN] = CObjectBillboard::Create(posIcon, VECTOR3_NULL, DEF_ICON_SIZE);
+	m_apBillboard[ICON_CAN] = CObjectBillboard3D::Create(posIcon, VECTOR3_NULL, DEF_ICON_SIZE);
 	m_apBillboard[ICON_CAN]->BindTexture(pTexture->Register(ICON_CAN_PATH));
 	m_apBillboard[ICON_CAN]->SetDisp(false);
 	m_apBillboard[ICON_CAN]->SetAlpha(true);
 
-	m_apBillboard[ICON_CANT] = CObjectBillboard::Create(posIcon, VECTOR3_NULL, DEF_ICON_SIZE);
+	m_apBillboard[ICON_CANT] = CObjectBillboard3D::Create(posIcon, VECTOR3_NULL, DEF_ICON_SIZE);
 	m_apBillboard[ICON_CANT]->BindTexture(pTexture->Register(ICON_CANT_PATH));
 	m_apBillboard[ICON_CANT]->SetDisp(false);
 	m_apBillboard[ICON_CANT]->SetAlpha(true);

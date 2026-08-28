@@ -15,6 +15,11 @@
 #include <vector>
 
 //**********************************************************************************
+// *** マクロ定義 ***
+//**********************************************************************************
+#define DEFAULT_ALPHA		(-1.0f)		// α値適用の取り消し値
+
+//**********************************************************************************
 // *** Xモデル(クォータニオン仕様)クラス ***
 //**********************************************************************************
 class CObjectXQuaternion : public CObject
@@ -43,6 +48,10 @@ public:
 	void SetAngle(const float fAngle);
 	void AddAngle(const float fAngle);
 	float GetAngle(void) const { return m_fAngle; }
+	void SetMaterial(const size_t pos, const D3DMATERIAL9 &mat) { m_vMat.at(pos) = mat; }
+	const D3DMATERIAL9 *GetMaterial(const size_t pos) const { return &m_vMat.at(pos); }
+	void SetAlpha(const float fAlpha) { m_fAlpha = fAlpha; }
+	float GetAlpha(void) const { return m_fAlpha; }
 	const Vector3 *GetVtxMin(void) const { return &m_vtxMin; }
 	const Vector3 *GetVtxMax(void) const { return &m_vtxMax; }
 	const Matrix *GetMatrix(void) const { return &m_mtxWorld; }
@@ -51,6 +60,8 @@ public:
 	const char *GetFileName(void) const { return m_aFileName; }
 	void CaluQuaternion(void);
 	const Quaternion *GetQuaternion(void) const { return &m_qua; }
+	bool IsHitByRay(const Vector3 &start, const Vector3 &vec, const float fLength);
+	bool IsHitByPlayerCamRay(void);
 
 protected:
 	Quaternion *GetQuaternionPtr(void) { return &m_qua; }
@@ -70,8 +81,9 @@ private:
 	Quaternion m_qua;				// クォータニオン
 	Matrix m_mtxWorld;				// ワールドマトリックス
 	const Matrix *m_pMtxParent;		// 親のワールドマトリックス
+	std::vector<D3DMATERIAL9> m_vMat;	// モデルのマテリアル色
+	float m_fAlpha;					// α値
 	char m_aFileName[MAX_PATH];		// ファイル名
-	bool m_bHitByPlayerCamRay;		// プレイヤーカメラとのレイ判定
 	bool m_bCalcMatrix;				// マトリックスが一度でも計算されたかを示すフラグ
 };
 #endif

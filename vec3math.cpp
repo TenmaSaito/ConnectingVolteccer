@@ -9,16 +9,12 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "vec3math.h"
-#ifndef VEC3_INLINE
+#include "rand.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
 #define SQUARE(x)		(x * x)			// 2乗
-
-//**********************************************************************************
-// *** Vector3計算関連名前空間の定義 ***
-//**********************************************************************************
 
 //==================================================================================
 // --- 3次元ベクトルの長さ取得処理 ---
@@ -316,6 +312,18 @@ Vector3 Vec3::Random(void)
 }
 
 //==================================================================================
+// --- 指定した範囲のランダムな3次元ベクトル取得処理 ---
+//==================================================================================
+Vector3 Vec3::Random(const Vector3 &min, const Vector3 &max)
+{
+	CRand *pRand = CRand::GetInstance();		// 乱数生成インスタンス
+
+	return Vector3((min.x >= max.x) ? min.x : pRand->Generate(min.x, max.x),
+		(min.y >= max.y) ? min.y : pRand->Generate(min.y, max.y),
+		(min.z >= max.z) ? min.z : pRand->Generate(min.z, max.z));
+}
+
+//==================================================================================
 // --- 3次元ベクトルの範囲内矯正処理 ---
 //==================================================================================
 Vector3 Vec3::Clamp(const Vector3 &vec,
@@ -448,10 +456,11 @@ Vector3 Vec3::ToDegree(const Vector3 &radian, const bool bFixed)
 //==================================================================================
 Vector2 Vec3::ToVector2(const Vector3 &vec, const Axis less)
 {
-	float x = vec[(static_cast<UINT>(less) - 1U) % static_cast<UINT>(Axis::MAX)];
-	float y = vec[(static_cast<UINT>(less) + 1U) % static_cast<UINT>(Axis::MAX)];
+	if (less == Axis::X) return Vector2(vec.y, vec.z);
+	else if (less == Axis::Y) return Vector2(vec.x, vec.z);
+	else if (less == Axis::Z) return Vector2(vec.x, vec.y);
 
-	return Vector2(x, y);
+	return Vector2(0.0f, 0.0f);
 }
 
 //==================================================================================
@@ -475,7 +484,7 @@ float Vec3::GetAxis(Vector3 &vec, const Axis axis)
 //==================================================================================
 // --- 軸列挙変換処理 (Axis -> AxisEx) ---
 //==================================================================================
-AxisEx Vec3::ToAxisEx(const Axis axis)
+Vec3::AxisEx Vec3::ToAxisEx(const Axis axis)
 {
 	return static_cast<AxisEx>(axis);
 }
@@ -483,9 +492,8 @@ AxisEx Vec3::ToAxisEx(const Axis axis)
 //==================================================================================
 // --- 軸列挙変換処理 (AxisEx -> Axis) ---
 //==================================================================================
-Axis Vec3::ToAxis(const AxisEx axisEx)
+Vec3::Axis Vec3::ToAxis(const AxisEx axisEx)
 {
 	if (axisEx >= static_cast<AxisEx>(Axis::MAX)) return Axis::MAX;
 	return static_cast<Axis>(axisEx);
 }
-#endif

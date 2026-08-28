@@ -24,12 +24,12 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define GAUGE_SIZE		Vector2(COMBO_SIZE.x + (NUMBER_SIZE.x * MAX_COMBO_NUM), 15.0f)		// ゲージのサイズ
-#define COMBO_TIME		(4)				// コンボ表示が持続する時間
+#define COMBO_TIME		(3)				// コンボ表示が持続する時間
 #define COMBO_FRAME		(CManager::SecToFrame(COMBO_TIME))		// コンボ表示が持続するフレーム数
 #define COMBO_SIZE		(Vector2(200.0f, 80.0f))		// コンボ表示のサイズ
 #define NUMBER_SIZE		(Vector2(64.0f, 128.0f))		// 数値オブジェクトのサイズ
 #define NUMBER_TEXTYPE	(CNumber::TYPE_VOLTNUM_003)		// タイマーの数字のテクスチャの種類
+#define GAUGE_SIZE		Vector2(COMBO_SIZE.x + (NUMBER_SIZE.x * MAX_COMBO_NUM), 15.0f)		// ゲージのサイズ
 #define COMBO_TEX_PATH	"data/TEXTURE/Combo.png"		// コンボテクスチャ
 #define SIZE_MAGNI		(1.65f)			// コンボ増加時の拡大倍率
 #define LERP_VALUE		(0.01f)			// 1フレーム当たりの透明になる線形補間の増加係数

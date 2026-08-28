@@ -94,8 +94,8 @@ void CTexture::Unload(void)
 //==================================================================================
 UINT CTexture::Register(const std::string_view path)
 { // ファイル名がnullもしくはインデックスが無効値手前の場合失敗
-	if (path.empty()) return INVALID_TEXID;
-	if (m_vTexBuff.size() == INVALID_TEXID - 1U) return INVALID_TEXID;
+	if (path.empty()) return INVALID_TEX_ID;
+	if (m_vTexBuff.size() == INVALID_TEX_ID - 1U) return INVALID_TEX_ID;
 
 	// 既に読み込んでいないかを確認
 	for (UINT uCntTexture = 0; uCntTexture < m_vTexBuff.size(); uCntTexture++)
@@ -115,7 +115,7 @@ UINT CTexture::Register(const std::string_view path)
 //==================================================================================
 UINT CTexture::Register(const char *pPath)
 { // nullptrの場合、無効値を渡す
-	if (pPath == nullptr) return INVALID_TEXID;
+	if (pPath == nullptr) return INVALID_TEX_ID;
 
 	// 存在すれば正式に処理を呼び出す
 	return Register(std::string_view(pPath));
@@ -126,7 +126,7 @@ UINT CTexture::Register(const char *pPath)
 //==================================================================================
 LPDIRECT3DTEXTURE9 CTexture::GetAddress(const UINT uIdx)
 { // 無効なインデックスならnullptrを返す
-	if (uIdx >= m_vTexBuff.size() || uIdx == INVALID_TEXID) return nullptr;
+	if (uIdx >= m_vTexBuff.size() || uIdx == INVALID_TEX_ID) return nullptr;
 
 	// テクスチャへのポインタを返す
 	return m_vTexBuff.at(uIdx).pTexture;
@@ -148,7 +148,7 @@ UINT CTexture::Load(const std::string_view path)
 		&texbuf.pTexture);
 	if (FAILED(hr))
 	{
-		return INVALID_TEXID;
+		return INVALID_TEX_ID;
 	}
 	
 	// ファイル名を保存

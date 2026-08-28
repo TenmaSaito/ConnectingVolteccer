@@ -22,7 +22,7 @@
 //**********************************************************************************
 // *** 前方宣言 ***
 //**********************************************************************************
-class CObjectBillboard;
+class CObjectBillboard3D;
 class CPowerPlant;
 
 //**********************************************************************************
@@ -73,7 +73,7 @@ private:
 	CUtilityPole *m_pConnect;						// 電線でつながっている電柱へのポインタ
 	CUtilityPole *m_pConnected;						// 接続してきた電柱へのポインタ
 	CPowerPlant *m_pConnectedPowerPlant;			// 接続してきた発電所へのポインタ
-	CObjectBillboard *m_apBillboard[ICON_MAX];		// ビルボードへのポインタ
+	CObjectBillboard3D *m_apBillboard[ICON_MAX];		// ビルボードへのポインタ
 	int m_nNumConnect;			// 接続されている電柱の数
 	bool m_bElectriced;			// 既に電流が流れたかどうか
 	bool m_bSelected;			// 選択されているか(プレイヤーの視点の中心に最も近いか)

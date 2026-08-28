@@ -12,7 +12,6 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "object.h"
-#include <stdio.h>
 #include <memory>
 #include <vector>
 #include <variant>
@@ -23,10 +22,7 @@
 #define DEFAULT_PLAYER_PRIORITY	DEFAULT_OBJ_PRIORITY			// プレイヤーの基本優先順位
 #define DEFAULT_PLAYER_POS		VECTOR3_NULL					// プレイヤーの基本位置
 #define DEFAULT_PLAYER_ROT		VECTOR3_NULL					// プレイヤーの基本角度
-#define MAX_PLAYER_MODEL_NUM	(15)							// プレイヤーの確保可能なモデル数
 #define MAX_PLAYER_MODEL_PATH	(50)							// 保存可能なモデルパス数
-#define MAX_PLAYER_KEYINFO		(20)							// キー情報の最大数
-#define MAX_PLAYER_MOTION		(10)							// モーション情報の最大数
 
 //**********************************************************************************
 // *** 前方宣言 ***
@@ -84,8 +80,10 @@ public:
 	const Vector3 *GetMove(void) const { return &m_move; }
 	const Matrix *GetMatrix(void) const { return &m_mtxWorld; }
 	const std::variant<CPowerPlant*, CUtilityPole*> *GetRidingObject(void) const { return &m_pRidingObject; }
+	int GetNumLightingHouse(void) const { return m_nNumLightingHouse; }
 	bool IsShotLasso(void) const { return m_bShotLasso; }
 	void ChangeRidingPole(CUtilityPole *pNext);
+	void AddLightingHouse(void) { m_nCurrentConnectLighting++; }
 
 private:
 	void InputAction(void);
@@ -94,6 +92,9 @@ private:
 	void UpdatePotision(void);
 	void UpdateRotateDest(void);
 	void UpdatePole(void);
+	void MoveToNextPole(void);
+	void CheckRidingRight(void);
+	void FindNearestPole(void);
 	void DismountPole(void);
 	void CollisionAction(void);
 	void OtherUpdate(void);
@@ -115,5 +116,8 @@ private:
 	bool m_bShotLasso;		// 投げ縄を投げたか
 	Vector3 m_vecQua;		// 回転の任意軸
 	float m_fAngleRest;		// 次の電柱への残りの角度
+	int m_nNumLightingHouse;			// 電線の接続で電気のついた家の総数
+	int m_nCurrentConnectLighting;		// 今回の電線の接続で電気のついた家の数
+	bool m_bCreateConnectEffect;		// 電気のついた家の数で表示が変わる演出を既に生成したか
 };
 #endif

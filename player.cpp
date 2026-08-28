@@ -32,7 +32,7 @@
 #include "combo.h"
 #include "vec2math.h"
 #include "vec3math.h"
-#include "observer_pointer.h"
+#include "connectingEvaluate.h"
 #include <algorithm>
 
 //**********************************************************************************
@@ -79,6 +79,9 @@ CPlayer::CPlayer(const int nPriority) : CObject(nPriority)
 	m_pPoleNext = nullptr;
 	m_bShotLasso = false;
 	m_fAngleRest = 0.0f;
+	m_nNumLightingHouse = 0;
+	m_nCurrentConnectLighting = 0;
+	m_bCreateConnectEffect = false;
 
 	// タイプ設定
 	SetType(TYPE_PLAYER);
@@ -111,7 +114,7 @@ HRESULT CPlayer::Init(const char *pFileName, const Vector3 &pos, const Vector3 &
 	m_vpModel = pPartsLoader->CreateParts(pPartsLoader->Register(pFileName));
 
 	// モーションの設定
-	m_pMotion->SetModel(m_vpModel, m_vpModel.size());
+	m_pMotion->SetModel(m_vpModel);
 	m_pMotion->Set(0);
 
 	// プレイヤー用カメラの生成
@@ -262,8 +265,12 @@ void CPlayer::ChangeRidingPole(CUtilityPole *pNext)
 	m_pPoleNext = pNext;			// 次の電柱を保存
 
 	// コンボ追加
-	own::ObserverPtr pCombo(pGame->GetCombo());		// コンボ表示へのポインタ
+	CCombo *pCombo = pGame->GetCombo();		// コンボ表示へのポインタ
 	pCombo->AddCombo(1);
+
+	// 電気がついた家の数と演出生成の有無をリセット
+	m_nCurrentConnectLighting = 0;
+	m_bCreateConnectEffect = false;
 }
 
 //==================================================================================
@@ -574,7 +581,7 @@ void CPlayer::InputPole(void)
 			pObject = pObjectNext;		// ポインタ更新
 		}
 
-		CGame *pGame = pManager->GetScene<CGame>();		// ゲームシーンへのポインタ
+		CGame *pGame = pManager->GetScene(&pGame);		// ゲームシーンへのポインタ
 		auto pPlanet = pGame->GetPlanet();				// 惑星へのポインタ
 
 		// 選ばれた電柱が存在すれば
@@ -641,6 +648,35 @@ void CPlayer::UpdateRotateDest(void)
 //==================================================================================
 void CPlayer::UpdatePole(void)
 {
+	if (m_nCurrentConnectLighting > 0 && m_bCreateConnectEffect == false)
+	{ // 電気のついた家が1軒以上あり、未だその演出を出していないならば
+		// 評価表示
+		CManager *pManager = CManager::GetInstance();	// マネージャへのポインタ
+		CGame *pGame = pManager->GetScene(&pGame);		// ゲームシーンへのポインタ
+		CConnectingEvaluate *pEvaluate = pGame->GetConnectingEvaluate();		// 接続時評価用クラスへのポインタ
+
+		// 評価演出を追加 + 演出フラグを立てる
+		pEvaluate->AddEvaluate(m_nCurrentConnectLighting);
+		m_bCreateConnectEffect = true;
+
+		m_nNumLightingHouse += m_nCurrentConnectLighting;		// 電気のついた家分総数増加
+	}
+
+	// 電柱間の移動処理
+	MoveToNextPole();
+
+	// 電柱に載っていられるかの確認処理
+	CheckRidingRight();
+
+	// 視点の中央に最も近い電柱の検索
+	FindNearestPole();
+}
+
+//==================================================================================
+// --- 次に乗る電柱に移動する処理 ---
+//==================================================================================
+void CPlayer::MoveToNextPole(void)
+{
 	CManager *pManager = CManager::GetInstance();			// マネージャへのポインタ
 	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
 	CGame *pGame = pManager->GetScene(&pGame);			// ゲームシーンへのポインタ
@@ -690,100 +726,122 @@ void CPlayer::UpdatePole(void)
 	{ // フィードバックエフェクトを無効化
 		pRenderer->SetEnableFeedBack(false);
 	}
+}
 
-	if (GetRidingObjectX() != nullptr)
-	{ // オブジェクトに乗っている場合
-		CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera*>(CCamera::GetCamera(CCamera::TYPE_PLAYER));		// プレイヤーカメラへのポインタ
-		CObject *pObject = CObject::GetTop(UTILITYPOLE_PRIORITY);		// 最初のオブジェクト
-		Vector3 vecCam = VECTOR3_NULL;				// カメラの方向ベクトル
-		Vector3 vecPlayerToPole = VECTOR3_NULL;		// プレイヤーから電柱への方向ベクトル
-		CUtilityPole *pPoleNear = nullptr;		// 最も画面の中心に近い電柱へのポインタ
-		float fDotMax = 0.0f;					// 内積の最小値
+//==================================================================================
+// --- 電柱に未だ乗っていられるかの確認処理 ---
+//==================================================================================
+void CPlayer::CheckRidingRight(void)
+{
+	if (GetRidingObjectX() == nullptr)
+	{ // オブジェクトに乗っていない場合、処理スキップ
+		return;
+	}
 
-		// ゲームシーンの取得
-		if (pGame != nullptr)
-		{ // 取得成功時
-			CCombo *pCombo = pGame->GetCombo();		// コンボ表示へのポインタ
-			if (pCombo->GetDisp() == false
-				&& m_pRidingObject.index() == CUTILITYPOLE_PTR
-				&& m_bShotLasso == false)
-			{ // コンボ表示が消えた且つ投げ縄を投げていないなら、電柱から強制的におろす
-				// オフセットを元に戻す
-				m_pos.y = m_offset.y;
+	CManager *pManager = CManager::GetInstance();			// マネージャへのポインタ
+	CGame *pGame = pManager->GetScene(&pGame);			// ゲームシーンへのポインタ
+	CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera *>(CCamera::GetCamera(CCamera::TYPE_PLAYER));		// プレイヤーカメラへのポインタ
 
-				// 電柱から降りる処理を実行
-				DismountPole();
+	// ゲームシーンの取得
+	if (pGame != nullptr)
+	{ // 取得成功時
+		CCombo *pCombo = pGame->GetCombo();		// コンボ表示へのポインタ
+		if (pCombo->GetDisp() == false
+			&& m_pRidingObject.index() == CUTILITYPOLE_PTR
+			&& m_bShotLasso == false)
+		{ // コンボ表示が消えた且つ投げ縄を投げていないなら、電柱から強制的におろす
+			// オフセットを元に戻す
+			m_pos.y = m_offset.y;
 
-				// コンボリセット
-				CCombo *pCombo(pManager->GetScene<CGame>()->GetCombo());		// コンボ表示へのポインタ
-				pCombo->ResetCombo();
+			// 電柱から降りる処理を実行
+			DismountPole();
 
-				// カメラをプレイヤーフォーカスに変更
-				pPlayerCam->SetState(CPlayerCamera::STATE_PLAYER);
+			// コンボリセット
+			CCombo *pCombo(pManager->GetScene<CGame>()->GetCombo());		// コンボ表示へのポインタ
+			pCombo->ResetCombo();
 
-				// モーションを終了
-				m_pMotion->Set(MOTIONTYPE_NEUTRAL, 10);
-				return;
-			}
+			// カメラをプレイヤーフォーカスに変更
+			pPlayerCam->SetState(CPlayerCamera::STATE_PLAYER);
+
+			// モーションを終了
+			m_pMotion->Set(MOTIONTYPE_NEUTRAL, 10);
 		}
+	}
+}
 
-		// カメラの方向ベクトルを求める
-		vecCam = pPlayerCam->GetRay();
+//==================================================================================
+// --- 視点の中央に最も近い電柱の検索処理 ---
+//==================================================================================
+void CPlayer::FindNearestPole(void)
+{
+	if (GetRidingObjectX() == nullptr)
+	{ // オブジェクトに乗っていない場合、処理スキップ
+		return;
+	}
 
-		// XZ平面で計算する為Y軸のベクトルは0に設定
-		vecCam.y = 0.0f;
+	CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera *>(CCamera::GetCamera(CCamera::TYPE_PLAYER));		// プレイヤーカメラへのポインタ
+	CObject *pObject = CObject::GetTop(UTILITYPOLE_PRIORITY);		// 最初のオブジェクト
+	Vector3 vecCam = VECTOR3_NULL;				// カメラの方向ベクトル
+	Vector3 vecPlayerToPole = VECTOR3_NULL;		// プレイヤーから電柱への方向ベクトル
+	CUtilityPole *pPoleNear = nullptr;		// 最も画面の中心に近い電柱へのポインタ
+	float fDotMax = 0.0f;					// 内積の最小値
 
-		while (pObject != nullptr)
-		{ // オブジェクトを走査
-			CObject *pObjectNext = pObject->GetNext();			// 次のオブジェクトへのポインタ
+	// カメラの方向ベクトルを求める
+	vecCam = pPlayerCam->GetRay();
 
-			if (pObject->GetType() == CObject::TYPE_POLE)
-			{ // もしオブジェクトが電柱であれば、ポインタをキャスト
-				CUtilityPole *pPole = static_cast<CUtilityPole *>(pObject);
-				Vector3 posPole = VECTOR3_NULL;	// マトリックスのキャスト用
-				Vector3 pos = VECTOR3_NULL;		// マトリックスのキャスト用
-				CRay ray;				// プレイヤーから電柱への光線
-				float fDot = 0.0f;		// 内積結果
+	// XZ平面で計算する為Y軸のベクトルは0に設定
+	vecCam.y = 0.0f;
 
-				// ポールの選択フラグをおろす
-				pPole->SetEnableSelect(false);
+	while (pObject != nullptr)
+	{ // オブジェクトを走査
+		CObject *pObjectNext = pObject->GetNext();			// 次のオブジェクトへのポインタ
 
-				if (GetRidingObjectX() != pPole && pPole->GetIconType() == CUtilityPole::ICON_CAN)
-				{ // プレイヤーの乗っている電柱ではなく、選択可能なら計算開始
-					// 各座標をマトリックスでワールド座標に変換
-					posPole.y = pPole->GetVtxMax()->y;
-					D3DXVec3TransformCoord(&pos, &m_pos, &m_mtxWorld);
-					D3DXVec3TransformCoord(&posPole, &posPole, pPole->GetMatrix());
+		if (pObject->GetType() == CObject::TYPE_POLE)
+		{ // もしオブジェクトが電柱であれば、ポインタをキャスト
+			CUtilityPole *pPole = static_cast<CUtilityPole *>(pObject);
+			Vector3 posPole = VECTOR3_NULL;	// マトリックスのキャスト用
+			Vector3 pos = VECTOR3_NULL;		// マトリックスのキャスト用
+			CRay ray;				// プレイヤーから電柱への光線
+			float fDot = 0.0f;		// 内積結果
 
-					// プレイヤーから電柱への方向ベクトルを求める
-					vecPlayerToPole = Vec3::Direction(posPole, pos);
+			// ポールの選択フラグをおろす
+			pPole->SetEnableSelect(false);
 
-					// XZ平面で計算する為Y軸のベクトルは0に設定
-					vecPlayerToPole.y = 0.0f;
+			if (GetRidingObjectX() != pPole && pPole->GetIconType() == CUtilityPole::ICON_CAN)
+			{ // プレイヤーの乗っている電柱ではなく、選択可能なら計算開始
+				// 各座標をマトリックスでワールド座標に変換
+				posPole.y = pPole->GetVtxMax()->y;
+				D3DXVec3TransformCoord(&pos, &m_pos, &m_mtxWorld);
+				D3DXVec3TransformCoord(&posPole, &posPole, pPole->GetMatrix());
+
+				// プレイヤーから電柱への方向ベクトルを求める
+				vecPlayerToPole = Vec3::Direction(posPole, pos);
+
+				// XZ平面で計算する為Y軸のベクトルは0に設定
+				vecPlayerToPole.y = 0.0f;
 
 #ifdef ENABLE_RAY_PLAYER_TO_POLE
-					// レイを作成して描画
-					pos.y = m_offset.y + m_pRidingPole->GetVtxMax()->y;
-					ray = CRay(pos, posPole);
-					ray.Draw();
+				// レイを作成して描画
+				pos.y = m_offset.y + m_pRidingPole->GetVtxMax()->y;
+				ray = CRay(pos, posPole);
+				ray.Draw();
 #endif
-					// 二つのベクトルから内積を求める
-					fDot = Vec3::Dot(vecCam, vecPlayerToPole);
-					if (fDot >= fDotMax)
-					{ // 現在の最小内積結果より小さかった場合、ポインタと結果を保存
-						pPoleNear = pPole;
-						fDotMax = fDot;
-					}
+				// 二つのベクトルから内積を求める
+				fDot = Vec3::Dot(vecCam, vecPlayerToPole);
+				if (fDot >= fDotMax)
+				{ // 現在の最小内積結果より小さかった場合、ポインタと結果を保存
+					pPoleNear = pPole;
+					fDotMax = fDot;
 				}
 			}
-
-			pObject = pObjectNext;		// ポインタ更新
 		}
 
-		if (pPoleNear != nullptr)
-		{ // 中心に近い電柱が存在するなら、選択
-			pPoleNear->SetEnableSelect(true);
-		}
+		pObject = pObjectNext;		// ポインタ更新
+	}
+
+	if (pPoleNear != nullptr)
+	{ // 中心に近い電柱が存在するなら、選択
+		pPoleNear->SetEnableSelect(true);
 	}
 }
 

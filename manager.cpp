@@ -19,7 +19,7 @@
 #include "object.h"
 #include "object2D.h"
 #include "object3D.h"
-#include "objectBillboard.h"
+#include "objectBillboard3D.h"
 #include "objectX.h"
 #include "camera.h"
 #include "playerCamera.h"

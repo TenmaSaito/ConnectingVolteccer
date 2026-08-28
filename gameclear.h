@@ -21,7 +21,7 @@ class CObject2D;
 //**********************************************************************************
 // *** タイトルクラス ***
 //**********************************************************************************
-class CGameClear : public CScene
+class CGameClear : public CSceneBase<CGameClear, CScene::MODE_GAMECLEAR>
 {
 public:
 	CGameClear();

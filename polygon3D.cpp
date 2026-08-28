@@ -1,14 +1,14 @@
 //==================================================================================
 // 
-// ビルボードクラスのソースファイル [billboard.h]
+// ポリゴン3Dクラスのヘッダーファイル [poplygon3D.h]
 // Author : TENMA SAITO
-// Date   : 2026/7/14
+// Date   : 2026/8/28
 // 
 //==================================================================================
 //**********************************************************************************
 // *** インクルードファイル ***
 //**********************************************************************************
-#include "billboard.h"
+#include "polygon3D.h"
 #include "manager.h"
 #include "renderer.h"
 #include "texture.h"
@@ -18,44 +18,45 @@
 //==================================================================================
 // --- 生成処理 ---
 //==================================================================================
-CBillboard *CBillboard::Create(const Vector3 &pos, const Vector2 &size)
+CPolygon3D *CPolygon3D::Create(const Vector3 &pos, const Vector3 &rot, const Vector2 &size)
 {
-	CBillboard *pBillboard = new CBillboard;		// 生成したビルボード
-	NULLPOINTER_ASSERT(pBillboard);
+	CPolygon3D *pPoly = new CPolygon3D;		// 生成したポリゴン
+	NULLPOINTER_ASSERT(pPoly);
 
-	if (pBillboard != nullptr)
+	if (pPoly != nullptr)
 	{ // 初期化処理
-		pBillboard->Init(pos, size);
+		pPoly->Init(pos, rot, size);
 	}
 
-	return pBillboard;
+	return pPoly;
 }
 
 //==================================================================================
 // --- コンストラクタ ---
 //==================================================================================
-CBillboard::CBillboard()
+CPolygon3D::CPolygon3D()
 { // メンバ変数のクリア
 	m_pVtxBuff = nullptr;
-	m_pTexture = nullptr;
 	m_pMtxParent = nullptr;
 	m_nIdxTexture = -1;
 	m_pos = VECTOR3_NULL;
+	m_rot = VECTOR3_NULL;
 	m_size = VECTOR2_NULL;
-	m_bUseIndex = false;
+	m_col = COLOR_NULL;
+	m_bDisp = true;
 }
 
 //==================================================================================
 // --- デストラクタ ---
 //==================================================================================
-CBillboard::~CBillboard()
+CPolygon3D::~CPolygon3D()
 {
 }
 
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CBillboard::Init(const Vector3 &pos, const Vector2 &size)
+HRESULT CPolygon3D::Init(const Vector3 &pos, const Vector3 &rot, const Vector2 &size)
 {
 	VERTEX_3D *pVtx = NULL;		// 頂点情報へのポインタ
 	CRenderer *pRenderer = CManager::GetInstance()->GetRenderer();	// レンダラーへのポインタ
@@ -63,10 +64,13 @@ HRESULT CBillboard::Init(const Vector3 &pos, const Vector2 &size)
 
 	// 引数を保存
 	m_pos = pos;
+	m_rot = rot;
+	D3DXQuaternionRotationYawPitchRoll(&m_qua, rot.y, rot.x, rot.z);
 	m_size = size;
+	m_col = COLOR_ONE;
 
 	// 頂点バッファ作成
-	pDevice->CreateVertexBuffer(sizeof(VERTEX_3D) * 4,
+	pDevice->CreateVertexBuffer(sizeof(VERTEX_3D) * DEFAULT_VERTEX_NUM,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_3D,
 		D3DPOOL_MANAGED,
@@ -120,7 +124,7 @@ HRESULT CBillboard::Init(const Vector3 &pos, const Vector2 &size)
 //==================================================================================
 // --- 終了処理 ---
 //==================================================================================
-void CBillboard::Uninit(void)
+void CPolygon3D::Uninit(void)
 { // バッファ解放
 	SafeRelease(m_pVtxBuff);
 }
@@ -128,43 +132,28 @@ void CBillboard::Uninit(void)
 //==================================================================================
 // --- 更新処理 ---
 //==================================================================================
-void CBillboard::Update(void)
+void CPolygon3D::Update(void)
 {
-
 }
 
 //==================================================================================
 // --- 描画処理 ---
 //==================================================================================
-void CBillboard::Draw(void)
-{
+void CPolygon3D::Draw(void)
+{ // 描画フラグが降りていた時、スキップ
+	if (m_bDisp != true) return;
+
 	CManager *pManager = CManager::GetInstance();			// マネージャへのポインタ
 	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
 	CTexture *pTexture = CTexture::GetInstance();			// テクスチャへのポインタ
 	Matrix mtxView;		// ビューマトリックス
 
-	/*** カメラのビューマトリックスを取得 ***/
-	pDevice->GetTransform(D3DTS_VIEW, &mtxView);
+	// マトリックスの初期化
+	Mtx::Identity(&m_mtxWorld);
 
-	// ワールドマトリックスの初期化
-	D3DXMatrixIdentity(&m_mtxWorld);
-
-	/*** マトリックスの逆行列を求める (※ 位置を反映する前に必ず行うこと！) ***/
-	D3DXMatrixInverse(&m_mtxWorld, NULL, &mtxView);
-
-	/** 逆行列によって入ってしまった位置情報を初期化 **/
-	m_mtxWorld._41 = 0.0f;
-	m_mtxWorld._42 = 0.0f;
-	m_mtxWorld._43 = 0.0f;
-
-	// 位置の計算
-	Mtx::CalcPosition(&m_mtxWorld, m_pos);
-
-	if (m_pMtxParent)
-	{ // 親が存在するならマトリックスを適用
-		D3DXMatrixMultiply(&m_mtxWorld, &m_mtxWorld, m_pMtxParent);
-	}
+	// マトリックスの計算
+	Mtx::CalcWorld(&m_mtxWorld, m_pMtxParent, m_pos, m_qua);
 
 	// ワールドマトリックスの設定
 	pDevice->SetTransform(D3DTS_WORLD, &m_mtxWorld);
@@ -173,46 +162,87 @@ void CBillboard::Draw(void)
 	pDevice->SetStreamSource(0, m_pVtxBuff, 0, sizeof(VERTEX_3D));
 
 	// テクスチャ設定
-	if (m_bUseIndex)
-	{
-		pDevice->SetTexture(0, pTexture->GetAddress(m_nIdxTexture));
-	}
-	else
-	{
-		pDevice->SetTexture(0, m_pTexture);
-	}
+	pDevice->SetTexture(0, pTexture->GetAddress(m_nIdxTexture));
 
 	// 頂点フォーマット設定
 	pDevice->SetFVF(FVF_VERTEX_3D);
+
+	// 描画前関数呼び出し
+	if (m_beforeDraw) m_beforeDraw(pDevice);
 
 	// ポリゴンの描画
 	pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP,
 		0,
 		2);
+
+	// 描画後関数呼び出し
+	if (m_afterDraw) m_afterDraw(pDevice);
 }
 
 //==================================================================================
-// --- テクスチャの登録処理 ---
+// --- 角度の設定処理 (オイラー角) ---
 //==================================================================================
-void CBillboard::BindTexture(LPDIRECT3DTEXTURE9 pTexture)
-{
-	m_pTexture = pTexture;
-	m_bUseIndex = false;
+void CPolygon3D::SetRotation(const Vector3 &rot)
+{ // 引数を保存
+	m_rot = rot;
+
+	// クォータニオンを再計算
+	D3DXQuaternionRotationYawPitchRoll(&m_qua, rot.y, rot.x, rot.z);
 }
 
 //==================================================================================
-// --- テクスチャの登録処理 ---
+// --- 角度の設定処理 (四元数) ---
 //==================================================================================
-void CBillboard::BindTexture(const int nIdxTexture)
+void CPolygon3D::SetQuaternion(const Quaternion &qua)
+{ // 引数を保存
+	m_qua = qua;
+
+	// 角度を再計算
+	Matrix mtxNormal;						// 角度計算用マトリックス
+	Vector3 rot = VECTOR3_NULL;				// 初期値
+
+	// マトリックスから角度を求める
+	Mtx::Identity(&mtxNormal);
+	Mtx::CalcRotation(&mtxNormal, m_qua);
+	D3DXVec3TransformNormal(&m_rot, &rot, &mtxNormal);
+}
+
+//==================================================================================
+// --- 角度の設定処理 (任意軸 + 回転度数) ---
+//==================================================================================
+void CPolygon3D::SetQuaternionRotationAxis(const Vector3 &vec, const float fAngle)
+{ // クォータニオンを求める
+	D3DXQuaternionRotationAxis(&m_qua, &vec, fAngle);
+
+	// 角度を再計算
+	Matrix mtxNormal;						// 角度計算用マトリックス
+	Vector3 rot = VECTOR3_NULL;				// 初期値
+
+	// マトリックスから角度を求める
+	Mtx::Identity(&mtxNormal);
+	Mtx::CalcRotation(&mtxNormal, m_qua);
+	D3DXVec3TransformNormal(&m_rot, &rot, &mtxNormal);
+}
+
+//==================================================================================
+// --- 任意軸 + 回転度数の取得処理 ---
+//==================================================================================
+std::pair<Vector3, float> CPolygon3D::GetQuaternionRotationAxis(void) const
 {
-	m_nIdxTexture = nIdxTexture;
-	m_bUseIndex = true;
+	std::pair<Vector3, float> rotAxis;		// 任意軸と回転度数
+
+	// それぞれを求める
+	D3DXQuaternionToAxisAngle(&m_qua,
+		&rotAxis.first,
+		&rotAxis.second);
+
+	return rotAxis;
 }
 
 //==================================================================================
 // --- サイズの設定処理 ---
 //==================================================================================
-void CBillboard::SetSize(const Vector2 &size)
+void CPolygon3D::SetSize(const Vector2 &size)
 {
 	VERTEX_3D *pVtx = NULL;		// 頂点情報へのポインタ
 
@@ -238,6 +268,29 @@ void CBillboard::SetSize(const Vector2 &size)
 	pVtx[3].pos.x = m_size.x * 0.5f;
 	pVtx[3].pos.y = m_size.y * 0.5f;
 	pVtx[3].pos.z = 0.0f;
+
+	// 頂点バッファをアンロック
+	m_pVtxBuff->Unlock();
+}
+
+//==================================================================================
+// --- 色の変更処理 ---
+//==================================================================================
+void CPolygon3D::SetColor(const Color &color)
+{
+	VERTEX_3D *pVtx = nullptr;		// 頂点情報へのポインタ
+
+	// 引数を保存
+	m_col = color;
+
+	// 頂点バッファをロック
+	m_pVtxBuff->Lock(0, 0, (void **)&pVtx, 0);
+
+	// 頂点カラー設定
+	pVtx[0].col = m_col;
+	pVtx[1].col = m_col;
+	pVtx[2].col = m_col;
+	pVtx[3].col = m_col;
 
 	// 頂点バッファをアンロック
 	m_pVtxBuff->Unlock();

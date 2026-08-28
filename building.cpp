@@ -10,12 +10,18 @@
 //**********************************************************************************
 #include "building.h"
 #include "manager.h"
+#include "renderer.h"
 #include "game.h"
 #include "planet.h"
+#include "player.h"
 #include "utilityPole.h"
+#include "billboard3D.h"
+#include "lightingPillar.h"
+#include "polygon3D.h"
 #include "vec3math.h"
 #include "effect.h"
-#include "particle.h"
+#include "particleQuaternion.h"
+#include "particleQuaternionBuilder.h"
 #include "color.h"
 #include "texture.h"
 #include <string_view>
@@ -25,7 +31,11 @@
 // *** マクロ定義 ***
 //**********************************************************************************
 #define SCALE_VALUE		(1.0f / 15.0f)		// 線形補間の増減値
-#define PARTICLE_PATH	"data/TEXTURE/effect000.jpg"	// エフェクトのパス
+#define HIT_ALPHA		(0.2f)				// プレイヤーカメラのレイと当たった時に設定するα値
+#define PARTICLE_PATH	"data/TEXTURE/effect000.jpg"	// エフェクトのテクスチャパス
+#define PILLAR_PATH		"data/TEXTURE/gradation202.jpg"	// 光の柱のテクスチャパス
+#define DETACHED_HOUSE_ROOF_POS		(2)		// 一軒家の屋根のマテリアルインデックス
+#define MAKE_FUNCTION(func, ...)		[&](__VA_ARGS__){func}		// ラムダ式生成マクロ
 
 //**********************************************************************************
 // *** 定数宣言 ***
@@ -96,6 +106,7 @@ CBuilding *CBuilding::Create(const TYPE type, const Vector3 &position)
 CBuilding::CBuilding(const TYPE type, const int nPriority) : CObjectXQuaternion(nPriority)
 { // メンバ変数のクリア
 	m_pNearPole = nullptr;
+	m_pPillar = nullptr;
 	m_bFound = false;
 	m_bLighting = false;
 	m_fLerp = 0.0f;
@@ -127,11 +138,48 @@ HRESULT CBuilding::Init(const Vector3 &position,
 	// 親クラスの初期化
 	hr = CObjectXQuaternion::Init(c_asBuildingPath[m_buildingType].data(), position, vecQua, fAngle);
 
+	if (m_buildingType == TYPE_0)
+	{ // 一軒家の場合
+		// 屋根の色を変更
+		auto mat = *GetMaterial(DETACHED_HOUSE_ROOF_POS);
+		mat.Diffuse = Colors::Random(false);
+		SetMaterial(DETACHED_HOUSE_ROOF_POS, mat);
+	}
+
 	// 親を惑星に設定
 	SetParent(pPlanet->GetMatrix());
 
 	// 増減値を設定
 	m_fValue = SCALE_VALUE;
+
+	// 光の柱用のビルボードを生成
+	m_pPillar = CLightingPillar::Create(Vector3(0.0f, 500.0f, 0.0f),
+		Vector2(25.0f, 1000.0f),
+		COLOR_ONE);
+	m_pPillar->BindTexture(CTexture::GetInstance()->Register(PILLAR_PATH));
+
+	// 加算合成の前後処理を登録
+	m_pPillar->SetStateFunctionBeforeDraw([](LPDIRECT3DDEVICE9 pDevice)
+		{ // 加算合成開始
+		pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+		pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+		pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
+		pDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+		});
+	m_pPillar->SetStateFunctionAfterDraw([](LPDIRECT3DDEVICE9 pDevice)
+		{ // 加算合成終了
+			pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+			pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+			pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+			pDevice->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+		});
+
+	// 親マトリックスを適用
+	m_pPillar->SetParent(GetMatrix());
+
+	// Y軸の回転を無効化
+	m_pPillar->SetEnableYBill(true);
+
 	return hr;
 }
 
@@ -164,6 +212,36 @@ HRESULT CBuilding::Init(const Vector3 &position)
 
 	// 増減値を設定
 	m_fValue = SCALE_VALUE;
+
+	// 光の柱を生成
+	auto pBill = CObjectBillboard3D::Create(Vector3(0.0f, 500.0f, 0.0f),
+		VECTOR3_NULL,
+		Vector2(25.0f, 1000.0f),
+		INT_MAX,
+		DEFAULT_ADD_PRIORITY);
+	pBill->BindTexture(CTexture::GetInstance()->Register(PILLAR_PATH));
+
+	// 加算合成の前後処理を登録
+	pBill->SetStateFunctionBeforeDraw([](LPDIRECT3DDEVICE9 pDevice)
+		{ // 加算合成開始
+			pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+			pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+			pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
+			pDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+		});
+	pBill->SetStateFunctionAfterDraw([](LPDIRECT3DDEVICE9 pDevice)
+		{ // 加算合成終了
+			pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+			pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+			pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+			pDevice->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+		});
+
+	// 親マトリックスを適用
+	pBill->SetParent(GetMatrix());
+
+	// Y軸の回転を無効化
+	pBill->SetEnableYBill(true);
 	return hr;
 }
 
@@ -207,18 +285,36 @@ void CBuilding::Update(void)
 
 			if (m_bLighting != true)
 			{ // 始めて電流が流れたとき
-				auto pParticle = CParticleQuaternion::Create(Vector3(0.0f, 0.0, 0.0f),
-					Vector2(15.0f, 15.0f),
-					Colors::GetColor(Colors::C_ORANGE),
-					*GetVecQua(),
-					GetAngle(),
-					3,
-					100);
+				// 設定を作成
+				CParticleQuaternion::Setting setting = CParticleQuaternionBuilder()
+					.SetPosition(VECTOR3_NULL)
+					.SetVecQua(*GetVecQua())
+					.SetAngle(GetAngle())
+					.SetMove(Vector3(0.1f, 5.0f, 0.1f))
+					.SetScale(Vector2(15.0f, 15.0f))
+					.SetColor(Colors::GetColor(Colors::C_ORANGE))
+					.SetNumEffectFrame(3)
+					.SetLife(100)
+					.SetMoveVariation(Vector3(10.0f, 0.0f, 10.0f))
+					.SetScaleVariation(Vector2(10.0f, 10.0f))
+					.Build();
+
+				// 設定を基にパーティクルを生成
+				auto pParticle = CParticleQuaternion::Create(setting);
 
 				// 親マトリックスとテクスチャを設定
 				pParticle->SetParent(GetMatrix());
 				pParticle->BindTexture(CTexture::GetInstance()->Register(PARTICLE_PATH));
 				m_bLighting = true;
+
+				CGame *pGame = nullptr;			// ゲームへのポインタ
+				CPlayer *pPlayer = nullptr;		// プレイヤーへのポインタ
+
+				if (CManager::GetInstance()->GetScene(&pGame))
+				{ // 今がゲームシーンなら、プレイヤーを取得し電気のついた家の数を増加
+					pPlayer = pGame->GetPlayer();
+					pPlayer->AddLightingHouse();
+				}
 			}
 		}
 	}
@@ -232,7 +328,34 @@ void CBuilding::Update(void)
 //==================================================================================
 void CBuilding::Draw(void) 
 { // 親クラスの描画
+	CManager *pManager = CManager::GetInstance();			// マネージャーへのポインタ
+	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
+	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
+
+	bool isHitByPlayerCamRay = IsHitByPlayerCamRay();		// プレイヤーカメラとプレイヤの間にいるか
+	if (isHitByPlayerCamRay)
+	{ // αテストを有効にする + Zバッファへの書き込みを無効にする
+		pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
+		pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
+		pDevice->SetRenderState(D3DRS_ALPHAREF, 30);
+		pDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+
+		// α値を変更
+		SetAlpha(HIT_ALPHA);
+	}
+
 	CObjectXQuaternion::Draw();
+
+	if (isHitByPlayerCamRay)
+	{ // αテストを無効にする + Zバッファへの書き込みを有効にする
+		pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+		pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_ALWAYS);
+		pDevice->SetRenderState(D3DRS_ALPHAREF, 0);
+		pDevice->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+
+		// α値を戻す
+		SetAlpha(DEFAULT_ALPHA);
+	}
 }
 
 //==================================================================================

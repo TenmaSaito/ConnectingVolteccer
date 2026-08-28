@@ -109,6 +109,12 @@
     <Filter Include="ヘッダー ファイル\object\ui">
       <UniqueIdentifier>{2efe8f1b-7fa3-4ded-b054-29dd99130f49}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\manager\builder">
+      <UniqueIdentifier>{06449b7c-0989-43a5-a3e3-57d2c05b3f2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\manager\builder">
+      <UniqueIdentifier>{3a05ae4b-7049-43ff-8f57-817afe5e03e4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="player.cpp">
@@ -129,7 +135,7 @@
     <ClCompile Include="object3D.cpp">
       <Filter>ソース ファイル\object\primitive</Filter>
     </ClCompile>
-    <ClCompile Include="objectBillboard.cpp">
+    <ClCompile Include="objectBillboard3D.cpp">
       <Filter>ソース ファイル\object\primitive</Filter>
     </ClCompile>
     <ClCompile Include="objectX.cpp">
@@ -249,7 +255,7 @@
     <ClCompile Include="gameclear.cpp">
       <Filter>ソース ファイル\manager\scene</Filter>
     </ClCompile>
-    <ClCompile Include="billboard.cpp">
+    <ClCompile Include="billboard3D.cpp">
       <Filter>ソース ファイル\object\primitive</Filter>
     </ClCompile>
     <ClCompile Include="ray.cpp">
@@ -321,7 +327,7 @@
     <ClCompile Include="stopwatch.cpp">
       <Filter>ソース ファイル\util</Filter>
     </ClCompile>
-    <ClCompile Include="particle.cpp">
+    <ClCompile Include="particleQuaternion.cpp">
       <Filter>ソース ファイル\object\effect</Filter>
     </ClCompile>
     <ClCompile Include="lineScaleUpTransition.cpp">
@@ -332,6 +338,21 @@
     </ClCompile>
     <ClCompile Include="meshOrbit2D.cpp">
       <Filter>ソース ファイル\object\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="particleQuaternionBuilder.cpp">
+      <Filter>ソース ファイル\manager\builder</Filter>
+    </ClCompile>
+    <ClCompile Include="connectingEvaluate.cpp">
+      <Filter>ソース ファイル\object\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="lightingLevel.cpp">
+      <Filter>ソース ファイル\object\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="polygon3D.cpp">
+      <Filter>ソース ファイル\object\primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="lightingPillar.cpp">
+      <Filter>ソース ファイル\object\effect</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -353,7 +374,7 @@
     <ClInclude Include="object3D.h">
       <Filter>ヘッダー ファイル\object\primitive</Filter>
     </ClInclude>
-    <ClInclude Include="objectBillboard.h">
+    <ClInclude Include="objectBillboard3D.h">
       <Filter>ヘッダー ファイル\object\primitive</Filter>
     </ClInclude>
     <ClInclude Include="objectX.h">
@@ -500,7 +521,7 @@
     <ClInclude Include="gameclear.h">
       <Filter>ヘッダー ファイル\manager\scene</Filter>
     </ClInclude>
-    <ClInclude Include="billboard.h">
+    <ClInclude Include="billboard3D.h">
       <Filter>ヘッダー ファイル\object\primitive</Filter>
     </ClInclude>
     <ClInclude Include="ray.h">
@@ -572,7 +593,7 @@
     <ClInclude Include="stopwatch.h">
       <Filter>ヘッダー ファイル\util</Filter>
     </ClInclude>
-    <ClInclude Include="particle.h">
+    <ClInclude Include="particleQuaternion.h">
       <Filter>ヘッダー ファイル\object\effect</Filter>
     </ClInclude>
     <ClInclude Include="lineScaleUpTransition.h">
@@ -584,14 +605,23 @@
     <ClInclude Include="meshOrbit2D.h">
       <Filter>ヘッダー ファイル\object\mesh</Filter>
     </ClInclude>
+    <ClInclude Include="particleQuaternionBuilder.h">
+      <Filter>ヘッダー ファイル\manager\builder</Filter>
+    </ClInclude>
+    <ClInclude Include="connectingEvaluate.h">
+      <Filter>ヘッダー ファイル\object\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="lighingLevel.h">
+      <Filter>ヘッダー ファイル\object\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="polygon3D.h">
+      <Filter>ヘッダー ファイル\object\primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="lightingPillar.h">
+      <Filter>ヘッダー ファイル\object\effect</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="vec3math.inl">
-      <Filter>ヘッダー ファイル\util\calc</Filter>
-    </None>
-    <None Include="vec2math.inl">
-      <Filter>ヘッダー ファイル\util\calc</Filter>
-    </None>
     <None Include="data\2026-08-11-00-25-32.bin">
       <Filter>リソース ファイル</Filter>
     </None>

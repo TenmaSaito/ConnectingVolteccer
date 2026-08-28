@@ -451,7 +451,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Downloads\\caution.png";
+    "data\\TEXTURE\\xfile\\utilitypole\\caution.png";
    }
   }
  }

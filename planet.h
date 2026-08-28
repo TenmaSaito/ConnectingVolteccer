@@ -39,6 +39,7 @@ public:
 	void MultiplyQuaternion(const Quaternion &quaMultiply) { m_qua = m_qua * quaMultiply; }
 	const Quaternion *GetQuaternion(void) const { return &m_qua; }
 	const Vector3 *GetPosition(void) const { return &m_pos; }
+	Vector3 GetVtxMax(void) const;
 
 private:
 	Vector3 m_pos;			// òfêØÇÃà íu

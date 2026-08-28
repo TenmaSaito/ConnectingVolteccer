@@ -56,9 +56,9 @@ CObjectXQuaternion::CObjectXQuaternion(const int nPriority) : CObject(nPriority)
 	m_scale = VECTOR3_ONE;
 	m_vecQua = VECTOR3_NULL;
 	m_fAngle = 0.0f;
+	m_fAlpha = DEFAULT_ALPHA;
 	m_vtxMin = VECTOR3_NULL;
 	m_vtxMax = VECTOR3_NULL;
-	m_bHitByPlayerCamRay = false;
 	m_bCalcMatrix = false;
 	D3DXMatrixIdentity(&m_mtxWorld);
 	D3DXQuaternionIdentity(&m_qua);
@@ -147,58 +147,6 @@ void CObjectXQuaternion::Uninit(void)
 //==================================================================================
 void CObjectXQuaternion::Update(void)
 {
-	auto pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);
-	Vector3 posV = *pPlayerCam->GetPosV();		// 視点
-	Vector3 posLocalV;							// ローカル座標系へ変換した視点
-	Vector3 ray = pPlayerCam->GetRay();			// プレイヤーカメラのレイベクトル
-	Vector3 posLocalRay;						// ローカル座標系へ変換したプレイヤーカメラのレイベクトル
-	Vector3 posWorld = GetWorldPosition();		// 自身の絶対座標
-	BOOL bResult = FALSE;		// 衝突判定結果
-	FLOAT fLength;				// 衝突座標との距離
-	HRESULT hr;					// 処理結果
-	Matrix mtxInv;				// 逆行列
-
-	// 球形から平面へ変形
-	posWorld.y = posV.y;
-
-	if (CRay(posV, *pPlayerCam->GetPosR()).GetLength() >= Vec3::Length(posV, posWorld))
-	{
-		// ワールド座標系を自身のローカル座標系に逆変換するマトリックスを求める
-		D3DXMatrixInverse(&mtxInv, nullptr, GetMatrix());
-
-		// 逆変換マトリックスで座標をローカル座標へ変換
-		D3DXVec3TransformCoord(&posLocalV, &posV, &mtxInv);
-		D3DXVec3TransformNormal(&posLocalRay, &ray, &mtxInv);
-		ray = Vec3::Normalize(ray);
-
-		// 変換したレイベクトルとオブジェクトの衝突判定
-		hr = D3DXIntersect(m_pMesh,
-			&posLocalV,
-			&posLocalRay,
-			&bResult,
-			nullptr,
-			nullptr,
-			nullptr,
-			&fLength,
-			nullptr,
-			nullptr);
-	}
-
-	// 結果
-	m_bHitByPlayerCamRay = (bResult) ? true : false;
-
-	CManager *pManager = CManager::GetInstance();				// マネージャへのポインタ
-	CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();	// キーボードへのポインタ
-	CGame *pGame = nullptr;		// ゲームシーンへのポインタ
-	if (pManager->GetScene(&pGame))
-	{ // ゲームシーンの取得に成功した場合
-		if (pGame->GetEnableEdit() 
-			&& (pKeyboard->GetPress(DIK_LSHIFT) && pKeyboard->GetTrigger(DIK_BACK))
-			&& m_bHitByPlayerCamRay == true)
-		{ // エディットモードが有効且つレイと衝突しているの場合、左シフト+BackSpaceでオブジェクトを削除
-			Uninit();
-		}
-	}
 }
 
 //==================================================================================
@@ -211,7 +159,6 @@ void CObjectXQuaternion::Draw(void)
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
 	CTexture *pTexture = CTexture::GetInstance();			// テクスチャへのポインタ
 	D3DMATERIAL9 matDef;				// 現在のマテリアル保存用
-	D3DXMATERIAL *pMat = nullptr;		// マテリアルデータへのポインタ
 
 	// ワールドマトリックスの初期化
 	D3DXMatrixIdentity(&m_mtxWorld);
@@ -241,25 +188,13 @@ void CObjectXQuaternion::Draw(void)
 	//  現在のマテリアルを保存
 	pDevice->GetMaterial(&matDef);
 
-	// マテリアルを取得
-	pMat = static_cast<D3DXMATERIAL*>(m_pBuffMat->GetBufferPointer());
-
-	if (m_bHitByPlayerCamRay)
-	{ // αテストを有効にする + Zバッファへの書き込みを無効にする
-		pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
-		pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
-		pDevice->SetRenderState(D3DRS_ALPHAREF, 30);
-		pDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
-	}
-
 	// 各マテリアルを描画
 	for (int nCntMat = 0; nCntMat < static_cast<int>(m_dwNumMat); nCntMat++)
 	{
-		D3DMATERIAL9 matSub = pMat[nCntMat].MatD3D;
-
-		if (m_bHitByPlayerCamRay == true)
-		{
-			matSub.Diffuse.a = 0.3f;
+		D3DMATERIAL9 matSub = m_vMat.at(nCntMat);
+		if(m_fAlpha != DEFAULT_ALPHA)
+		{ // α値の変更が有効なら、α値を変更
+			matSub.Diffuse.a = m_fAlpha;
 		}
 
 		// マテリアルの設定
@@ -270,14 +205,6 @@ void CObjectXQuaternion::Draw(void)
 
 		// モデル(パーツ)の描画
 		m_pMesh->DrawSubset(nCntMat);
-	}
-
-	if (m_bHitByPlayerCamRay)
-	{ // αテストを無効にする + Zバッファへの書き込みを有効にする
-		pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
-		pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_ALWAYS);
-		pDevice->SetRenderState(D3DRS_ALPHAREF, 0);
-		pDevice->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 	}
 
 	// 保存していたマテリアルを戻す
@@ -325,6 +252,59 @@ void CObjectXQuaternion::CaluQuaternion(void)
 
 	// クォータニオンを適用
 	m_qua = m_qua * quaMove;
+}
+
+//==================================================================================
+// --- レイとの衝突判定処理 ---
+//==================================================================================
+bool CObjectXQuaternion::IsHitByRay(const Vector3 &start, const Vector3 &vec, const float fLength)
+{
+	auto pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);
+	Vector3 posLocal;			// ローカル座標系へ変換した始点
+	Vector3 posLocalRay;		// ローカル座標系へ変換したレイベクトル
+	BOOL bResult = FALSE;		// 衝突判定結果
+	FLOAT fLengthToStart;		// 衝突座標との距離
+	Matrix mtxInv;				// 逆行列
+
+	// ワールド座標系を自身のローカル座標系に逆変換するマトリックスを求める
+	D3DXMatrixInverse(&mtxInv, nullptr, GetMatrix());
+
+	// 逆変換マトリックスで座標をローカル座標へ変換
+	D3DXVec3TransformCoord(&posLocal, &start, &mtxInv);
+	D3DXVec3TransformNormal(&posLocalRay, &vec, &mtxInv);
+	posLocalRay = Vec3::Normalize(posLocalRay);
+
+	// 変換したレイベクトルとオブジェクトの衝突判定
+	if (FAILED(D3DXIntersect(m_pMesh,
+		&posLocal,
+		&posLocalRay,
+		&bResult,
+		nullptr,
+		nullptr,
+		nullptr,
+		&fLengthToStart,
+		nullptr,
+		nullptr)))
+	{ // 判定失敗
+		return false;
+	}
+	else
+	{ // boolへ変換
+		return (bResult != FALSE);
+	}
+}
+
+//==================================================================================
+// --- プレイヤーカメラのレイとの衝突判定処理 ---
+//==================================================================================
+bool CObjectXQuaternion::IsHitByPlayerCamRay(void)
+{
+	auto pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);
+	Vector3 posV = *pPlayerCam->GetPosV();		// 視点
+	Vector3 ray = pPlayerCam->GetRay();			// プレイヤーカメラのレイベクトル
+
+	// カメラのレイを用いて判定
+	return IsHitByRay(posV, ray, CRay(posV, ray).GetLength());
 }
 
 //==================================================================================
@@ -376,12 +356,12 @@ HRESULT	CObjectXQuaternion::LoadXFile(const char* pXFileName)
 	// Xファイルの読み込み
 	hr = D3DXLoadMeshFromX(pXFileName,			// 読み込むXファイル名
 		D3DXMESH_SYSTEMMEM,
-		pDevice,						// デバイスポインタ
+		pDevice,			// デバイスポインタ
 		NULL,
 		&m_pBuffMat,		// マテリアルへのポインタ
 		NULL,
 		&m_dwNumMat,		// マテリアルの数
-		&m_pMesh);		// メッシュへのポインタ
+		&m_pMesh);			// メッシュへのポインタ
 	if (FAILED(hr))
 	{ // 読み込み失敗
 		return E_FAIL;
@@ -390,8 +370,15 @@ HRESULT	CObjectXQuaternion::LoadXFile(const char* pXFileName)
 	// マテリアルデータへのポインタを取得
 	pMat = static_cast<D3DXMATERIAL*>(m_pBuffMat->GetBufferPointer());
 
+	// マテリアル数分、各配列を確保
+	m_vIdx.reserve(m_dwNumMat);
+	m_vMat.reserve(m_dwNumMat);
+
 	for (int nCntMat = 0; nCntMat < static_cast<int>(m_dwNumMat); nCntMat++)
-	{ // マテリアル数分だけテクスチャチェック
+	{ // マテリアル数分だけ繰り返し
+		// マテリアルカラー取得
+		m_vMat.push_back(pMat[nCntMat].MatD3D);
+
 		// テクスチャの読み込み
 		m_vIdx.push_back(pTexture->Register(pMat[nCntMat].pTextureFilename));
 	}

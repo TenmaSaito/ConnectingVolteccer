@@ -17,9 +17,6 @@
 //==================================================================================
 CMotion::CMotion()
 { // メンバ変数をクリア
-	ZeroMemory(m_aInfo, sizeof(m_aInfo));
-	m_nNumAll = 0;
-	m_nNumModel = 0;
 	m_nType = 0;
 	m_bLoop = false;
 	m_nNumKey = 0;
@@ -65,17 +62,17 @@ void CMotion::Update(void)
 	// 既にモーションが終了していればスキップ
 	if (m_bFinish == true) return;
 
-	INFO *pInfo = &m_aInfo[m_nType];				// モーション情報へのポインタ
-	INFO *pInfoBlend = &m_aInfo[m_nTypeBlend];		// ブレンドモーション情報へのポインタ
-	KEY_INFO *pKeyInfo = &pInfo->aKeyInfo[m_nKey];					// キー情報へのポインタ
-	KEY_INFO *pKeyBlendInfo = &pInfoBlend->aKeyInfo[m_nKeyBlend];	// ブレンドキー情報へのポインタ
+	INFO *pInfo = &m_vInfo.at(m_nType);				// モーション情報へのポインタ
+	INFO *pInfoBlend = &m_vInfo.at(m_nTypeBlend);		// ブレンドモーション情報へのポインタ
+	KEY_INFO *pKeyInfo = &pInfo->vKeyInfo.at(m_nKey);					// キー情報へのポインタ
+	KEY_INFO *pKeyBlendInfo = &pInfoBlend->vKeyInfo.at(m_nKeyBlend);	// ブレンドキー情報へのポインタ
 
-	for (int nCntModel = 0; nCntModel < m_nNumModel; nCntModel++)
+	for (int nCntModel = 0; nCntModel < m_ppModel.size(); nCntModel++)
 	{ // 全パーツの更新
 		int nNext = (m_nKey + 1) % pInfo->nNumKey;			// 次のキーの値
 		float fRateKey = (float)m_nCounter / (float)pKeyInfo->nFrame;	// モーションカウンター / 再生フレーム数
-		KEY *pKey = &pKeyInfo->aKey[nCntModel];							// 現在のキー
-		KEY *pKeyNext = &pInfo->aKeyInfo[nNext].aKey[nCntModel];		// 次のキー
+		KEY *pKey = &pKeyInfo->vKey.at(nCntModel);							// 現在のキー
+		KEY *pKeyNext = &pInfo->vKeyInfo.at(nNext).vKey.at(nCntModel);		// 次のキー
 		Vector3 diffPos = {};		// 位置の差分
 		Vector3 UpdatePos = {};		// 更新する位置
 		Vector3 diffRot = {};		// 角度の差分
@@ -97,12 +94,10 @@ void CMotion::Update(void)
 			Vector3 diffKeyRotCurrent = {};	// 現在のモーションの角度の差分
 			Vector3 diffKeyPosBlend = {};	// ブレンドモーションの位置の差分
 			Vector3 diffKeyRotBlend = {};	// ブレンドモーションの角度の差分
-			Vector3 diffPosBlend = {};		// 位置の最終差分
-			Vector3 diffRotBlend = {};		// 角度の最終差分
 			float fRateKeyBlend = (float)m_nCounterMotionBlend / (float)pKeyBlendInfo->nFrame;		// モーションカウンター / 再生フレーム数
 			int nNextBlend = (m_nKeyBlend + 1) % pInfoBlend->nNumKey;					// 次のキーの値
-			KEY* pKeyNextBlend = &pInfoBlend->aKeyInfo[nNextBlend].aKey[nCntModel];		// 次のキー
-			KEY* pKeyBlend = &pKeyBlendInfo->aKey[nCntModel];							// 現在のキー
+			KEY* pKeyNextBlend = &pInfoBlend->vKeyInfo.at(nNextBlend).vKey.at(nCntModel);		// 次のキー
+			KEY* pKeyBlend = &pKeyBlendInfo->vKey.at(nCntModel);						// 現在のキー
 			float fRateBlend = (float)m_nCounterBlend / (float)m_nFrameBlend;			// ブレンドの相対量
 
 			// 現在のモーションの位置計算
@@ -114,8 +109,8 @@ void CMotion::Update(void)
 			diffKeyPosBlend = pKeyBlend->pos + (diffPos * fRateKeyBlend);	// ブレンドモーションの差分位置
 
 			// 二つの結果から最終的なブレンド位置を計算
-			diffPosBlend = diffKeyPosBlend - diffKeyPosCurrent;				// モーション間の位置の差分
-			UpdatePos = diffKeyPosCurrent + (diffPosBlend * fRateBlend);	// 最終的なモデルの位置
+			diffPos = diffKeyPosBlend - diffKeyPosCurrent;				// モーション間の位置の差分
+			UpdatePos = diffKeyPosCurrent + (diffPos * fRateBlend);		// 最終的なモデルの位置
 
 			// 現在のモーションの角度計算
 			diffRot = Vec3::FixedRotation(pKeyNext->rot - pKey->rot);					// 差分角度
@@ -126,8 +121,8 @@ void CMotion::Update(void)
 			diffKeyRotBlend = Vec3::FixedRotation(pKeyBlend->rot + (diffRot * fRateKeyBlend));	// ブレンドモーションの差分角度
 
 			// 二つの結果から最終的なブレンド角度を計算
-			diffRotBlend = Vec3::FixedRotation(diffKeyRotBlend - diffKeyRotCurrent);			// モーション間の角度の差分
-			UpdateRot = Vec3::FixedRotation(diffKeyRotCurrent + (diffRotBlend * fRateBlend));	// 最終的なモデルの角度
+			diffRot = Vec3::FixedRotation(diffKeyRotBlend - diffKeyRotCurrent);				// モーション間の角度の差分
+			UpdateRot = Vec3::FixedRotation(diffKeyRotCurrent + (diffRot * fRateBlend));	// 最終的なモデルの角度
 		}
 
 		// 各変数にオフセットを適用
@@ -184,17 +179,15 @@ void CMotion::Update(void)
 //==================================================================================
 void CMotion::SetInfo(const INFO info)
 { // モーション情報の保存及び総数の増加	
-	m_aInfo[m_nNumAll] = info;
-	m_nNumAll++;
+	m_vInfo.push_back(info);
 }
 
 //==================================================================================
 // --- モデルへのポインタの設定処理 ---
 //==================================================================================
-void CMotion::SetModel(ModelArray ppModel, const int nNumModel)
+void CMotion::SetModel(ModelArray ppModel)
 { // 各変数を保存
 	m_ppModel = ppModel;
-	m_nNumModel = nNumModel;
 }
 
 //==================================================================================
@@ -202,7 +195,7 @@ void CMotion::SetModel(ModelArray ppModel, const int nNumModel)
 //==================================================================================
 void CMotion::Set(const int nType)
 {
-	INFO *pInfo = &m_aInfo[nType];		// モーションへのポインタ
+	INFO *pInfo = &m_vInfo.at(nType);		// モーションへのポインタ
 
 	// 各変数を初期化
 	m_nCounter = 0;
@@ -214,9 +207,9 @@ void CMotion::Set(const int nType)
 	m_nType = nType;
 
 	// 各パーツに位置を設定
-	for (int nCntModel = 0; nCntModel < m_nNumModel; nCntModel++)
+	for (int nCntModel = 0; nCntModel < m_ppModel.size(); nCntModel++)
 	{ // 位置と角度を設定
-		KEY *pKey = &pInfo->aKeyInfo[m_nKey].aKey[nCntModel];		// キー要素へのポインタ
+		KEY *pKey = &pInfo->vKeyInfo.at(m_nKey).vKey.at(nCntModel);		// キー要素へのポインタ
 		m_ppModel[nCntModel]->SetPosition(pKey->pos + *m_ppModel[nCntModel]->GetPositionLocal());
 		m_ppModel[nCntModel]->SetRotation(pKey->rot + *m_ppModel[nCntModel]->GetRotationLocal());
 	}
@@ -227,7 +220,7 @@ void CMotion::Set(const int nType)
 //==================================================================================
 void CMotion::Set(const int nType, const int nFrameBlend)
 {
-	INFO *pInfoNext = &m_aInfo[nType];		// ブレンド先のモーションへのポインタ
+	INFO *pInfoNext = &m_vInfo.at(nType);		// ブレンド先のモーションへのポインタ
 
 	// 各ブレンド用変数を初期化
 	m_nCounterBlend = 0;
@@ -255,15 +248,15 @@ void CMotion::SetByBlend(void)
 	m_bFinish = false;
 	m_bBlend = false;
 
-	INFO *pInfo = &m_aInfo[m_nType];					// モーション情報へのポインタ
-	KEY_INFO *pKeyInfo = &pInfo->aKeyInfo[m_nKey];		// キー情報へのポインタ
+	INFO *pInfo = &m_vInfo.at(m_nType);					// モーション情報へのポインタ
+	KEY_INFO *pKeyInfo = &pInfo->vKeyInfo.at(m_nKey);		// キー情報へのポインタ
 
-	for (int nCntModel = 0; nCntModel < m_nNumModel; nCntModel++)
+	for (int nCntModel = 0; nCntModel < m_ppModel.size(); nCntModel++)
 	{ // 全パーツの更新
 		int nNext = (m_nKey + 1) % pInfo->nNumKey;			// 次のキーの値
-		float fRateKey = (float)m_nCounter / (float)pKeyInfo->nFrame;	// モーションカウンター / 再生フレーム数
-		KEY* pKey = &pKeyInfo->aKey[nCntModel];							// 現在のキー
-		KEY* pKeyNext = &pInfo->aKeyInfo[nNext].aKey[nCntModel];		// 次のキー
+		float fRateKey = (float)m_nCounter / (float)pKeyInfo->nFrame;		// モーションカウンター / 再生フレーム数
+		KEY* pKey = &pKeyInfo->vKey.at(nCntModel);							// 現在のキー
+		KEY* pKeyNext = &pInfo->vKeyInfo.at(nNext).vKey.at(nCntModel);		// 次のキー
 		Vector3 diffPos = {};		// 位置の差分
 		Vector3 UpdatePos = {};		// 更新する位置
 		Vector3 diffRot = {};		// 角度の差分

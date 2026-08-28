@@ -38,6 +38,10 @@ public:
 	void Save(std::string_view sMapFile);
 	void Load(std::string_view sMapFile);
 	void LoadLatest(void);
+	int GetNumBuilding(void) const { return m_nNumBuilding; }
 	static CMap *GetInstance(void);
+
+private:
+	int m_nNumBuilding;		// Œš•¨‚Ì‘”
 };
 #endif

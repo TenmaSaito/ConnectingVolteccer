@@ -81,8 +81,7 @@ private:
 	CManager();
 	~CManager();
 
-	HWND m_hWnd;						// ウィンドウハンドル
-	std::unique_ptr<CRenderer> m_pRenderer;
+	std::unique_ptr<CRenderer> m_pRenderer;				// レンダラーへのポインタ
 	std::unique_ptr<CWindowCapture> m_pCapture;			// 画面キャプチャオブジェクトへのポインタ
 	std::unique_ptr<CInputKeyboard> m_pInputKeyboard;	// キーボードオブジェクトへのポインタ
 	std::unique_ptr<CInputMouse> m_pInputMouse;			// マウスオブジェクトへのポインタ
@@ -92,10 +91,11 @@ private:
 	std::unique_ptr<CLight> m_pLight;					// ライトオブジェクトへのポインタ
 	std::unique_ptr<CScene> m_pScene;					// シーンへのポインタ
 	std::unique_ptr<CSceneTransition> m_pTransition;	// 遷移演出へのポインタ
-	int m_nCountFPS;					// FPSカウント
-	int m_nCounterFrame;				// フレームカウンター
-	int m_nNumPole;						// ポールの数
-	bool m_bPause;						// ポーズ状態
+	HWND m_hWnd;			// ウィンドウハンドル
+	int m_nCountFPS;		// FPSカウント
+	int m_nCounterFrame;	// フレームカウンター
+	int m_nNumPole;			// ポールの数
+	bool m_bPause;			// ポーズ状態
 };
 
 //==================================================================================
@@ -103,7 +103,7 @@ private:
 //==================================================================================
 template<IsScene T> T *CManager::GetScene(T **ppOut) const
 {
-	if (m_pScene->GetMode() != T::GetMyMode())
+	if (m_pScene->GetMode() != T::GetOwnMode())
 	{ // 取得しようとしたモードと現在のモードが異なる場合
 		return nullptr;
 	}

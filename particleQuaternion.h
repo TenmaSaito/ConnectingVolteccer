@@ -1,6 +1,6 @@
 //==================================================================================
 // 
-// パーティクル(クォータニオン仕様)クラスのヘッダーファイル [particle.h]
+// パーティクル(クォータニオン仕様)クラスのヘッダーファイル [particleQuaternion.h]
 // Author : TENMA SAITO
 // Date   : 2026/8/24
 // 
@@ -12,7 +12,6 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "object.h"
-#include <vector>
 
 //**********************************************************************************
 // *** パーティクル(クォータニオン仕様)クラス ***
@@ -20,24 +19,30 @@
 class CParticleQuaternion : public CObject
 {
 public:
+	// パーティクル生成の設定情報
+	struct Setting
+	{
+		Vector3 pos;		// 発生位置
+		Vector3 vecQua;		// 任意軸
+		float fAngle;		// 回転度数
+		Vector3 move;		// 加速度
+		Vector2 scale;		// サイズ
+		Color color;		// パーティクルの色
+		int nNumEffectFrame;	// 一フレームに出現させるエフェクトの数
+		int nLife;			// 持続フレーム数
+
+		// ExSettings
+		Vector3 posVariation;		// 発生位置のぶれの範囲 (X >= 0, Y >= 0, Z >= 0)
+		Vector3 moveVariation;		// 移動量のぶれの範囲 (X >= 0, Y >= 0, Z >= 0)
+		Vector2 scaleVariation;		// サイズのぶれの範囲 (X >= 0, Y >= 0)
+	};
+
 	CParticleQuaternion(const int nPriority = DEFAULT_EFFECT_PRIORITY);
 	~CParticleQuaternion();
 
-	static CParticleQuaternion *Create(const Vector3 &pos, 
-		const Vector2 &baseScale,
-		const Color &col,
-		const Vector3 &vecQua,
-		const float fAngle,
-		const int nNumEffect,
-		const int nLife);
+	static CParticleQuaternion *Create(const Setting &setting);
 
-	HRESULT Init(const Vector3 &pos,
-		const Vector2 &baseScale,
-		const Color &col,
-		const Vector3 &vecQua,
-		const float fAngle,
-		const int nNumEffect,
-		const int nLife);
+	HRESULT Init(const Setting &setting);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
@@ -45,17 +50,10 @@ public:
 	void BindTexture(const int nIdxTexture) { m_nIdxTexture = nIdxTexture; }
 
 private:
-
 	int m_nIdxTexture = -1;					// テクスチャインデックス
 	const Matrix *m_pMtxParent = nullptr;	// 親マトリックスへのポインタ
-	Vector3 m_pos = VECTOR3_NULL;		// 発生位置
-	Vector3 m_vecQua = VECTOR3_NULL;	// 任意軸
-	Vector2 m_baseScale = VECTOR2_NULL;	// 基本サイズ
-	float m_fAngle = 0.0f;			// 回転度数
-	Quaternion m_qua;			// クォータニオン
-	Color m_col = COLOR_NULL;	// 色
+	Setting m_setting = {};				// 設定
+	Quaternion m_qua;		// クォータニオン
 	Matrix m_mtxWorld;		// ワールドマトリックス
-	int m_nLife = 0;		// 寿命
-	int m_nNumEffect = 0;	// 一フレームに発生させるエフェクトの数
 };
 #endif

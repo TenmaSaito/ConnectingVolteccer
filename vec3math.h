@@ -15,11 +15,6 @@
 #include <array>
 
 //**********************************************************************************
-// *** マクロ定義 ***
-//**********************************************************************************
-#define VEC3_INLINE					// 各関数をインライン展開するか
-
-//**********************************************************************************
 // *** Vector3計算関連名前空間 ***
 //**********************************************************************************
 namespace Vec3
@@ -94,6 +89,7 @@ namespace Vec3
 	Vector3 Direction(const Vector3 &To, const Vector3 &From);
 	Vector3 Direction(const Vector3 &angle);
 	Vector3 Random(void);
+	Vector3 Random(const Vector3 &min, const Vector3 &max);
 	Vector3 Clamp(const Vector3 &vec, const Vector3 &min, const Vector3 &max);
 	Vector3 FixedRotation(const Vector3 &rot);
 	Vector3 Arc(const float fRadius, const float fTheta, const float fPhi, const Vector3 &offset = VECTOR3_NULL);
@@ -109,8 +105,4 @@ namespace Vec3
 	AxisFlags IsAxis(const Vector3 &vec, const float fEpsilon = FLT_EPSILON);
 	AxisExFlags IsAxisEx(const Vector3 &vec, const float fEpsilon = FLT_EPSILON);
 }
-
-#ifdef VEC3_INLINE
-#include "vec3math.inl"
-#endif
 #endif

@@ -21,6 +21,7 @@
 #define DEFAULT_BG_PRIORITY		(0)			// 背景の優先順位
 #define DEFAULT_OBJ_PRIORITY	(3)			// オブジェクトの優先順位
 #define DEFAULT_EFFECT_PRIORITY	(4)			// エフェクト関連の優先順位
+#define DEFAULT_ADD_PRIORITY	(5)			// 加算合成関連の優先順位
 #define DEFAULT_UI_PRIORITY		(6)			// UIの基本優先順位
 #define ENABLE_OBJECT_LIST		TRUE		// リスト構造での管理の有効化
 #define DEBUG_ASSERT_TYPE_NONE				// オブジェクトにタイプが指定されていなかった場合、アサーション
@@ -39,7 +40,8 @@ public:
 		TYPE_NONE = 0,		// 指定無し (アサーション対象)
 		TYPE_OBJ_2D,		// Object2D
 		TYPE_OBJ_3D,		// Object3D
-		TYPE_OBJ_BILLBOARD,	// ObjectBillboard
+		TYPE_OBJ_BILLBOARD_2D,	// ObjectBillboard2D
+		TYPE_OBJ_BILLBOARD_3D,	// ObjectBillboard3D
 		TYPE_OBJ_LINE,		// ObjectLine
 		TYPE_OBJ_X,			// ObjectX
 		TYPE_OBJ_X_QUA,		// ObjectXQuaternion
@@ -50,6 +52,7 @@ public:
 		TYPE_TIMER,			// タイマー
 		TYPE_TITLEMENU,		// タイトルメニュー
 		TYPE_COMBO,			// コンボ表示
+		TYPE_EVALUATE,		// 評価表示
 		TYPE_EFFECT,		// エフェクト
 		TYPE_POLE,			// 電柱
 		TYPE_CABLE,			// 電線

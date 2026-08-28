@@ -171,6 +171,7 @@ namespace Colors
 	// *** プロトタイプ宣言 ***
 	//******************************************************************************
 	Color GetColor(const COLOR col);
+	Color Random(const bool bAlpha);
 	Color Lerp(const Color &start, const Color &end, const float t);
 }
 #endif

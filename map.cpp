@@ -106,6 +106,7 @@ void CMap::AddUtilityPole(const Vector3 &pos)
 void CMap::AddBulding(const int nType, const Vector3 &pos)
 { // åöë¢ï®ê›íu
 	CBuilding::Create(static_cast<CBuilding::TYPE>(nType), pos);
+	m_nNumBuilding++;
 }
 
 //==================================================================================

@@ -47,7 +47,7 @@ CXFile::~CXFile()
 //==================================================================================
 UINT CXFile::Resister(const std::string_view sXFileName, const bool bCopy)
 { // ファイル名がnullの場合無効
-	if (sXFileName.empty() == true) return INVALID_XFILEID;
+	if (sXFileName.empty() == true) return INVALID_XFILE_ID;
 
 	for (UINT uCnt = 0U; uCnt < m_vXData.size(); uCnt++)
 	{ // 既に読み込まれていないか確認
@@ -65,7 +65,7 @@ UINT CXFile::Resister(const std::string_view sXFileName, const bool bCopy)
 //==================================================================================
 UINT CXFile::Resister(const char *pXFileName, const bool bCopy)
 { // ファイル名がnullの場合無効
-	if (pXFileName == nullptr) return INVALID_XFILEID;
+	if (pXFileName == nullptr) return INVALID_XFILE_ID;
 
 	// 存在すれば正式に処理を呼び出す
 	return Resister(std::string_view(pXFileName));
@@ -106,7 +106,7 @@ void CXFile::Unload(void)
 //==================================================================================
 bool CXFile::GetAddress(const UINT uIdxXFile, XDATA **ppOut)
 {
-	if (uIdxXFile >= m_vXData.size() || uIdxXFile == INVALID_TEXID)
+	if (uIdxXFile >= m_vXData.size() || uIdxXFile == INVALID_TEX_ID)
 	{ // インデックス外の場合失敗
 		return false;
 	}
@@ -144,7 +144,7 @@ UINT CXFile::Load(const char *pXFileName)
 		&newData.pMesh);		// メッシュへのポインタ
 	if (FAILED(hr))
 	{ // 読み込み失敗
-		return INVALID_XFILEID;
+		return INVALID_XFILE_ID;
 	}
 
 	D3DXMATERIAL *pMat = NULL;		// マテリアルへのポインタ

@@ -62,7 +62,7 @@ HRESULT CPolygon2D::Init(const Vector3 &pos,
 	m_col = COLOR_ONE;
 
 	// 頂点バッファ作成
-	pDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * 4,
+	pDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * DEFAULT_VERTEX_NUM,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_2D,
 		D3DPOOL_MANAGED,

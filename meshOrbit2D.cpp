@@ -16,7 +16,6 @@
 #include "vec2math.h"
 #include "vec3math.h"
 #include "texture.h"
-#include "particle.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -172,20 +171,7 @@ void CMeshOrbit2D::Update(void)
 // --- 描画処理 ---
 //==================================================================================
 void CMeshOrbit2D::Draw(void)
-{ // メッシュの描画
-	LPDIRECT3DDEVICE9 pDevice = CManager::GetInstance()->GetRenderer()->GetDevice();		// デバイスの取得
-
-	// 加算合成開始
-	pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
-	pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-	pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
-
-	m_pMesh->Draw();
-
-	// 加算合成終了
-	pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
-	pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-	pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+{ 
 }
 
 //==================================================================================

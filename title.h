@@ -23,7 +23,7 @@ class CTitleMenu;
 //**********************************************************************************
 // *** タイトルクラス ***
 //**********************************************************************************
-class CTitle : public CScene
+class CTitle : public CSceneBase<CTitle, CScene::MODE_TITLE>
 {
 public:
 	CTitle();

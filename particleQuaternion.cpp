@@ -1,6 +1,6 @@
 //==================================================================================
 // 
-// パーティクル(クォータニオン仕様)クラスのソースファイル [particle.cpp]
+// パーティクル(クォータニオン仕様)クラスのソースファイル [particleQuaternion.cpp]
 // Author : TENMA SAITO
 // Date   : 2026/8/24
 // 
@@ -8,36 +8,25 @@
 //**********************************************************************************
 // *** インクルードファイル ***
 //**********************************************************************************
-#include "particle.h"
+#include "particleQuaternion.h"
 #include "manager.h"
 #include "renderer.h"
 #include "texture.h"
 #include "matrix.h"
+#include "vec2math.h"
 #include "vec3math.h"
 #include "rand.h"
-#include "objectBillboard.h"
+#include "objectBillboard3D.h"
 
 //==================================================================================
 // --- 生成処理 ---
 //==================================================================================
-CParticleQuaternion *CParticleQuaternion::Create(const Vector3 &pos,
-	const Vector2 &baseScale,
-	const Color &col,
-	const Vector3 &vecQua,
-	const float fAngle,
-	const int nNumEffect,
-	const int nLife)
+CParticleQuaternion *CParticleQuaternion::Create(const Setting &setting)
 {
 	CParticleQuaternion *pParticleQuaternion = new CParticleQuaternion;		// 生成したパーティクルへのポインタ
 	if (pParticleQuaternion != nullptr)
 	{ // 生成出来ていれば、初期化処理
-		pParticleQuaternion->Init(pos,
-			baseScale,
-			col,
-			vecQua,
-			fAngle,
-			nNumEffect,
-			nLife);
+		pParticleQuaternion->Init(setting);
 	}
 
 	return pParticleQuaternion;
@@ -61,26 +50,14 @@ CParticleQuaternion::~CParticleQuaternion()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CParticleQuaternion::Init(const Vector3 &pos,
-	const Vector2 &baseScale,
-	const Color &col,
-	const Vector3 &vecQua,
-	const float fAngle,
-	const int nNumEffect,
-	const int nLife)
+HRESULT CParticleQuaternion::Init(const Setting &setting)
 { // 引数の値を保存
-	m_pos = pos;
-	m_baseScale = baseScale;
-	m_col = col;
-	m_vecQua = vecQua;
-	m_fAngle = fAngle;
-	m_nLife = nLife;
-	m_nNumEffect = nNumEffect;
+	m_setting = setting;
 
 	// クォータニオンを生成
 	D3DXQuaternionRotationAxis(&m_qua,
-		&m_vecQua,
-		m_fAngle);
+		&m_setting.vecQua,
+		m_setting.fAngle);
 
 	return S_OK;
 }
@@ -100,16 +77,16 @@ void CParticleQuaternion::Update(void)
 {
 	CRand *pRand = CRand::GetInstance();		// 乱数生成インスタンス
 
-	for (int nCntEffect = 0; nCntEffect < m_nNumEffect; nCntEffect++)
+	for (int nCntEffect = 0; nCntEffect < m_setting.nNumEffectFrame; nCntEffect++)
 	{ // エフェクト生成
-		if (m_nLife < 3) continue;
-		CObjectBillboard *pBill = CObjectBillboard::Create(m_pos,
-			Vec3::Random() * pRand->Generate(0.1f, 5.0f),
-			m_baseScale * pRand->Generate(0.5f, 1.5f),
-			pRand->Generate(1, m_nLife - 1));
+		if (m_setting.nLife < 3) continue;
+		CObjectBillboard3D *pBill = CObjectBillboard3D::Create(m_setting.pos + Vec3::Random(-m_setting.posVariation * 0.5f, m_setting.posVariation * 0.5f),
+			m_setting.move + Vec3::Random(-m_setting.moveVariation * 0.5f, m_setting.moveVariation * 0.5f),
+			m_setting.scale + Vec2::Random(-m_setting.scaleVariation * 0.5f, m_setting.scaleVariation * 0.5f),
+			pRand->Generate(1, m_setting.nLife - 1));
 
 		// 色を指定
-		pBill->SetColor(m_col);
+		pBill->SetColor(m_setting.color);
 
 		// 親マトリックスを設定
 		pBill->SetParent(&m_mtxWorld); 
@@ -151,8 +128,8 @@ void CParticleQuaternion::Update(void)
 			});
 	}
 
-	m_nLife--;		// 寿命を減らす
-	if (m_nLife <= 0)
+	m_setting.nLife--;		// 寿命を減らす
+	if (m_setting.nLife <= 0)
 	{ // 寿命が尽きた場合、終了
 		Uninit();
 	}

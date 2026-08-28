@@ -19,6 +19,7 @@
 #include "map.h"
 #include "timer.h"
 #include "combo.h"
+#include "connectingEvaluate.h"
 #include "delegate_t.h"
 #include "building.h"
 #include "stopwatch.h"
@@ -32,18 +33,21 @@
 #define TIMER_POS			Vector3(SCREEN_MIDDLE.x - 75.0f, 35.0f, 0.0f)		// タイマーの座標
 #define TIMER_SIZE			Vector2(150.0f, 85.0f)				// タイマーのサイズ
 #define COMBO_POS			Vector3(1000.0f, 200.0f, 0.0f)		// コンボ表示の座標
+#define EVALUATE_POS		Vector3(1000.0f, 350.0f, 0.0f)		// 評価表示の座標
+#define EVALUATE_SCALE		Vector2(328.0f, 64.0f)				// 評価表示のサイズ
 #define PLAYER_MOTION_PATH	"data/SCRIPT/motion_nabeatsu.txt"	// プレイヤーのモーションパス
 
 //==================================================================================
 // --- コンストラクタ ---
 //==================================================================================
-CGame::CGame() : CScene(MODE_GAME)
+CGame::CGame()
 { // 親クラスのコンストラクタ呼び出し
 	// メンバ変数のクリア
 	m_pPlayer = nullptr;
 	m_pPlanet = nullptr;
 	m_pTimer = nullptr;
 	m_pCombo = nullptr;
+	m_pEvaluate = nullptr;
 	m_bEdit = false;
 	m_bPause = false;
 	m_nCounterFrame = 0;
@@ -179,13 +183,16 @@ void CGame::Start(void)
 	// コンボ表示生成
 	m_pCombo = CCombo::Create(COMBO_POS, VECTOR3_NULL);
 
-	// プレイヤー出現
-	m_pPlayer = CPlayer::Create(PLAYER_MOTION_PATH, Vector3(0.0f, 1125.0f, 0.0f), VECTOR3_NULL);
-	NULLPOINTER_ASSERT(m_pPlayer);
+	// コンボ表示生成
+	m_pEvaluate = CConnectingEvaluate::Create(EVALUATE_POS, EVALUATE_SCALE);
 
 	// 惑星配置
 	m_pPlanet = CPlanet::Create();
 	NULLPOINTER_ASSERT(m_pPlanet);
+
+	// プレイヤー出現
+	m_pPlayer = CPlayer::Create(PLAYER_MOTION_PATH, Vector3(0.0f, m_pPlanet->GetVtxMax().y, 0.0f), VECTOR3_NULL);
+	NULLPOINTER_ASSERT(m_pPlayer);
 
 	// ストップウォッチを生成 + スタート
 	m_pStopWatch = std::make_unique<CStopWatch>();
@@ -211,7 +218,7 @@ void CGame::MapEdit(void)
 {
 	CManager *pManager = CManager::GetInstance();					// マネージャーへのポインタ
 	CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();		// キーボードへのポインタ
-	Vector3 pos = Vector3(0.0f, m_pPlayer->GetPosition()->y, 0.0f);	// 設置位置
+	Vector3 pos = Vector3(0.0f, m_pPlanet->GetVtxMax().y, 0.0f);	// 設置位置
 	CMap *pMap = CMap::GetInstance();			// マップへのポインタ
 
 	if (pKeyboard->GetTrigger(DIK_1))

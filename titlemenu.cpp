@@ -23,7 +23,7 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define MENU_SIZE		Vector2(250.0f, 75.0f)		// 各メニューのサイズ
+#define MENU_SIZE		Vector2(400.0f, 75.0f)		// 各メニューのサイズ
 #define MENU_ANGLE		(QUARTER_PI * 0.5f)			// 各メニューの角度
 #define MENU_SELECT_SPD	(0.1f)						// メニュー選択時の速度
 #define FIRST_ANGLE		((HALF_PI - QUARTER_PI * 0.5f) + (MENU_ANGLE * (CTitleMenu::TYPE_MAX / 2)))		// メニューの開始角度
@@ -38,7 +38,7 @@ namespace
 {
 	constexpr std::string_view c_asMenuPath[CTitleMenu::TYPE_MAX] =	// 各メニューのテクスチャパス
 	{
-		"data/TEXTURE/MENU/.png",		// STARTボタン
+		"data/TEXTURE/MENU/start.png",		// STARTボタン
 		"data/TEXTURE/MENU/.png",		// STARTボタン
 		"data/TEXTURE/MENU/.png",		// 終了ボタン
 	};
@@ -112,11 +112,11 @@ HRESULT CTitleMenu::Init(void)
 		// 色を設定
 		if (uCntPoly == 0U)
 		{ // 一番最初のメニューのみ不透明にする
-			m_apMenu.at(uCntPoly)->SetColor(Color(1.0f, 0.0f, 1.0f, 1.0f));
+			m_apMenu.at(uCntPoly)->SetColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
 		}
 		else
 		{ // それ以外のメニューは半透明にする
-			m_apMenu.at(uCntPoly)->SetColor(Color(1.0f, 0.0f, 1.0f, 0.5f));
+			m_apMenu.at(uCntPoly)->SetColor(Color(1.0f, 1.0f, 1.0f, 0.5f));
 		}
 
 		// テクスチャを登録
@@ -195,7 +195,7 @@ void CTitleMenu::Update(void)
 			+ (MENU_ANGLE * m_fTypeDest);		// 角度
 
 		// ポリゴンの位置を計算
-		Vector2 pos2 = Vec2::Arc(SCREEN_SIZE.y * 0.5f,
+		Vector2 pos2 = Vec2::Arc(SCREEN_SIZE.y * 0.75f,
 			fAngle,
 			Vector2(0.0f, SCREEN_MIDDLE.y));
 
@@ -208,11 +208,11 @@ void CTitleMenu::Update(void)
 		// 色を設定
 		if (uCntPoly == 0U + m_currentType && m_lastType == m_currentType)
 		{ // 一番最初のメニューのみ不透明にする
-			m_apMenu.at(uCntPoly)->SetColor(Color(1.0f, 0.0f, 1.0f, 1.0f));
+			m_apMenu.at(uCntPoly)->SetColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
 		}
 		else
 		{ // それ以外のメニューは半透明にする
-			m_apMenu.at(uCntPoly)->SetColor(Color(1.0f, 0.0f, 1.0f, 0.5f));
+			m_apMenu.at(uCntPoly)->SetColor(Color(1.0f, 1.0f, 1.0f, 0.5f));
 		}
 	}
 
@@ -235,9 +235,6 @@ void CTitleMenu::Update(void)
 //==================================================================================
 void CTitleMenu::Draw(void)
 { 
-	// ロゴの描画
-	m_pLogo->Draw();
-
 	// 円形ポリゴンの描画
 	m_pCircle->Draw();
 
@@ -245,6 +242,9 @@ void CTitleMenu::Draw(void)
 	{ // 各メニューの描画
 		pPoly->Draw();
 	}
+
+	// ロゴの描画
+	m_pLogo->Draw();
 }
 
 //==================================================================================

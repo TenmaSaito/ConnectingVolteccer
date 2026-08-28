@@ -48,11 +48,22 @@ private:
 	MODE m_mode;		// 現在のモード
 };
 
+//**********************************************************************************
+// *** シーンのモード取得用CRTPクラス ***
+//**********************************************************************************
+template<class Derived, CScene::MODE myMode>
+class CSceneBase : public CScene
+{
+public:
+	CSceneBase() : CScene(myMode) {}
+	static constexpr MODE GetOwnMode(void) { return myMode; }
+};
+
 // クラスがシーンの条件を満たしているかの条件
 template<class T>
 concept IsScene = std::derived_from<T, CScene> &&
 requires (T t)
 { // 自クラスがどのモードに属しているかを取得する関数
-	t.GetMyMode();
+	T::GetOwnMode();
 };
 #endif

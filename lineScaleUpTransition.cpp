@@ -20,14 +20,16 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define FIRST_POSITION		(Vector3(0.0f, SCREEN_MIDDLE.y, 0.0f))		// ラインの座標サイズ
-#define FIRST_LINESIZE		(Vector2(1.0f, 25.0f))		// ラインの初期サイズ
-#define FIRST_OUTLINESIZE	(Vector2(1.0f, 30.0f))		// アウトラインの初期サイズ
-#define SCALE_UP_VALUE		(1.15f)			// サイズの拡大倍率
-#define SCALE_DOWN_VALUE	(0.85f)			// サイズの縮小倍率
-#define ORBIT_POS_Y_RANGE	(125.0f)		// オービットの移動幅
-#define MIN_ORBIT_WIDTH		(10.0f)			// オービットの最小サイズ
-#define MAX_ORBIT_WIDTH		(25.0f)			// オービットの最大サイズ
+#define FIRST_POSITION			(Vector3(0.0f, SCREEN_MIDDLE.y, 0.0f))		// ラインの座標サイズ
+#define FIRST_LINESIZE			(Vector2(1.0f, 15.0f))		// ラインの初期サイズ
+#define FIRST_OUTLINESIZE		(Vector2(1.0f, 25.0f))		// アウトラインの初期サイズ
+#define CABLE_SCALE_UP_VALUE	(70.0f)			// 電線のサイズの拡大値
+#define VOLT_SCALE_UP_VALUE_X	(35.0f)			// 電流のサイズの拡大値_X
+#define VOLT_SCALE_UP_VALUE_Y	(1.15f)			// 電流のサイズの拡大倍率_Y
+#define SCALE_DOWN_VALUE		(0.85f)			// サイズの縮小倍率
+#define ORBIT_POS_Y_RANGE		(125.0f)		// オービットの移動幅
+#define MIN_ORBIT_WIDTH			(10.0f)			// オービットの最小サイズ
+#define MAX_ORBIT_WIDTH			(25.0f)			// オービットの最大サイズ
 
 //==================================================================================
 // --- コンストラクタ ---
@@ -180,7 +182,7 @@ void CLineScaleUpTransition::UpdateTransitionIn(void)
 	Vector2 scaleNext;		// 次のサイズ
 
 	// 変更後のサイズを計算
-	scaleNext.x = pScale->x * SCALE_UP_VALUE;		// 幅は拡張
+	scaleNext.x = pScale->x + CABLE_SCALE_UP_VALUE;		// 幅は拡張
 	scaleNext.y = pScale->y;				// 縦幅は今のサイズを維持
 
 	// 画面サイズを超えないように調整
@@ -200,8 +202,8 @@ void CLineScaleUpTransition::UpdateTransitionIn(void)
 		pScale = m_pVolt->GetSize();		// 現在のサイズ
 		
 		// 変更後のサイズを計算
-		scaleNext.x = pScale->x * SCALE_UP_VALUE;		// 幅は拡張
-		scaleNext.y = (pScale->x >= SCREEN_WIDTH) ? pScale->y * SCALE_UP_VALUE : pScale->y;		// 縦幅は横幅が画面いっぱいになったら拡張
+		scaleNext.x = pScale->x + VOLT_SCALE_UP_VALUE_X;		// 幅は拡張
+		scaleNext.y = (pScale->x >= SCREEN_WIDTH) ? pScale->y * VOLT_SCALE_UP_VALUE_Y : pScale->y;		// 縦幅は横幅が画面いっぱいになったら拡張
 
 		// 画面サイズを超えないように調整
 		if (scaleNext.x > SCREEN_WIDTH) scaleNext.x = SCREEN_WIDTH;

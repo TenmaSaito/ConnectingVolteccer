@@ -21,12 +21,13 @@ class CPlayer;
 class CPlanet;
 class CTimer;
 class CCombo;
+class CConnectingEvaluate;
 class CStopWatch;
 
 //**********************************************************************************
 // *** タイトルクラス ***
 //**********************************************************************************
-class CGame : public CScene
+class CGame : public CSceneBase<CGame, CScene::MODE_GAME>
 {
 public:
 	CGame();
@@ -42,6 +43,7 @@ public:
 	constexpr CPlanet *GetPlanet(void) const { return m_pPlanet; }
 	constexpr CTimer *GetTimer(void) const { return m_pTimer; }
 	constexpr CCombo *GetCombo(void) const { return m_pCombo; }
+	constexpr CConnectingEvaluate *GetConnectingEvaluate(void) const { return m_pEvaluate; }
 
 	static constexpr MODE GetMyMode(void) { return CScene::MODE_GAME; }
 
@@ -55,6 +57,7 @@ private:
 	CPlanet *m_pPlanet;		// 惑星へのポインタ
 	CTimer *m_pTimer;		// タイマーへのポインタ
 	CCombo *m_pCombo;		// コンボ表示へのポインタ
+	CConnectingEvaluate *m_pEvaluate;		// 接続時評価用クラスへのポインタ
 	bool m_bEdit;			// エディットモードフラグ
 	bool m_bPause;			// ポーズ状態
 	int m_nCounterFrame;	// フレームカウント

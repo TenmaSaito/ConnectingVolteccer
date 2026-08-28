@@ -78,7 +78,7 @@ HRESULT CObject3D::Init(const bool bXYPlane,
 	VERTEX_3D *pVtx = nullptr;		// 頂点情報へのポインタ
 
 	// 頂点バッファ作成
-	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_3D) * 4,
+	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_3D) * DEFAULT_VERTEX_NUM,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_3D,
 		D3DPOOL_MANAGED,

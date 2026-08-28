@@ -21,7 +21,7 @@ class CObject2D;
 //**********************************************************************************
 // *** タイトルクラス ***
 //**********************************************************************************
-class CGameOver : public CScene
+class CGameOver : public CSceneBase<CGameOver, CScene::MODE_GAMEOVER>
 {
 public:
 	CGameOver();

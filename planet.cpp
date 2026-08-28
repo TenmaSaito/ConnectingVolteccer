@@ -27,7 +27,8 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define RESIST_PLAYERSPEED		(0.001f)		// プレイヤーの移動量に掛ける減少係数
+#define RESIST_PLAYERSPEED		(0.001f)				// プレイヤーの移動量に掛ける減少係数
+#define MODEL_PATH				"data/MODEL/planet.x"	// モデルのパス
 
 //==================================================================================
 // --- 生成処理 ---
@@ -77,8 +78,7 @@ CPlanet::~CPlanet()
 HRESULT CPlanet::Init(void)
 {
 	// モデル読み込み
-	constexpr const char *pPlanetPath = "data/MODEL/sphere000.x";
-	m_nIdxModel = CXFile::GetInstance()->Resister(pPlanetPath);
+	m_nIdxModel = CXFile::GetInstance()->Resister(MODEL_PATH);
 
 	// 任意軸設定
 	m_vecQua = Vec3::Direction(VECTOR3_NULL, Vector3(1.0f, 0.0f, 0.0f));
@@ -190,4 +190,21 @@ void CPlanet::Draw(void)
 
 	// 保存していたマテリアルを戻す
 	pDevice->SetMaterial(&matDef);
+}
+
+//==================================================================================
+// --- 頂点の最大値取得処理 ---
+//==================================================================================
+Vector3 CPlanet::GetVtxMax(void) const
+{
+	CXFile *pXFile = CXFile::GetInstance();					// Xモデルへのポインタ
+	CXFile::XDATA *pXdata = nullptr;	// モデルデータへのポインタ
+
+	if (pXFile->GetAddress(m_nIdxModel, &pXdata) == false)
+	{ // モデルデータ取得成功時
+		return VECTOR3_NULL;
+	}
+
+	// 頂点の最大値を返す
+	return pXdata->vtxMax;
 }
