@@ -29,17 +29,17 @@ public:
 	typedef enum
 	{
 		TYPE_PLAYER = 0,		// プレイヤーが対象のカメラ
+		TYPE_THUNDER,			// 電流が対象のカメラ
 		TYPE_TITLE,				// タイトル画面のカメラ
 		TYPE_GAME,				// ゲーム画面のカメラ(自由移動用)
-		TYPE_GAMEOVER,			// ゲームオーバー画面のカメラ
-		TYPE_GAMECLEAR,			// ゲームクリア画面のカメラ
+		TYPE_RESULT,			// リザルト画面のカメラ
 		TYPE_MAX
 	} TYPE;
 
 	CCamera(const TYPE type);
 	virtual ~CCamera();
 
-	virtual void Init(const Vector3 &posV);
+	virtual void Init(const Vector3 &posV, const Vector3 &posR);
 	virtual void Uninit(void);
 	virtual void Update(void);
 	virtual void SetCamera(void);

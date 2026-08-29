@@ -249,10 +249,7 @@
     <ClCompile Include="polygon2D.cpp">
       <Filter>ソース ファイル\object\primitive</Filter>
     </ClCompile>
-    <ClCompile Include="gameover.cpp">
-      <Filter>ソース ファイル\manager\scene</Filter>
-    </ClCompile>
-    <ClCompile Include="gameclear.cpp">
+    <ClCompile Include="result.cpp">
       <Filter>ソース ファイル\manager\scene</Filter>
     </ClCompile>
     <ClCompile Include="billboard3D.cpp">
@@ -353,6 +350,12 @@
     </ClCompile>
     <ClCompile Include="lightingPillar.cpp">
       <Filter>ソース ファイル\object\effect</Filter>
+    </ClCompile>
+    <ClCompile Include="thunderCamera.cpp">
+      <Filter>ソース ファイル\manager\camera</Filter>
+    </ClCompile>
+    <ClCompile Include="resultCamera.cpp">
+      <Filter>ソース ファイル\manager\camera</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -515,10 +518,7 @@
     <ClInclude Include="delegate_t.h">
       <Filter>ヘッダー ファイル\manager</Filter>
     </ClInclude>
-    <ClInclude Include="gameover.h">
-      <Filter>ヘッダー ファイル\manager\scene</Filter>
-    </ClInclude>
-    <ClInclude Include="gameclear.h">
+    <ClInclude Include="result.h">
       <Filter>ヘッダー ファイル\manager\scene</Filter>
     </ClInclude>
     <ClInclude Include="billboard3D.h">
@@ -619,6 +619,9 @@
     </ClInclude>
     <ClInclude Include="lightingPillar.h">
       <Filter>ヘッダー ファイル\object\effect</Filter>
+    </ClInclude>
+    <ClInclude Include="resultCamera.h">
+      <Filter>ヘッダー ファイル\manager\camera</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

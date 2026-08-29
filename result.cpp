@@ -1,6 +1,6 @@
 //==================================================================================
 // 
-// ゲームクリアクラスのソースファイル [gameclear.cpp]
+// リザルトクラスのソースファイル [result.cpp]
 // Author : TENMA SAITO
 // Date   : 2026/7/14
 // 
@@ -8,7 +8,7 @@
 //**********************************************************************************
 // *** インクルードファイル ***
 //**********************************************************************************
-#include "gameclear.h"
+#include "result.h"
 #include "object.h"
 #include "manager.h"
 #include "renderer.h"
@@ -16,35 +16,33 @@
 #include "input.h"
 #include "joypad.h"
 #include "texture.h"
-#include "object2D.h"
-#include "camera.h"
+#include "resultCamera.h"
+#include "planet.h"
+#include "map.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define LOGO_POSITION		Vector3(SCREEN_MIDDLE.x, 200.0f, 0.0f)		// ロゴの位置
-#define LOGO_SIZE			Vector2(800.0f, 200.0f)			// ロゴのサイズ
-#define LOGO_FILEPATH		"data/TEXTURE/gameclearlogo.png"	// ロゴテクスチャへのパス
 
 //==================================================================================
 // --- コンストラクタ ---
 //==================================================================================
-CGameClear::CGameClear()
-{ // 親クラスのコンストラクタ呼び出し
-	m_pLogo = nullptr;
+CResult::CResult()
+{ // メンバ変数をクリア
+	m_pPlanet = nullptr;
 }
 
 //==================================================================================
 // --- デストラクタ ---
 //==================================================================================
-CGameClear::~CGameClear()
+CResult::~CResult()
 {
 }
 
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CGameClear::Init(void)
+HRESULT CResult::Init(void)
 { // 開始処理
 	Start();
 
@@ -54,14 +52,14 @@ HRESULT CGameClear::Init(void)
 //==================================================================================
 // --- 終了処理 ---
 //==================================================================================
-void CGameClear::Uninit(void)
+void CResult::Uninit(void)
 {
 }
 
 //==================================================================================
 // --- 更新処理 ---
 //==================================================================================
-void CGameClear::Update(void)
+void CResult::Update(void)
 {
 	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
 	CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();		// キーボードへのポインタ
@@ -79,22 +77,26 @@ void CGameClear::Update(void)
 //==================================================================================
 // --- 描画処理 ---
 //==================================================================================
-void CGameClear::Draw(void)
+void CResult::Draw(void)
 {
 }
 
 //==================================================================================
 // --- 初期化後呼び出し処理 ---
 //==================================================================================
-void CGameClear::Start(void)
-{
-	// ロゴ生成
-	m_pLogo = CObject2D::Create(LOGO_POSITION, LOGO_SIZE);
-	m_pLogo->BindTexture(CTexture::GetInstance()->Register(LOGO_FILEPATH));
+void CResult::Start(void)
+{ 
+	CMap *pMap = CMap::GetInstance();		// マップへのポインタ
+
+	// 惑星を生成
+	m_pPlanet = CPlanet::Create();
+	pMap->SetCurrentScenePlanet(m_pPlanet);
+
+	// マップをリセット
+	pMap->ReloadByConnectID();
 
 	// 仮置きでカメラを生成 (自動解放)
 	// TODO : ここのカメラはゲームオーバー用のカメラを作って置き換える事！
-	CCamera *pCamera = new CCamera(CCamera::TYPE_GAMEOVER);
-	pCamera->Init(Vector3(0.0f, 0.0f, -100.0f));
-	pCamera->SetFocus();
+	CResultCamera *pResultCamera = CResultCamera::Create(Vector3(1500.0f, 0.0f, -4000.0f), Vector3(1500.0f, 0.0f, 0.0f));
+	pResultCamera->SetFocus();
 }

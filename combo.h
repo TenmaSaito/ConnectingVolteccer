@@ -48,6 +48,7 @@ public:
 	void ResetCombo(void);
 	int GetCombo(void) const { return m_nCombo; }
 	bool GetDisp(void) const { return m_bDisp; }
+	bool GetContinuing(void) const { return m_bContinuing; }
 
 private:
 	void UpdateAlpha(void);
@@ -65,5 +66,6 @@ private:
 	int m_nCombo = 0;			// 現在のコンボ数
 	int m_nDispLife = 0;		// 描画する時間
 	bool m_bDisp = false;		// 描画状態
+	bool m_bContinuing = false;	// コンボが続いているか
 };
 #endif

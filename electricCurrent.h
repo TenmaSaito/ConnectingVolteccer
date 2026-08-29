@@ -45,6 +45,7 @@ public:
 	void Update(void);
 	void Draw(void);
 	void SetParent(const Matrix *pMtxParent) { m_pMtxParent = pMtxParent; }
+	const Matrix *GetMatrix(void) const { return &m_mtxWorld; }
 
 private:
 	CObjectXQuaternion *m_pStart;	// 始まりのオブジェクトへのポインタ	(電柱もしくは発電所)

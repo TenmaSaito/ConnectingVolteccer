@@ -31,7 +31,7 @@ public:
 		int nIdxTexture;	// テクスチャインデックス
 		Vector3 pos;	// 位置
 		Vector3 rot;	// 角度
-		float fRadius;		// 半径
+		float fRadius;	// 半径
 	};
 
 	CCircleTransition();

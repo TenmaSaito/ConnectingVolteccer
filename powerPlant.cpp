@@ -15,7 +15,9 @@
 #include "utilityPole.h"
 #include "electricalCable.h"
 #include "electricCurrent.h"
+#include "thunderCamera.h"
 #include "color.h"
+#include "map.h"
 #include <ranges>
 
 //**********************************************************************************
@@ -28,12 +30,13 @@
 //==================================================================================
 CPowerPlant *CPowerPlant::Create(const Vector3 &pos,
 	const Vector3 &vecQua,
-	const float fAngle)
+	const float fAngle,
+	const int nID)
 {
 	CPowerPlant *pPlant = new CPowerPlant;		// 生成した発電所へのポインタ
 	if (pPlant != nullptr)
 	{ // 生成できている場合、初期化処理
-		pPlant->Init(pos, vecQua, fAngle);
+		pPlant->Init(pos, vecQua, fAngle, nID);
 	}
 
 	return pPlant;
@@ -42,12 +45,12 @@ CPowerPlant *CPowerPlant::Create(const Vector3 &pos,
 //==================================================================================
 // --- 生成処理 (任意軸と角度を現在の惑星から自動設定) ---
 //==================================================================================
-CPowerPlant *CPowerPlant::Create(const Vector3 &pos)
+CPowerPlant *CPowerPlant::Create(const Vector3 &pos, const int nID)
 {
 	CPowerPlant *pPlant = new CPowerPlant;		// 生成した発電所へのポインタ
 	if (pPlant != nullptr)
 	{ // 生成できている場合、初期化処理
-		pPlant->Init(pos);
+		pPlant->Init(pos, nID);
 	}
 
 	return pPlant;
@@ -60,6 +63,7 @@ CPowerPlant::CPowerPlant(const int nPriority) : CObjectXQuaternion(nPriority)
 { // メンバ変数のクリア
 	m_pCurrentPole = nullptr;
 	m_pCurrentCable = nullptr;
+	m_nID = -1;
 
 	// タイプ設定
 	SetType(CObject::TYPE_POWERPLANT);
@@ -77,28 +81,30 @@ CPowerPlant::~CPowerPlant()
 //==================================================================================
 HRESULT CPowerPlant::Init(const Vector3 &position,
 	const Vector3 &vecQua,
-	const float fAngle)
+	const float fAngle,
+	const int nID)
 {
 	HRESULT hr = S_OK;		// 結果
-	CGame *pGame = CManager::GetInstance()->GetScene(&pGame);		// ゲームへのポインタ
-	CPlanet *pPlanet = pGame->GetPlanet();		// 惑星へのポインタ
+
+	// 引数を保存
+	m_nID = nID;
 
 	// 親クラスの初期化
 	hr = CObjectXQuaternion::Init(MODEL_PATH, position, vecQua, fAngle);
-
-	// 親を惑星に設定
-	SetParent(pPlanet->GetMatrix());
 	return hr;
 }
 
 //==================================================================================
 // --- 初期化処理 (任意軸と角度を現在の惑星から自動設定) ---
 //==================================================================================
-HRESULT CPowerPlant::Init(const Vector3 &position)
+HRESULT CPowerPlant::Init(const Vector3 &position, const int nID)
 {
 	HRESULT hr = S_OK;		// 結果
 	CGame *pGame = CManager::GetInstance()->GetScene(&pGame);		// ゲームへのポインタ
 	CPlanet *pPlanet = pGame->GetPlanet();		// 惑星へのポインタ
+
+	// 引数を保存
+	m_nID = nID;
 
 	// 惑星から現在の任意軸と角度を取得
 	Vector3 vecQua = VECTOR3_NULL;
@@ -115,8 +121,6 @@ HRESULT CPowerPlant::Init(const Vector3 &position)
 	// 親クラスの初期化
 	hr = CObjectXQuaternion::Init(MODEL_PATH, position, vecQua, fAngle);
 
-	// 親を惑星に設定
-	SetParent(pPlanet->GetMatrix());
 	return hr;
 }
 
@@ -168,7 +172,9 @@ bool CPowerPlant::Connect(CUtilityPole *pPole)
 	m_pCurrentPole = pPole;
 
 	// 電柱同士を電線で接続
-	m_pCurrentCable = CElectricalCable::Create(this, pPole);
+	m_pCurrentCable = CElectricalCable::Create(this,
+		pPole, 
+		CMap::GetInstance()->GetCurrentScenePlanet());
 	m_pCurrentCable->SetParent(GetParent());
 	return true;
 }
@@ -178,9 +184,14 @@ bool CPowerPlant::Connect(CUtilityPole *pPole)
 //==================================================================================
 void CPowerPlant::InvokeElectric(void)
 { // 今回繋げた電柱から電流を生成
+	CGame *pGame = CManager::GetInstance()->GetScene(&pGame);			// ゲームシーンへのポインタ
+
 	// 自身とつながっている電柱に電気を流す
-	CElectricCurrent *pCurrect = CElectricCurrent::Create(this, m_pCurrentPole);
-	pCurrect->SetParent(CManager::GetInstance()->GetScene<CGame>()->GetPlanet()->GetMatrix());
+	CElectricCurrent *pCurrent = CElectricCurrent::Create(this, m_pCurrentPole);
+	pCurrent->SetParent(CMap::GetInstance()->GetCurrentScenePlanet()->GetMatrix());
+
+	// ゲームシーンなら、カメラのターゲットを変更
+	if(pGame != nullptr) pGame->GetThunderCamera()->ChangeTarget(pCurrent);
 
 	// 電線の色を黄色に変更
 	m_pCurrentCable->SetColor(Colors::GetColor(Colors::C_YELLOW));

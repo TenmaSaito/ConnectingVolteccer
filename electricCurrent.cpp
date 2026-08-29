@@ -143,7 +143,7 @@ void CElectricCurrent::Update(void)
 		m_bGenerate = true;
 	}
 
-	if (m_pThunder->IsEndAnim(5.0f) && m_bGenerate == true)
+	if (m_pThunder->IsEndAnim(4.0f) && m_bGenerate == true)
 	{ // 電流がある程度短くなったら、終了
 		Uninit();
 	}

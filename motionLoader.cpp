@@ -53,7 +53,7 @@ CMotionLoader::~CMotionLoader()
 //==================================================================================
 // --- モーションの登録処理 ---
 //==================================================================================
-UINT CMotionLoader::Register(const std::string_view path)
+UINT CMotionLoader::Register(std::string_view path)
 { // ファイル名がnullもしくはインデックスが無効値手前の場合失敗
 	if (path.empty() == true) return INVALID_MOTION_ID;
 	if (m_vBuffer.size() == INVALID_MOTION_ID - 1U) return INVALID_MOTION_ID;

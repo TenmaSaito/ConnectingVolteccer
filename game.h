@@ -23,6 +23,7 @@ class CTimer;
 class CCombo;
 class CConnectingEvaluate;
 class CStopWatch;
+class CThunderCamera;
 
 //**********************************************************************************
 // *** タイトルクラス ***
@@ -44,6 +45,7 @@ public:
 	constexpr CTimer *GetTimer(void) const { return m_pTimer; }
 	constexpr CCombo *GetCombo(void) const { return m_pCombo; }
 	constexpr CConnectingEvaluate *GetConnectingEvaluate(void) const { return m_pEvaluate; }
+	constexpr CThunderCamera *GetThunderCamera(void) const { return m_pThunderCam; }
 
 	static constexpr MODE GetMyMode(void) { return CScene::MODE_GAME; }
 
@@ -57,6 +59,7 @@ private:
 	CPlanet *m_pPlanet;		// 惑星へのポインタ
 	CTimer *m_pTimer;		// タイマーへのポインタ
 	CCombo *m_pCombo;		// コンボ表示へのポインタ
+	CThunderCamera *m_pThunderCam;			// 電流表示用カメラへのポインタ
 	CConnectingEvaluate *m_pEvaluate;		// 接続時評価用クラスへのポインタ
 	bool m_bEdit;			// エディットモードフラグ
 	bool m_bPause;			// ポーズ状態

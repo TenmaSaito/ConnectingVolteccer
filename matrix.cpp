@@ -163,7 +163,7 @@ Matrix *Mtx::CalcWorld(Matrix *pMtx,
 //==================================================================================
 Matrix *Mtx::CalcWorld(Matrix *pMtx,
 	const Matrix *pParent,
-	const Vector3 &position, 
+	const Vector3 &position,
 	const Quaternion &quaternion)
 {
 	// o—Íæ‚ªnullptr‚È‚çnullptr‚ğ•Ô‚·

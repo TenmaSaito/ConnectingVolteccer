@@ -32,7 +32,8 @@
 // --- 生成処理 (CObjectXQuaternion -> CObjectXQuaternion) ---
 //==================================================================================
 CElectricalCable *CElectricalCable::Create(const CObjectXQuaternion *pStart,
-	const CObjectXQuaternion *pEnd)
+	const CObjectXQuaternion *pEnd,
+	const CPlanet *pPlanet)
 {
 	CElectricalCable *pCable = NULL;		// 生成したオブジェクトへのポインタ
 
@@ -44,7 +45,7 @@ CElectricalCable *CElectricalCable::Create(const CObjectXQuaternion *pStart,
 	}
 
 	// 初期化処理
-	pCable->Init(pStart, pEnd);
+	pCable->Init(pStart, pEnd, pPlanet);
 
 	return pCable;
 }
@@ -82,7 +83,8 @@ CElectricalCable::~CElectricalCable()
 // --- 初期化処理 ---
 //==================================================================================
 HRESULT CElectricalCable::Init(const CObjectXQuaternion *pStart,
-	const CObjectXQuaternion *pEnd)
+	const CObjectXQuaternion *pEnd,
+	const CPlanet *pPlanet)
 {
 	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pManager->GetRenderer()->GetDevice();		// デバイスへのポインタ
@@ -155,7 +157,7 @@ HRESULT CElectricalCable::Init(const CObjectXQuaternion *pStart,
 	m_pVtxBuff->Unlock();
 
 	// 現在の惑星のクォータニオンから任意軸と角度を求める
-	const Quaternion *pQuaPlanet = pManager->GetScene<CGame>()->GetPlanet()->GetQuaternion();
+	const Quaternion *pQuaPlanet = pPlanet->GetQuaternion();
 	D3DXQuaternionToAxisAngle(pQuaPlanet,
 		&m_vecQua,
 		&m_fAngle);

@@ -10,6 +10,7 @@
 //**********************************************************************************
 #include "vec3math.h"
 #include "rand.h"
+#include "ray.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -46,6 +47,14 @@ float Vec3::LengthSq(const Vector3 &vec)
 float Vec3::LengthSq(const Vector3 &To, const Vector3 &From)
 {
 	return LengthSq(To - From);
+}
+
+//==================================================================================
+// --- L2ノルム ---
+//==================================================================================
+float Vec3::L2Norm(const Vector3 &vec)
+{ 
+	return sqrtf(Dot(vec, vec));
 }
 
 //==================================================================================
@@ -180,6 +189,20 @@ bool Vec3::IsInsideViewOfVertical(const Vector3 &pos,
 	}
 
 	return false;
+}
+
+//==================================================================================
+// --- 点と線分の距離の取得処理 ---
+//==================================================================================
+float Vec3::DistancePointToSegment(const Vector3 &point, const Vector3 &segStart, const Vector3 &segEnd)
+{
+	Vector3 P = point - segStart;
+	CRay ray(segStart, segEnd);			// 線分
+	float k = Dot(*ray.GetVector(), P);
+
+	if (k <= 0) { return L2Norm(P); }
+	if (k >= ray.GetLength()) { return L2Norm(point - segEnd); }
+	return L2Norm(P - (*ray.GetVector() * k));
 }
 
 //==================================================================================

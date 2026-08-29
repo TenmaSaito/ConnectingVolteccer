@@ -22,8 +22,10 @@
 #include "player.h"
 #include "planet.h"
 #include "camera.h"
+#include "thunderCamera.h"
 #include "vec3math.h"
 #include "color.h"
+#include "map.h"
 #include <algorithm>
 #include <ranges>
 
@@ -42,7 +44,10 @@
 //==================================================================================
 // --- オブジェクト3Dの生成処理 ---
 //==================================================================================
-CUtilityPole *CUtilityPole::Create(const Vector3 &pos, const Vector3 &vecQua, const float fAngle)
+CUtilityPole *CUtilityPole::Create(const Vector3 &pos,
+	const Vector3 &vecQua,
+	const float fAngle,
+	const int nID)
 {
 	CUtilityPole *pPole = NULL;		// 生成したオブジェクトへのポインタ
 
@@ -54,7 +59,7 @@ CUtilityPole *CUtilityPole::Create(const Vector3 &pos, const Vector3 &vecQua, co
 	}
 
 	// 初期化処理
-	pPole->Init(pos, vecQua, fAngle);
+	pPole->Init(pos, vecQua, fAngle, nID);
 
 	return pPole;
 }
@@ -70,6 +75,7 @@ CUtilityPole::CUtilityPole() : CObjectXQuaternion(UTILITYPOLE_PRIORITY)
 	m_nNumConnect = 0;
 	m_bElectriced = false;
 	m_enableType = ICON_CAN;
+	m_nID = -1;
 
 	// タイプの指定
 	CObject::SetType(TYPE_POLE);
@@ -85,7 +91,10 @@ CUtilityPole::~CUtilityPole()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CUtilityPole::Init(const Vector3 &pos, const Vector3 &vecQua, const float fAngle)
+HRESULT CUtilityPole::Init(const Vector3 &pos,
+	const Vector3 &vecQua,
+	const float fAngle,
+	const int nID)
 {
 	HRESULT hr;		// 初期化結果
 	CTexture *pTexture = CTexture::GetInstance();		// テクスチャ管理オブジェクトへのポインタ
@@ -109,6 +118,9 @@ HRESULT CUtilityPole::Init(const Vector3 &pos, const Vector3 &vecQua, const floa
 	// タイプを初期化
 	m_enableType = ICON_CAN;
 
+	// 引数を保存
+	m_nID = nID;
+
 	// 初期化結果を返す
 	return hr;
 }
@@ -128,6 +140,8 @@ void CUtilityPole::Update(void)
 {
 	CManager *pManager = CManager::GetInstance();	// マネージャーへのポインタ
 	CGame *pGame = pManager->GetScene<CGame>();		// ゲームシーンへのポインタ
+	if (pGame == nullptr) return;					// ゲームシーンの取得に失敗した場合、以下の処理を無視
+
 	CPlayer *pPlayer = pGame->GetPlayer();			// プレイヤーへのポインタ
 	CCamera *pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);		// プレイヤーカメラへのポインタ
 	Vector3 posPlayer = VECTOR3_NULL;			// プレイヤーの絶対座標
@@ -173,8 +187,7 @@ void CUtilityPole::Update(void)
 				auto vpPole = pPowerPlant->GetConnectPole();			// 発電所とつながっている電柱のポインタ
 
 				// 電柱のポインタから自身を検索
-				auto iter = std::find(vpPole.begin(), vpPole.end(), this);
-				if (iter == vpPole.end() 
+				if (std::ranges::find(vpPole, this) == vpPole.end()
 					&& pConnected == nullptr
 					&& m_pConnect == nullptr)
 				{ // 既に繋げている電柱では無い場合
@@ -212,16 +225,19 @@ void CUtilityPole::Draw(void)
 	CManager *pManager = CManager::GetInstance();			// マネージャへのポインタ
 	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
+
+	// モデルの描画
+	CObjectXQuaternion::Draw();
+
 	CGame *pGame = pManager->GetScene<CGame>();			// ゲームシーンへのポインタ
+	if (pGame == nullptr) return;						// ゲームシーンの取得に失敗した場合、以下の処理を無視
+
 	CPlayer *pPlayer = pGame->GetPlayer();				// プレイヤーへのポインタ
 	auto pObj = pPlayer->GetRidingObject();		// プレイヤーの乗っているオブジェクトが保存されている変数
 	const CObjectXQuaternion *pRidingObject;	// プレイヤーの乗っているオブジェクト
 
 	// ポインタを取得
 	std::visit([&](auto &x) { pRidingObject = x; }, *pObj);
-
-	// モデルの描画
-	CObjectXQuaternion::Draw();
 
 	if (pRidingObject != nullptr)
 	{ // プレイヤーが電柱に乗っていれば
@@ -260,7 +276,9 @@ bool CUtilityPole::Connect(CUtilityPole *pPole)
 	pPole->Connected(this);
 
 	// 電柱同士を電線で接続
-	m_pCurrentCable = CElectricalCable::Create(this, pPole);
+	m_pCurrentCable = CElectricalCable::Create(this, 
+		pPole,
+		CMap::GetInstance()->GetCurrentScenePlanet());
 	m_pCurrentCable->SetParent(GetParent());
 	m_nNumConnect++;
 
@@ -296,11 +314,22 @@ bool CUtilityPole::Connected(CPowerPlant *pPowerPlant)
 //==================================================================================
 void CUtilityPole::GenerateElectricity(void)
 { // 既に流れている場合は流さない
-	if (m_bElectriced == true || m_pConnect == nullptr) return;
+	CGame *pGame = CManager::GetInstance()->GetScene(&pGame);	// ゲームシーンへのポインタ
 
-	// 自身とつながっている電柱に電気を流す
-	CElectricCurrent *pCurrect = CElectricCurrent::Create(this, m_pConnect);
-	pCurrect->SetParent(CManager::GetInstance()->GetScene<CGame>()->GetPlanet()->GetMatrix());
+	if (m_bElectriced == true || m_pConnect == nullptr)
+	{ // カメラへnullを登録
+		if(pGame != nullptr) pGame->GetThunderCamera()->ChangeTarget(nullptr);
+		return;
+	}
+
+	// 自身とつながっている電柱に電気を流す + カメラに登録
+	CElectricCurrent *pCurrent = CElectricCurrent::Create(this, m_pConnect);
+	pCurrent->SetParent(CMap::GetInstance()->GetCurrentScenePlanet()->GetMatrix());
+	
+	if (pGame != nullptr)
+	{ // カメラに電柱を登録
+		pGame->GetThunderCamera()->ChangeTarget(pCurrent);
+	}
 
 	// 電線の色を変更
 	m_pCurrentCable->SetColor(Colors::GetColor(Colors::C_YELLOW));

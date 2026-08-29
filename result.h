@@ -1,12 +1,12 @@
 //==================================================================================
 // 
-// ゲームオーバークラスのヘッダーファイル [gameover.h]
+// リザルトクラスのヘッダーファイル [result.h]
 // Author : TENMA SAITO
 // Date   : 2026/7/14
 // 
 //==================================================================================
-#ifndef _GAMEOVER_H_		// インクルードガード
-#define _GAMEOVER_H_
+#ifndef _RESULT_H_		// インクルードガード
+#define _RESULT_H_
 
 //**********************************************************************************
 // *** インクルードファイル ***
@@ -16,28 +16,29 @@
 //**********************************************************************************
 // *** 前方宣言 ***
 //**********************************************************************************
-class CObject2D;
+class CPlanet;
 
 //**********************************************************************************
 // *** タイトルクラス ***
 //**********************************************************************************
-class CGameOver : public CSceneBase<CGameOver, CScene::MODE_GAMEOVER>
+class CResult : public CSceneBase<CResult, CScene::MODE_RESULT>
 {
 public:
-	CGameOver();
-	~CGameOver();
+	CResult();
+	~CResult();
 
 	HRESULT Init(void) override;
 	void Uninit(void) override;
 	void Update(void) override;
 	void Draw(void) override;
-	CObject2D *GetLogo(void) const { return m_pLogo; }
 
-	static constexpr MODE GetMyMode(void) { return CScene::MODE_GAMEOVER; }
+	constexpr CPlanet *GetPlanet(void) const { return m_pPlanet; }
+
+	static constexpr MODE GetMyMode(void) { return MODE_RESULT; }
 
 private:
 	void Start(void);
 
-	CObject2D *m_pLogo;		// ゲームオーバーロゴ
+	CPlanet *m_pPlanet;		// 惑星へのポインタ
 };
 #endif

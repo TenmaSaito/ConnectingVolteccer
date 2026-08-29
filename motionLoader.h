@@ -41,7 +41,7 @@ public:
 	};
 
 	static CMotionLoader *GetInstance(void);
-	UINT Register(const std::string_view path);
+	UINT Register(std::string_view path);
 	UINT Register(const char *pPath);
 	std::unique_ptr<CMotion> CreateMotion(const UINT uIdx) const;
 	void Unload(void);

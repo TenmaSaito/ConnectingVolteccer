@@ -85,17 +85,6 @@ HRESULT CThunderEffect::Init(const Vector3 &min,
 	m_fMinWidth = 3.0f;
 	m_fMaxWidth = 30.0f;
 
-	// マトリックスの初期化
-	D3DXMatrixIdentity(&m_mtxWorld);
-
-	// マトリックスの計算
-	Mtx::CalcWorld(&m_mtxWorld,
-		m_pos,
-		VECTOR3_NULL);
-
-	// 親マトリックスとリンク
-	D3DXMatrixMultiply(&m_mtxWorld, &m_mtxWorld, pMtxParent);
-
 	// オービットを生成
 	m_pOrbit = CMeshOrbit3D::Create(&m_mtxWorld, Vector3(10.0f, 0.0f, 0.0f), Vector3(-10.0f, 0.0f, 0.0f), 10);
 	if (m_pOrbit == nullptr)

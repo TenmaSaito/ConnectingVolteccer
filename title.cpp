@@ -77,7 +77,7 @@ void CTitle::Start(void)
 	// 仮置きでカメラを生成 (自動解放)
 	// TODO : ここのカメラはタイトル用のカメラを作って置き換える事！
 	CCamera *pCamera = new CCamera(CCamera::TYPE_TITLE);
-	pCamera->Init(Vector3(0.0f, 0.0f, -100.0f));
+	pCamera->Init(Vector3(0.0f, 0.0f, -100.0f), VECTOR3_NULL);
 	pCamera->SetFocus();
 
 	// タイトル画面のメニューを生成

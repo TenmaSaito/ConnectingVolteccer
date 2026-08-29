@@ -170,8 +170,7 @@
     <ClCompile Include="electricCurrent.cpp" />
     <ClCompile Include="filestream.cpp" />
     <ClCompile Include="game.cpp" />
-    <ClCompile Include="gameclear.cpp" />
-    <ClCompile Include="gameover.cpp" />
+    <ClCompile Include="result.cpp" />
     <ClCompile Include="grass.cpp" />
     <ClCompile Include="grassland.cpp" />
     <ClCompile Include="input.cpp" />
@@ -220,11 +219,13 @@
     <ClCompile Include="rand.cpp" />
     <ClCompile Include="ray.cpp" />
     <ClCompile Include="renderer.cpp" />
+    <ClCompile Include="resultCamera.cpp" />
     <ClCompile Include="scene.cpp" />
     <ClCompile Include="sceneTransition.cpp" />
     <ClCompile Include="circleTransition.cpp" />
     <ClCompile Include="stopwatch.cpp" />
     <ClCompile Include="textureRenderer.cpp" />
+    <ClCompile Include="thunderCamera.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="title.cpp" />
     <ClCompile Include="titlemenu.cpp" />
@@ -253,8 +254,7 @@
     <ClInclude Include="directX.h" />
     <ClInclude Include="directXSubDrawer.h" />
     <ClInclude Include="game.h" />
-    <ClInclude Include="gameclear.h" />
-    <ClInclude Include="gameover.h" />
+    <ClInclude Include="result.h" />
     <ClInclude Include="lasso.h" />
     <ClInclude Include="lighingLevel.h" />
     <ClInclude Include="lightingPillar.h" />
@@ -307,6 +307,7 @@
     <ClInclude Include="rand.h" />
     <ClInclude Include="ray.h" />
     <ClInclude Include="renderer.h" />
+    <ClInclude Include="resultCamera.h" />
     <ClInclude Include="scene.h" />
     <ClInclude Include="sceneTransition.h" />
     <ClInclude Include="circleTransition.h" />

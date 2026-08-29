@@ -33,6 +33,7 @@ public:
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
+	void Move(const Vector3 &rot, const float fLength);
 	float GetAngle(void) const { return m_fAngle; }
 	const Vector3 *GetVecQua(void) const { return &m_vecQua; }
 	const Matrix *GetMatrix(void) const { return &m_mtxWorld; }

@@ -18,7 +18,7 @@
 // *** マクロ定義 ***
 //**********************************************************************************
 #define MAX_CONNECT_POLE		(5)		// 接続できる電線の数
-#define UTILITYPOLE_PRIORITY	(3)		// 電柱のプライオリティ
+#define UTILITYPOLE_PRIORITY	(DEFAULT_OBJ_PRIORITY)		// 電柱のプライオリティ
 
 //**********************************************************************************
 // *** 前方宣言 ***
@@ -61,12 +61,16 @@ public:
 
 	static CUtilityPole *Create(const Vector3 &pos,
 		const Vector3 &vecQua,
-		const float fAngle);
+		const float fAngle,
+		const int nID);
 
 	CUtilityPole();
 	~CUtilityPole();
 
-	HRESULT Init(const Vector3 &pos, const Vector3 &vecQua, const float fAngle);
+	HRESULT Init(const Vector3 &pos,
+		const Vector3 &vecQua,
+		const float fAngle,
+		const int nID);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
@@ -81,6 +85,7 @@ public:
 	bool IsSelected(void) const { return m_bSelected; }
 	void SetEnableElectriced(const bool bEnable) { m_bElectriced = bEnable; }
 	bool IsElectriced(void) const { return m_bElectriced; }
+	int GetID(void) const { return m_nID; }
 
 private:
 	CUtilityPole *m_pConnect;						// 電線でつながっている電柱へのポインタ
@@ -91,5 +96,6 @@ private:
 	bool m_bElectriced;			// 既に電流が流れたかどうか
 	bool m_bSelected;			// 選択されているか(プレイヤーの視点の中心に最も近いか)
 	ICON m_enableType;			// 有効な種類
+	int m_nID;			// 生成されたID
 };
 #endif

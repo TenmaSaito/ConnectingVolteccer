@@ -33,6 +33,7 @@
 #define COLLISION_LENGTH	(120.0f)		// 当たり判定をする長さ
 #define DEF_LIFE			(30)			// 移動する時間
 #define CABLE_COLLISION_EPSILON		(0.01f)	// 電線との当たり判定を行うまでの猶予
+#define CABLE_CONTACT_DIST	(100.0f)		// 電線との当たり判定を行う距離
 
 //==================================================================================
 // --- 生成処理 (電柱 -> 電柱) ---
@@ -185,7 +186,7 @@ void CLasso::CheckCollision(void)
 	// 自身の絶対座標を求める
 	D3DXVec3TransformCoord(&pos, &pos, GetMatrix());
 
-	CEffect::Create(pos, 2, 20);
+	CEffect::Create(pos, 2, 100);
 
 	while (pObject != nullptr)
 	{ // オブジェクトを走査
@@ -214,8 +215,17 @@ void CLasso::CheckCollision(void)
 		D3DXVec3TransformCoord(&posLocal, &pos, &mtxInv);
 		D3DXVec3TransformCoord(&posOldLocal, &m_posOld, &mtxInv);
 
-		if (m_posOld.y <= aVtxPos.at(0).y && m_posOld.y <= aVtxPos.at(2).y)
+		if (posOldLocal.y <= aVtxPos.at(0).y 
+			&& posOldLocal.y <= aVtxPos.at(2).y)
 		{ // 前フレームのローカル座標の高さが電線以下ならスキップ
+			pObject = pObjectNext;		// ポインタ更新
+			continue;
+		}
+
+		if (Vec3::DistancePointToSegment(posLocal,
+			aVtxPos.at(0),
+			aVtxPos.at(2)) > CABLE_CONTACT_DIST)
+		{ // 電線が近くないならスキップ
 			pObject = pObjectNext;		// ポインタ更新
 			continue;
 		}

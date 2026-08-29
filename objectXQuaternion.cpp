@@ -300,6 +300,9 @@ bool CObjectXQuaternion::IsHitByRay(const Vector3 &start, const Vector3 &vec, co
 bool CObjectXQuaternion::IsHitByPlayerCamRay(void)
 {
 	auto pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);
+
+	// nullの場合スキップ
+	if (pPlayerCam == nullptr) return false;
 	Vector3 posV = *pPlayerCam->GetPosV();		// 視点
 	Vector3 ray = pPlayerCam->GetRay();			// プレイヤーカメラのレイベクトル
 

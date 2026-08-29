@@ -56,17 +56,17 @@ CCamera::~CCamera()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-void CCamera::Init(const Vector3 &posV)
+void CCamera::Init(const Vector3 &posV, const Vector3 &posR)
 {
 	{ // メンバ変数を初期化
 		D3DXMatrixIdentity(&m_mtxProjection);
 		D3DXMatrixIdentity(&m_mtxView);
-		m_posR = VECTOR3_NULL;
 		m_rot = VECTOR3_NULL;
 	}
 
-	{ // 視点・上方向ベクトル・ビューポートを設定
+	{ // 視点・注視点・上方向ベクトル・ビューポートを設定
 		m_posV = posV;
+		m_posR = posR;
 		m_vecU = Vector3(0.0f, 1.0f, 0.0f);
 		m_vp = DEFAULT_VP;
 	}

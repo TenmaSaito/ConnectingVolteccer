@@ -27,8 +27,7 @@ public:
 		MODE_NONE = 0,		// 無し
 		MODE_TITLE,			// タイトル
 		MODE_GAME,			// ゲーム
-		MODE_GAMEOVER,		// ゲームオーバー
-		MODE_GAMECLEAR,		// ゲームクリア
+		MODE_RESULT,		// リザルト
 		MODE_MAX
 	} MODE;
 

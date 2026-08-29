@@ -79,6 +79,7 @@ public:
 
 	void SetType(const TYPE type) { m_type = type; }
 	TYPE GetType(void) const { return m_type; }
+	bool IsDeath(void) const { return m_bDeath; }
 	static CObject* GetTop(const int nPriority) { return m_apTop[nPriority]; }
 	CObject *GetNext(void) const { return m_pNext; }
 	static int GetNumAll(void) { return m_nNumAll; }
@@ -92,7 +93,6 @@ public:
 #endif
 protected:
 	void Release(void);
-	bool IsDeath(void) const { return m_bDeath; }
 
 private:
 #if ENABLE_OBJECT_LIST

@@ -90,7 +90,7 @@ void CPlayerCamera::Init(const Vector3 &rot,
 	const float fLengthPlayer,
 	const float fLengthRiding)
 { // 親クラスの初期化
-	CCamera::Init(Vec3::Arc(fLengthPlayer, rot.y, rot.z));
+	CCamera::Init(Vec3::Arc(fLengthPlayer, rot.y, rot.z), VECTOR3_NULL);
 
 	// 角度の設定
 	CCamera::SetRotate(rot);

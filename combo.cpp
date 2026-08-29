@@ -17,6 +17,7 @@
 #include "player.h"
 #include "powerPlant.h"
 #include "utilityPole.h"
+#include "map.h"
 #include "util.h"
 #include "texture.h"
 #include "observer_pointer.h"
@@ -56,7 +57,7 @@ CCombo *CCombo::Create(const Vector3 &pos, const Vector3 &rot)
 //==================================================================================
 CCombo::CCombo() : CObject(DEFAULT_UI_PRIORITY)
 { // タイプを指定
-	SetType(TYPE_TIMER);
+	SetType(TYPE_COMBO);
 }
 
 //==================================================================================
@@ -116,6 +117,9 @@ HRESULT CCombo::Init(const Vector3 &pos, const Vector3 &rot)
 	m_pGauge.reset(CPolygon2D::Create(posGauge, VECTOR3_NULL, GAUGE_SIZE));
 	m_pGauge->SetDisp(false);
 
+	m_bDisp = true;
+	m_bContinuing = false;
+
 	return S_OK;
 }
 
@@ -156,12 +160,12 @@ void CCombo::Uninit(void)
 //==================================================================================
 void CCombo::Update(void)
 {
-	if (m_bDisp == true)
+	if (m_bContinuing == true)
 	{ // 描画している場合のみ
 		m_nDispLife--;
 		if (m_nDispLife < 0)
 		{ // 描画時間が過ぎた場合、描画しないように設定し体力を元に戻す
-			m_bDisp = false;
+			m_bContinuing = false;
 			m_nDispLife = COMBO_FRAME;
 		}
 	}
@@ -260,7 +264,6 @@ void CCombo::SetCombo(const int nValue)
 	// 描画時間と各補間用変数を再設定
 	m_fTimeCatmullRom = 0.0f;
 	m_fTimeAlphaLerp = 0.0f;
-	m_bDisp = true;
 }
 
 //==================================================================================
@@ -268,6 +271,9 @@ void CCombo::SetCombo(const int nValue)
 //==================================================================================
 void CCombo::AddCombo(const int nValue)
 { // 現コンボ数に加算した値で再設定
+	// 未描画状態からコンボが始まったなら、コンボ持続中フラグを立てる
+	if (m_nDispLife == COMBO_FRAME) m_bContinuing = true;
+
 	SetCombo(m_nCombo + nValue);
 }
 
@@ -289,6 +295,9 @@ void CCombo::Finish(void)
 
 	// コンボをリセット
 	ResetCombo();
+
+	// 行動を確定
+	CMap::GetInstance()->ConfirmID();
 }
 
 //==================================================================================
@@ -313,6 +322,9 @@ void CCombo::Withdrawal(void)
 
 	// コンボをリセット
 	ResetCombo();
+
+	// 行動を取り消し
+	CMap::GetInstance()->WithdrawalID();
 }
 
 //==================================================================================
@@ -333,7 +345,7 @@ void CCombo::ResetCombo(void)
 	m_nDispLife = COMBO_FRAME;	// 体力を元に戻す
 	m_fTimeGaugeLerp = 0.0f;	// 補間用変数をリセット
 	m_nCombo = 0;			// コンボ数リセット
-	m_bDisp = false;		// 描画フラグをおろす
+	m_bContinuing = false;	// コンボ持続フラグをおろす
 }
 
 //==================================================================================
@@ -349,7 +361,7 @@ void CCombo::UpdateAlpha(void)
 //==================================================================================
 void CCombo::UpdateScale(void)
 {
-	if (m_fTimeCatmullRom < 1.0f && m_bDisp == true)
+	if (m_fTimeCatmullRom < 1.0f && m_bContinuing == true)
 	{ // 補間用変数が1.0f未満の場合
 		m_fTimeCatmullRom += 0.05f;		// 時間を加算
 		Vector2 value;		// 計算後のサイズ
@@ -376,7 +388,7 @@ void CCombo::UpdateScale(void)
 		}
 	}
 
-	if (m_fTimeGaugeLerp < 1.0f && m_bDisp == true)
+	if (m_fTimeGaugeLerp < 1.0f && m_bContinuing == true)
 	{ // 補間用変数が1.0f未満の場合
 		m_fTimeGaugeLerp += GAUGE_VALUE;	// 時間を加算
 
@@ -413,7 +425,8 @@ void CCombo::UpdateScale(void)
 			{ // プレイヤーがnullの場合
 				m_nCombo = 0;			// コンボ数リセット
 			}
-			m_bDisp = false;			// 描画フラグをおろす
+
+			m_bContinuing = false;			// 描画フラグをおろす
 		}
 	}
 }

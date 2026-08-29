@@ -74,12 +74,14 @@ namespace Vec3
 	float Length(const Vector3 &To, const Vector3 &From);
 	float LengthSq(const Vector3 &vec);
 	float LengthSq(const Vector3 &To, const Vector3 &From);
+	float L2Norm(const Vector3 &vec);
 	float Dot(const Vector3 &vec1, const Vector3 &vec2);
 	bool IsVertical(const Vector3 &vec1, const Vector3 &vec2);
 	bool IsParallel(const Vector3 &vec1, const Vector3 &vec2);
 	bool IsInsideTriangle(const Vector3 &pos, const Vector3 *pVtx, const bool bInverse = false);
 	bool IsInsideViewOfBeside(const Vector3 &pos, const Vector3 &posV, const Vector3 &posR, const float fovy);
 	bool IsInsideViewOfVertical(const Vector3 &pos, const Vector3 &posV, const Vector3 &posR, const float fovy);
+	float DistancePointToSegment(const Vector3 &point, const Vector3 &segStart, const Vector3 &segEnd);
 	float Height(const Vector3 &pos, const Vector3 &vtx, const Vector3 &nor);
 	Vector3 Nor(const Vector3 &origin, const Vector3 *pVtx, const bool bInverse = false);
 	Vector3 Cross(const Vector3 &vec1, const Vector3 &vec2);

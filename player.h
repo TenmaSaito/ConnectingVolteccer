@@ -87,7 +87,6 @@ public:
 	void AddLightingHouse(void) { m_nCurrentConnectLighting++; }
 	void FailedShot(void);
 
-
 private:
 	void InputAction(void);
 	void InputMoving(void);

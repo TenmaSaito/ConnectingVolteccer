@@ -16,6 +16,7 @@
 #include "filestream.h"
 #include "manager.h"
 #include "game.h"
+#include "result.h"
 #include "planet.h"
 #include "building.h"
 #include "powerPlant.h"
@@ -24,6 +25,7 @@
 #include <iostream>
 #include <iomanip>
 #include <locale>
+#include <variant>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -65,7 +67,10 @@ CMap *CMap::GetInstance(void)
 // --- コンストラクタ ---
 //==================================================================================
 CMap::CMap()
-{
+{ // メンバ変数をクリア
+	m_nNumBuilding = 0;
+	m_nNumID = 0;
+	m_pPlanet = nullptr;
 }
 
 //==================================================================================
@@ -76,17 +81,43 @@ CMap::~CMap()
 }
 
 //==================================================================================
+// --- 変数のリセット処理 ---
+//==================================================================================
+void CMap::Reset(void)
+{ // メンバ変数をリセット
+	m_nNumBuilding = 0;
+	m_nNumID = 0;
+	m_pPlanet = nullptr;
+	m_vConnectID.clear();
+	m_vCurrentID.clear();
+	m_currentFilePath.clear();
+}
+
+//==================================================================================
+// --- ゲームシーンの状態の再生処理 ---
+//==================================================================================
+void CMap::ReloadByConnectID(void)
+{ // 建物を再出現させる
+	m_nNumID = 0;
+	Load(m_currentFilePath);
+
+	// 電線を繋げ直す
+	ConnectByConnectID();
+
+	// 各変数をリセット
+	Reset();
+}
+
+//==================================================================================
 // --- 電柱設置処理 ---
 //==================================================================================
 void CMap::AddUtilityPole(const Vector3 &pos)
 {
-	CGame *pGame = CManager::GetInstance()->GetScene<CGame>();
-	auto pPlanet = pGame->GetPlanet();
 	Vector3 vecQua = VECTOR3_NULL;
 	float fAngle = 0.0f;
 
 	// クォータニオンから軸と角度を求める
-	D3DXQuaternionToAxisAngle(pPlanet->GetQuaternion(),
+	D3DXQuaternionToAxisAngle(m_pPlanet->GetQuaternion(),
 		&vecQua,
 		&fAngle);
 
@@ -96,8 +127,10 @@ void CMap::AddUtilityPole(const Vector3 &pos)
 	// 電柱設置 + 親設定
 	CUtilityPole *pPole = CUtilityPole::Create(pos,
 		vecQua,
-		fAngle);
-	pPole->SetParent(pPlanet->GetMatrix());
+		fAngle,
+		m_nNumID);
+	pPole->SetParent(m_pPlanet->GetMatrix());
+	m_nNumID++;
 }
 
 //==================================================================================
@@ -105,7 +138,9 @@ void CMap::AddUtilityPole(const Vector3 &pos)
 //==================================================================================
 void CMap::AddBulding(const int nType, const Vector3 &pos)
 { // 建造物設置
-	CBuilding::Create(static_cast<CBuilding::TYPE>(nType), pos);
+	CBuilding *pBuilding = CBuilding::Create(static_cast<CBuilding::TYPE>(nType), pos);
+	pBuilding->SetParent(m_pPlanet->GetMatrix());
+
 	m_nNumBuilding++;
 }
 
@@ -114,7 +149,8 @@ void CMap::AddBulding(const int nType, const Vector3 &pos)
 //==================================================================================
 void CMap::AddPowerPlant(const Vector3 &pos)
 { // 発電所設置
-	CPowerPlant::Create(pos);
+	CPowerPlant::Create(pos, m_nNumID);
+	m_nNumID++;
 }
 
 //==================================================================================
@@ -229,13 +265,18 @@ void CMap::Save(std::string_view sMapFile)
 void CMap::Load(std::string_view sMapFile)
 {
 	int nNumModel = 0;		// モデルの数
-	const Matrix *pMtxPlanet = CManager::GetInstance()->GetScene<CGame>()->GetPlanet()->GetMatrix();
+	const Matrix *pMatrix = nullptr;	// 惑星のマトリックスへのポインタ
+
+	// 惑星とマトリックスのポインタを取得
+	pMatrix = m_pPlanet->GetMatrix();
 
 	// データ読み込み
 	std::unique_ptr<CFileStream> pFile(new CFileStream);	// ファイルストリーム
 
 	if (pFile->OpenFile(sMapFile, true))
 	{ // ファイルが開けた場合
+		m_currentFilePath = sMapFile;		// ファイル名を保存
+
 		THIS_FILE_OBJECT_TYPEINFO fileTypeInfo = {};		// 読み込んだファイルのオブジェクトタイプ情報
 
 		// ファイルに保存されたモデルのインデックスを取得
@@ -263,28 +304,104 @@ void CMap::Load(std::string_view sMapFile)
 			CObject::TYPE type = static_cast<CObject::TYPE>(in.type);
 			if (type == fileTypeInfo.nBuildingType)
 			{ // 建物配置
-				CBuilding::Create(static_cast<CBuilding::TYPE>(in.nIdxModel),
+				CBuilding *pBuilding = CBuilding::Create(static_cast<CBuilding::TYPE>(in.nIdxModel),
 					in.pos,
 					in.vecQua,
 					in.fAngle);
+				pBuilding->SetParent(pMatrix);
+				m_nNumBuilding++;
 			}
 			else if (type == fileTypeInfo.nPoleType)
 			{ // 電柱配置
-				auto pPole = CUtilityPole::Create(in.pos,
+				CUtilityPole *pPole = CUtilityPole::Create(in.pos,
 					in.vecQua,
-					in.fAngle);
-				pPole->SetParent(pMtxPlanet);
+					in.fAngle,
+					m_nNumID);
+				pPole->SetParent(pMatrix);
+				m_nNumID++;
 			}
 			else if (type == fileTypeInfo.nPowerPlantType)
 			{ // 発電所配置
-				CPowerPlant::Create(in.pos,
+				CPowerPlant *pPlant = CPowerPlant::Create(in.pos,
 					in.vecQua,
-					in.fAngle);
+					in.fAngle,
+					m_nNumID);
+				pPlant->SetParent(pMatrix);
+				m_nNumID++;
 			}
 		}
 
 		// ファイルを閉じる
 		pFile->CloseFile();
+	}
+}
+
+//==================================================================================
+// --- プレイヤーの繋げた順番を基に各オブジェクトに電線を繋ぐ処理 ---
+//==================================================================================
+void CMap::ConnectByConnectID(void)
+{ // 各建物へのポインタ
+	std::vector<std::variant<CPowerPlant*, CUtilityPole*>> vpBuilding;
+	CObject *pObject = CObject::GetTop(DEFAULT_OBJ_PRIORITY);		// オブジェクトへのポインタ
+
+	// 配列サイズを拡張
+	vpBuilding.resize(m_nNumID);
+
+	while (pObject != nullptr)
+	{ // オブジェクトへのポインタが存在する場合
+		CObject *pObjectNext = pObject->GetNext();		// 次のオブジェクトへのポインタ
+		CObject::TYPE type = pObject->GetType();		// オブジェクトのタイプ
+		if (type != CObject::TYPE_POWERPLANT
+			&& type != CObject::TYPE_POLE)
+		{ // 建物でも電柱でも発電所でもない場合、スキップ
+			pObject = pObjectNext;
+			continue;
+		}
+
+		// 何かしらの建物へのポインタ
+		std::variant<CPowerPlant*, CUtilityPole*> pBuilding;
+
+		// タイプによってキャスト先を変更
+		if (type == CObject::TYPE_POWERPLANT) pBuilding = static_cast<CPowerPlant*>(pObject);
+		else if (type == CObject::TYPE_POLE) pBuilding = static_cast<CUtilityPole*>(pObject);
+
+		// IDを取得
+		int nID = std::visit([](auto &x) { return x->GetID(); }, pBuilding);
+
+		// そのIDの位置にポインタを代入
+		vpBuilding[nID] = pBuilding;
+
+		// オブジェクトを進める
+		pObject = pObjectNext;
+	}
+
+	for (const auto &vec : m_vConnectID)
+	{ // プレイヤーの行動回数分繰り返し
+		for (auto iter = vec.cbegin(); iter != vec.cend();)
+		{
+			const auto &value = *iter;		// 値
+
+			// 次のインデックスが存在しないなら終了
+			if ((iter + 1) == vec.cend()) break;
+
+			std::visit([&](auto &x)
+				{ // 次のインデックスのオブジェクトと接続
+					auto next = vpBuilding.at(*(iter + 1));		// 次のインデックスのオブジェクト
+					if (std::holds_alternative<CUtilityPole*>(next))
+					{ // 電柱を保持しているなら、その電柱と接続
+						CUtilityPole *pPole = std::get<CUtilityPole*>(next);
+						x->Connect(pPole);
+					}
+				}, vpBuilding[value]);
+
+			++iter;
+		}
+
+		if (std::holds_alternative<CPowerPlant*>(vpBuilding.at(vec.at(0))))
+		{ // 発電所へのポインタなら、電気を流す！
+			CPowerPlant *pPlant = std::get<CPowerPlant*>(vpBuilding.at(vec.at(0)));		// 発電所へのポインタ
+			pPlant->InvokeElectric();
+		}
 	}
 }
 
@@ -307,4 +424,21 @@ void CMap::LoadLatest(void)
 
 	// ファイル読み込み
 	Load(sPath);
+}
+
+//==================================================================================
+// --- IDを登録していた配列の確定処理 ---
+//==================================================================================
+void CMap::ConfirmID(void)
+{ // 配列を登録後、中身をリセット
+	m_vConnectID.push_back(m_vCurrentID);
+	m_vCurrentID.clear();
+}
+
+//==================================================================================
+// --- IDを登録していた配列の取り消し処理 ---
+//==================================================================================
+void CMap::WithdrawalID(void)
+{ // 配列を登録せず、中身をリセット
+	m_vCurrentID.clear();
 }

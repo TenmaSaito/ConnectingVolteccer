@@ -27,6 +27,7 @@
 class CObjectXQuaternion;
 class CUtilityPole;
 class CPowerPlant;
+class CPlanet;
 
 //**********************************************************************************
 // *** オブジェクトXクラス ***
@@ -35,13 +36,15 @@ class CElectricalCable : public CObject
 {
 public:
 	static CElectricalCable *Create(const CObjectXQuaternion *pStart,
-		const CObjectXQuaternion *pEnd);
+		const CObjectXQuaternion *pEnd,
+		const CPlanet *pPlanet);
 
 	CElectricalCable();
 	~CElectricalCable();
 
 	HRESULT Init(const CObjectXQuaternion *pStart,
-		const CObjectXQuaternion *pEnd);
+		const CObjectXQuaternion *pEnd,
+		const CPlanet *pPlanet);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);

@@ -33,12 +33,7 @@ CMeshOrbit3D *CMeshOrbit3D::Create(const Matrix *pMtxParent,
 	}
 
 	// メッシュオービットの初期化
-	hr = pMeshOrbit3D->Init(offset1, offset2, nNumOrbit);
-	if (FAILED(hr))
-	{ // 初期化失敗時、解放してnullを返す
-		delete pMeshOrbit3D;
-		return nullptr;
-	}
+	pMeshOrbit3D->Init(offset1, offset2, nNumOrbit);
 
 	// 親マトリックスの登録
 	pMeshOrbit3D->SetMtxParent(pMtxParent);
@@ -54,6 +49,7 @@ CMeshOrbit3D::CMeshOrbit3D(const int nPriority) : CMesh3D(nPriority)
 { // 各メンバ変数をクリア
 	ZeroMemory(m_aOffset, sizeof(m_aOffset));
 	m_pPosition = nullptr;
+	m_pMtxParent = nullptr;
 
 	// タイプの指定
 	CObject::SetType(TYPE_ORBIT3D);
@@ -95,6 +91,7 @@ HRESULT CMeshOrbit3D::Init(const Vector3 &offset1,
 	{ // ロック成功
 		for (int nCntVtx = 0; nCntVtx < nNumVtx; nCntVtx++)
 		{ // 頂点バッファを更新
+			pVtx[nCntVtx].pos = VECTOR3_NULL;
 			pVtx[nCntVtx].nor = Vector3(0.0f, 1.0f, 0.0f);
 			pVtx[nCntVtx].col = Colors::GetColor(Colors::C_WHITE);
 			pVtx[nCntVtx].tex = Vector2(static_cast<float>((nCntVtx % 4) / 2), static_cast<float>(nCntVtx % 2));

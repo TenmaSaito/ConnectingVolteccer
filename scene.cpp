@@ -11,8 +11,7 @@
 #include "scene.h"
 #include "title.h"
 #include "game.h"
-#include "gameover.h"
-#include "gameclear.h"
+#include "result.h"
 
 //==================================================================================
 // --- モードの設定処理 ---
@@ -32,12 +31,8 @@ CScene *CScene::Create(const MODE mode)
 		pScene = new CGame;
 		break;
 
-	case MODE_GAMEOVER:		// ゲームオーバーシーンを生成
-		pScene = new CGameOver;
-		break;
-
-	case MODE_GAMECLEAR:		// ゲームクリアシーンを生成
-		pScene = new CGameClear;
+	case MODE_RESULT:		// リザルトシーンを生成
+		pScene = new CResult;
 		break;
 	}
 
@@ -67,12 +62,8 @@ CScene *CScene::Create(const MODE mode, std::unique_ptr<CScene> &rpOut)
 		pScene = new CGame;
 		break;
 
-	case MODE_GAMEOVER:		// ゲームオーバーシーンを生成
-		pScene = new CGameOver;
-		break;
-
-	case MODE_GAMECLEAR:		// ゲームクリアシーンを生成
-		pScene = new CGameClear;
+	case MODE_RESULT:		// リザルトシーンを生成
+		pScene = new CResult;
 		break;
 	}
 

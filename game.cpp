@@ -25,6 +25,7 @@
 #include "stopwatch.h"
 #include "directXSubDrawer.h"
 #include "sceneTransition.h"
+#include "thunderCamera.h"
 #include <string>
 
 //**********************************************************************************
@@ -36,18 +37,19 @@
 #define EVALUATE_POS		Vector3(1000.0f, 350.0f, 0.0f)		// 評価表示の座標
 #define EVALUATE_SCALE		Vector2(328.0f, 64.0f)				// 評価表示のサイズ
 #define PLAYER_MOTION_PATH	"data/SCRIPT/motion_nabeatsu.txt"	// プレイヤーのモーションパス
+#define THUNDER_CAM_LENGTH	(1000.0f)		// 電流とカメラの距離
 
 //==================================================================================
 // --- コンストラクタ ---
 //==================================================================================
 CGame::CGame()
-{ // 親クラスのコンストラクタ呼び出し
-	// メンバ変数のクリア
+{ // メンバ変数のクリア
 	m_pPlayer = nullptr;
 	m_pPlanet = nullptr;
 	m_pTimer = nullptr;
 	m_pCombo = nullptr;
 	m_pEvaluate = nullptr;
+	m_pThunderCam = nullptr;
 	m_bEdit = false;
 	m_bPause = false;
 	m_nCounterFrame = 0;
@@ -125,11 +127,7 @@ void CGame::Update(void)
 	pProc->Print("<9/0で遷移 : ゲームオーバー画面 / ゲームクリア画面>\n");
 	if (pKeyboard->GetTrigger(DIK_9))
 	{
-		pManager->SetTransition(MODE_GAMEOVER);
-	}
-	else if (pKeyboard->GetTrigger(DIK_0))
-	{
-		pManager->SetTransition(MODE_GAMECLEAR);
+		pManager->SetTransition(MODE_RESULT);
 	}
 
 	// マップのセーブ・ロード
@@ -164,7 +162,7 @@ void CGame::Update(void)
 
 	if (m_pTimer->GetTimer() <= 0 && pManager->GetTransition()->GetState() == CSceneTransition::STATE_STAY)
 	{ // 0以下になった場合ゲームオーバー
-		pManager->SetTransition(MODE_GAMEOVER);
+		pManager->SetTransition(MODE_RESULT);
 	}
 
 	m_nCounterFrame++;
@@ -182,6 +180,11 @@ void CGame::Draw(void)
 //==================================================================================
 void CGame::Start(void)
 {
+	CMap *pMap = CMap::GetInstance();		// マップへのポインタ
+
+	// マップをリセット
+	pMap->Reset();
+
 	// タイマー生成
 	m_pTimer = CTimer::Create(TIMER_POS, TIMER_SIZE, 3, 120);
 
@@ -193,11 +196,17 @@ void CGame::Start(void)
 
 	// 惑星配置
 	m_pPlanet = CPlanet::Create();
+
+	// ポインタを登録
+	pMap->SetCurrentScenePlanet(m_pPlanet);
 	NULLPOINTER_ASSERT(m_pPlanet);
 
 	// プレイヤー出現
 	m_pPlayer = CPlayer::Create(PLAYER_MOTION_PATH, Vector3(0.0f, m_pPlanet->GetVtxMax().y, 0.0f), VECTOR3_NULL);
 	NULLPOINTER_ASSERT(m_pPlayer);
+
+	// 電流用カメラ生成
+	m_pThunderCam = CThunderCamera::Create(THUNDER_CAM_LENGTH);
 
 	// ストップウォッチを生成 + スタート
 	m_pStopWatch = std::make_unique<CStopWatch>();

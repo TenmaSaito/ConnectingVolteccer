@@ -37,13 +37,15 @@ public:
 
 	static CPowerPlant *Create(const Vector3 &pos,
 		const Vector3 &vecQua,
-		const float fAngle);
-	static CPowerPlant *Create(const Vector3 &pos);
+		const float fAngle,
+		const int nID);
+	static CPowerPlant *Create(const Vector3 &pos, const int nID);
 
 	HRESULT Init(const Vector3 &pos,
 		const Vector3 &vecQua,
-		const float fAngle);
-	HRESULT Init(const Vector3 &pos);
+		const float fAngle,
+		const int nID);
+	HRESULT Init(const Vector3 &pos, const int nID);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
@@ -51,10 +53,12 @@ public:
 	void InvokeElectric(void);
 	void RemoveConnected(void);
 	std::span<CUtilityPole *const> GetConnectPole(void) const { return std::span(m_vpPole); }
+	int GetID(void) const { return m_nID; }
 
 private:
 	std::vector<CUtilityPole*> m_vpPole;	// 今繋がっている電柱へのポインタ
 	CUtilityPole *m_pCurrentPole;			// 今回のコンボで繋げている電柱へのポインタ
 	CElectricalCable *m_pCurrentCable;		// 今回のコンボで繋げてた電線へのポインタ
+	int m_nID;		// 生成されたID
 };
 #endif

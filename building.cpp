@@ -36,6 +36,8 @@
 #define PILLAR_PATH		"data/TEXTURE/gradation202.jpg"	// 光の柱のテクスチャパス
 #define DETACHED_HOUSE_ROOF_POS		(2)		// 一軒家の屋根のマテリアルインデックス
 #define MAKE_FUNCTION(func, ...)		[&](__VA_ARGS__){func}		// ラムダ式生成マクロ
+#define PILLAR_SIZE		Vector2(25.0f, 2000.0f)		// 光の柱の長さ
+#define PILLAR_POS		Vector3(0.0f, PILLAR_SIZE.y * 0.5f, 0.0f)		// 光の柱の座標
 
 //**********************************************************************************
 // *** 定数宣言 ***
@@ -132,8 +134,6 @@ HRESULT CBuilding::Init(const Vector3 &position,
 	const float fAngle)
 {
 	HRESULT hr = S_OK;		// 結果
-	CGame *pGame = CManager::GetInstance()->GetScene(&pGame);		// ゲームへのポインタ
-	CPlanet *pPlanet = pGame->GetPlanet();		// 惑星へのポインタ
 
 	// 親クラスの初期化
 	hr = CObjectXQuaternion::Init(c_asBuildingPath[m_buildingType].data(), position, vecQua, fAngle);
@@ -146,15 +146,12 @@ HRESULT CBuilding::Init(const Vector3 &position,
 		SetMaterial(DETACHED_HOUSE_ROOF_POS, mat);
 	}
 
-	// 親を惑星に設定
-	SetParent(pPlanet->GetMatrix());
-
 	// 増減値を設定
 	m_fValue = SCALE_VALUE;
 
 	// 光の柱用のビルボードを生成
-	m_pPillar = CLightingPillar::Create(Vector3(0.0f, 500.0f, 0.0f),
-		Vector2(25.0f, 1000.0f),
+	m_pPillar = CLightingPillar::Create(PILLAR_POS,
+		PILLAR_SIZE,
 		COLOR_ONE);
 	m_pPillar->BindTexture(CTexture::GetInstance()->Register(PILLAR_PATH));
 
@@ -291,8 +288,8 @@ void CBuilding::Update(void)
 					.SetMove(Vector3(0.1f, 5.0f, 0.1f))
 					.SetScale(Vector2(15.0f, 15.0f))
 					.SetColor(Colors::GetColor(Colors::C_ORANGE))
-					.SetNumEffectFrame(3)
-					.SetLife(100)
+					.SetNumEffectFrame(2)
+					.SetLife(50)
 					.SetMoveVariation(Vector3(10.0f, 0.0f, 10.0f))
 					.SetScaleVariation(Vector2(10.0f, 10.0f))
 					.Build();

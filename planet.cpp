@@ -108,36 +108,6 @@ void CPlanet::Uninit(void)
 //==================================================================================
 void CPlanet::Update(void)
 {
-	CManager *pManager = CManager::GetInstance();					// マネージャーへのポインタ
-	CPlayer *pPlayer = pManager->GetScene<CGame>()->GetPlayer();	// プレイヤーへのポインタ
-	Quaternion quaMove;				// 計算先
-	float fVecRot = 0.0f;				// 回転時の計算用変数
-	float fSpeed = 0.0f;				// 回転速度
-
-	// プレイヤーのY軸の角度を取得
-	fVecRot = pPlayer->GetRotationDest()->y;
-
-	// プレイヤーの移動量を速度に変換
-	fSpeed = Vec3::Length(*pPlayer->GetMove()) * RESIST_PLAYERSPEED;
-
-	// 90°右に回す
-	fVecRot += HALF_PI;
-
-	// ベクトルを求める
-	m_vecQua = Vec2::ToVector3(Vec2::Direction(Util::FixedRotation(fVecRot)));
-	m_vecQua.z = m_vecQua.y;
-	m_vecQua.y = 0.0f;
-
-	// クォータニオンを初期化
-	D3DXQuaternionIdentity(&quaMove);
-
-	// クォータニオンを設定
-	D3DXQuaternionRotationAxis(&quaMove,
-		&m_vecQua,
-		fSpeed);
-
-	// クォータニオンを適用
-	m_qua = m_qua * quaMove;
 }
 
 //==================================================================================
@@ -190,6 +160,41 @@ void CPlanet::Draw(void)
 
 	// 保存していたマテリアルを戻す
 	pDevice->SetMaterial(&matDef);
+}
+
+//==================================================================================
+// --- 惑星の移動処理 ---
+//==================================================================================
+void CPlanet::Move(const Vector3 &rot, const float fLength)
+{
+	Quaternion quaMove;					// 計算先
+	float fVecRot = 0.0f;				// 回転時の計算用変数
+	float fSpeed = 0.0f;				// 回転速度
+
+	// プレイヤーのY軸の角度を取得
+	fVecRot = rot.y;
+
+	// プレイヤーの移動量を速度に変換
+	fSpeed = fLength * RESIST_PLAYERSPEED;
+
+	// 90°右に回す
+	fVecRot += HALF_PI;
+
+	// ベクトルを求める
+	m_vecQua = Vec2::ToVector3(Vec2::Direction(Util::FixedRotation(fVecRot)));
+	m_vecQua.z = m_vecQua.y;
+	m_vecQua.y = 0.0f;
+
+	// クォータニオンを初期化
+	D3DXQuaternionIdentity(&quaMove);
+
+	// クォータニオンを設定
+	D3DXQuaternionRotationAxis(&quaMove,
+		&m_vecQua,
+		fSpeed);
+
+	// クォータニオンを適用
+	m_qua = m_qua * quaMove;
 }
 
 //==================================================================================

@@ -26,6 +26,7 @@
 #include "powerPlant.h"
 #include "building.h"
 #include "planet.h"
+#include "map.h"
 #include "effect.h"
 #include "ray.h"
 #include "util.h"
@@ -622,7 +623,11 @@ void CPlayer::InputPole(void)
 			Vector3 pos = Vector3(0.0f, m_offset.y + GetRidingObjectX()->GetVtxMax()->y, 0.0f);		// 発生位置
 			
 			// 投げ縄生成
-			CLasso *pLasso = std::visit([&](auto &x) { return CLasso::Create(pos, x, pPoleSelected); }, m_pRidingObject);
+			CLasso *pLasso = std::visit([&](auto &x)
+				{ 
+					CMap::GetInstance()->AddID(x->GetID());
+					return CLasso::Create(pos, x, pPoleSelected);
+				}, m_pRidingObject);
 			pLasso->SetParent(pPlanet->GetMatrix());
 
 			// カメラの角度に合わせて、モデルの目標角度を求める！
@@ -640,6 +645,15 @@ void CPlayer::InputPole(void)
 void CPlayer::UpdatePotision(void)
 { // 移動量の更新
 	m_move += (VECTOR3_NULL - m_move) * RESIST_POW;
+
+	CGame *pGame = CManager::GetInstance()->GetScene(&pGame);		// ゲームシーンへのポインタ
+	if (pGame != nullptr)
+	{ // nullでなければ
+		CPlanet *pPlanet = pGame->GetPlanet();		// 惑星へのポインタ
+
+		// 惑星に移動量を設定
+		pPlanet->Move(m_rotDest, Vec3::Length(m_move));
+	}
 }
 
 //==================================================================================
@@ -778,8 +792,8 @@ void CPlayer::CheckRidingRight(void)
 	if (pGame != nullptr)
 	{ // 取得成功時
 		CCombo *pCombo = pGame->GetCombo();		// コンボ表示へのポインタ
-		if (pCombo->GetDisp() == false
-			&& m_pRidingObject.index() == CUTILITYPOLE_PTR
+		if (pCombo->GetContinuing() == false
+			&& std::holds_alternative<CUtilityPole*>(m_pRidingObject)
 			&& m_bShotLasso == false)
 		{ // コンボ表示が消えた且つ投げ縄を投げていないなら、電柱から強制的におろす
 			// オフセットを元に戻す
