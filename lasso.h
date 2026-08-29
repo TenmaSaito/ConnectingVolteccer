@@ -31,6 +31,14 @@ class CPowerPlant;
 class CLasso : public CObjectXQuaternion
 {
 public:
+	// std::variantに含まれている変数の種類
+	typedef enum
+	{
+		CPOWERPLANT_PTR = 0,	// 発電所へのポインタ
+		CUTILITYPOLE_PTR,		// 電柱へのポインタ
+		PTRTYPE_MAX
+	} PTRTYPE;
+
 	CLasso();
 	~CLasso();
 
@@ -45,9 +53,11 @@ public:
 
 private:
 	void UpdateTransform(void);
+	void CheckCollision(void);
 
 	std::variant<CPowerPlant*, CUtilityPole*> m_pStart;		// 開始位置のオブジェクト (発電所 or 電柱)
 	CUtilityPole *m_pEnd;	// 最終的に接続される電柱
+	Vector3 m_posOld;		// 前フレームのワールド座標
 	float m_fSlerpTime;		// 球面線形補間の値
 };
 #endif

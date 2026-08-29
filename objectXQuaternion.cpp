@@ -216,7 +216,7 @@ void CObjectXQuaternion::Draw(void)
 //==================================================================================
 Vector3 CObjectXQuaternion::GetWorldPosition(void)
 {
-	Vector3 posWorld;		// 変換後の位置
+	Vector3 posWorld = VECTOR3_NULL;		// 変換後の位置
 
 	if (m_bCalcMatrix == false)
 	{ // もしマトリックスが計算されていなければ、マトリックスを計算
@@ -231,7 +231,7 @@ Vector3 CObjectXQuaternion::GetWorldPosition(void)
 	}
 
 	// 位置を変換
-	D3DXVec3TransformCoord(&posWorld, &m_pos, &m_mtxWorld);
+	D3DXVec3TransformCoord(&posWorld, &posWorld, &m_mtxWorld);
 	return posWorld;
 }
 

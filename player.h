@@ -80,10 +80,13 @@ public:
 	const Vector3 *GetMove(void) const { return &m_move; }
 	const Matrix *GetMatrix(void) const { return &m_mtxWorld; }
 	const std::variant<CPowerPlant*, CUtilityPole*> *GetRidingObject(void) const { return &m_pRidingObject; }
+	CPowerPlant *GetStartPlant(void) const { return m_pStartPlant; }
 	int GetNumLightingHouse(void) const { return m_nNumLightingHouse; }
 	bool IsShotLasso(void) const { return m_bShotLasso; }
 	void ChangeRidingPole(CUtilityPole *pNext);
 	void AddLightingHouse(void) { m_nCurrentConnectLighting++; }
+	void FailedShot(void);
+
 
 private:
 	void InputAction(void);
@@ -108,6 +111,7 @@ private:
 	Matrix m_mtxWorld;	// ワールドマトリックス
 	CThunderEffect *m_pThunderEffect;	// 雷エフェクトへのポインタ
 	std::variant<CPowerPlant*, CUtilityPole*> m_pRidingObject;		// 乗っているオブジェクト (発電所 or 電柱)
+	CPowerPlant *m_pStartPlant;		// 初めに乗った発電所へのポインタ
 	CUtilityPole *m_pPoleNext;	// 次に乗る電柱	
 	std::vector<std::unique_ptr<CModel>> m_vpModel;		// 各モデル(パーツ)へのポインタ
 	std::unique_ptr<CMotion> m_pMotion;					// モーションへのポインタ

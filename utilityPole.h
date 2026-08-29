@@ -12,6 +12,7 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "objectXQuaternion.h"
+#include <variant>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -24,6 +25,8 @@
 //**********************************************************************************
 class CObjectBillboard3D;
 class CPowerPlant;
+class CPlayer;
+class CElectricalCable;
 
 //**********************************************************************************
 // *** 電柱クラス ***
@@ -48,6 +51,14 @@ public:
 		HEIGHT_MAX
 	} HEIGHT;
 
+	// std::variantに含まれている変数の種類
+	typedef enum
+	{
+		CPOWERPLANT_PTR = 0,	// 発電所へのポインタ
+		CUTILITYPOLE_PTR,		// 電柱へのポインタ
+		PTRTYPE_MAX
+	} PTRTYPE;
+
 	static CUtilityPole *Create(const Vector3 &pos,
 		const Vector3 &vecQua,
 		const float fAngle);
@@ -63,6 +74,8 @@ public:
 	bool Connected(CUtilityPole *pPole);
 	bool Connected(CPowerPlant *pPowerPlant);
 	void GenerateElectricity(void);
+	void RemoveConnected(void);
+	bool CanFocus(const CPlayer *pPlayer);
 	void SetEnableSelect(const bool bEnable);
 	ICON GetIconType(void) const { return m_enableType; }
 	bool IsSelected(void) const { return m_bSelected; }
@@ -71,8 +84,8 @@ public:
 
 private:
 	CUtilityPole *m_pConnect;						// 電線でつながっている電柱へのポインタ
-	CUtilityPole *m_pConnected;						// 接続してきた電柱へのポインタ
-	CPowerPlant *m_pConnectedPowerPlant;			// 接続してきた発電所へのポインタ
+	std::variant<CPowerPlant*, CUtilityPole*> m_pConnected;		// 繋げてきたオブジェクトへのポインタ
+	CElectricalCable *m_pCurrentCable;					// 繋げた電線へのポインタ
 	CObjectBillboard3D *m_apBillboard[ICON_MAX];		// ビルボードへのポインタ
 	int m_nNumConnect;			// 接続されている電柱の数
 	bool m_bElectriced;			// 既に電流が流れたかどうか

@@ -22,6 +22,7 @@ namespace Mtx
 	// *** プロトタイプ宣言 ***
 	//******************************************************************************
 	__forceinline Matrix *Identity(Matrix *pMtx) { return D3DXMatrixIdentity(pMtx); }
+	__forceinline Matrix *Inverse(Matrix *pMtx, const Matrix &mtx) { return D3DXMatrixInverse(pMtx, nullptr, &mtx); }
 	Matrix *CalcPosition(Matrix *pMtx, const Vector3 &position);
 	Matrix *CalcRotation(Matrix *pMtx, const Vector3 &rotation);
 	Matrix *CalcRotation(Matrix *pMtx, const Quaternion &quaternion);

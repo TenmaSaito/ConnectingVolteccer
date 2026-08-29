@@ -13,6 +13,7 @@
 #include "manager.h"
 #include "renderer.h"
 #include "game.h"
+#include "debugproc.h"
 #include "texture.h"
 #include "electricalCable.h"
 #include "electricCurrent.h"
@@ -22,6 +23,7 @@
 #include "planet.h"
 #include "camera.h"
 #include "vec3math.h"
+#include "color.h"
 #include <algorithm>
 #include <ranges>
 
@@ -29,11 +31,13 @@
 // *** マクロ定義 ***
 //**********************************************************************************
 #define POLE_PATH			"data/MODEL/utilityPole.x"		// 電柱のパス
-#define DEF_ICON_SIZE		Vector2(50.0f, 50.0f)		// アイコンサイズ
+#define DEF_ICON_SIZE		Vector2(50.0f, 50.0f)			// アイコンサイズ
 #define SELECT_ICON_SIZE	(DEF_ICON_SIZE * 2.0f)			// 最も近いアイコンのサイズ
 #define ICON_CAN_PATH		"data/TEXTURE/LOGO_CAN.png"		// 可能アイコンへのパス
 #define ICON_CANT_PATH		"data/TEXTURE/LOGO_CANT.png"	// 不可能アイコンへのパス
-#define CONNECT_LENGTH		(700.0f)			// 繋げられる電柱との長さの限界
+#define FOCUS_ANGLE			(D3DXToRadian(45.0f))			// フォーカス可能な角度
+#define CONNECT_HEIGHT		(150.0f)	// 繋げられる電柱との高さの差分の最大値
+#define CONNECT_HEIGHT_EX	(30.0f)		// 発電所の場合の追加差分
 
 //==================================================================================
 // --- オブジェクト3Dの生成処理 ---
@@ -62,8 +66,7 @@ CUtilityPole::CUtilityPole() : CObjectXQuaternion(UTILITYPOLE_PRIORITY)
 { // メンバ変数をクリア
 	ZeroMemory(m_apBillboard, sizeof(m_apBillboard));
 	m_pConnect = nullptr;
-	m_pConnected = nullptr;
-	m_pConnectedPowerPlant = nullptr;
+	m_pCurrentCable = nullptr;
 	m_nNumConnect = 0;
 	m_bElectriced = false;
 	m_enableType = ICON_CAN;
@@ -131,9 +134,11 @@ void CUtilityPole::Update(void)
 	Vector3 posPole = *GetPosition();			// 電柱の絶対座標
 	auto pObj = pPlayer->GetRidingObject();		// プレイヤーの乗っているオブジェクトが保存されている変数
 	int nIndexVariant = pObj->index();			// 現在入っている型のインデックス
-	const CObjectXQuaternion *pRidingObject;	// プレイヤーの乗っているオブジェクト
+	CObjectXQuaternion *pConnected = nullptr;	// 繋げてきたオブジェクト
+	const CObjectXQuaternion *pRidingObject = nullptr;	// プレイヤーの乗っているオブジェクト
 
 	// ポインタを取得
+	std::visit([&](auto &x) { pConnected = x; }, m_pConnected);
 	std::visit([&](auto &x) { pRidingObject = x; }, *pObj);
 
 	// 電柱の上の絶対座標を求める
@@ -148,47 +153,30 @@ void CUtilityPole::Update(void)
 
 			if (m_bSelected == true)
 			{ // 選ばれている場合
-				if (nIndexVariant == CPlayer::CPOWERPLANT_PTR)
-				{ // プレイヤーの乗っているオブジェクトが発電所の場合
-					auto pPowerPlant = std::get<CPowerPlant *>(*pObj);		// 発電所のポインタを取得
-					auto vpPole = pPowerPlant->GetConnectPoles();			// 発電所とつながっている電柱のポインタ
-
-					// 電柱のポインタから自身を検索
-					auto iter = std::find(vpPole->cbegin(), vpPole->cend(), this);
-					if (iter == vpPole->cend())
-					{ // 既に繋げている電柱では無い場合、サイズアップ
-						pBill->SetSize(SELECT_ICON_SIZE);
-					}
-				}
-				else if (nIndexVariant == CPlayer::CUTILITYPOLE_PTR)
-				{ // プレイヤーの乗っているオブジェクトが電柱なら
-					auto pPole = std::get<CUtilityPole*>(*pObj);		// 電柱のポインタを取得
-					if (m_pConnect == nullptr)
-					{ // プレイヤーのカメラの中心に最も近い場合(かつ既につながっていない場合)、サイズアップ
-						pBill->SetSize(SELECT_ICON_SIZE);
-					}
-				}
+				pBill->SetSize(SELECT_ICON_SIZE);
 			}
 			else
-			{ // プレイヤーのカメラの中心に最も近くない場合、サイズダウン
+			{ // 選ばれていない場合、サイズダウン
 				pBill->SetSize(DEF_ICON_SIZE);
 			}
 		}
 
 		// プレイヤーの絶対座標を求める
-		D3DXVec3TransformCoord(&posPlayer, pPlayer->GetPosition(), pPlayer->GetMatrix());
+		D3DXVec3TransformCoord(&posPlayer, &posPlayer, pPlayer->GetMatrix());
 
 		// 絶対座標同士で距離を測る
-		if (Vec3::Length(posPlayer, posPole) <= CONNECT_LENGTH)
+		if (posPlayer.y - posPole.y <= CONNECT_HEIGHT + (CONNECT_HEIGHT_EX * (1 - nIndexVariant)))
 		{ // プレイヤーと電柱の距離が一定以下の場合
-			if (nIndexVariant == CPlayer::CPOWERPLANT_PTR)
+			if (std::holds_alternative<CPowerPlant*>(*pObj))
 			{ // プレイヤーの乗っているオブジェクトが発電所の場合
 				auto pPowerPlant = std::get<CPowerPlant*>(*pObj);		// 発電所のポインタを取得
-				auto vpPole = pPowerPlant->GetConnectPoles();			// 発電所とつながっている電柱のポインタ
+				auto vpPole = pPowerPlant->GetConnectPole();			// 発電所とつながっている電柱のポインタ
 
 				// 電柱のポインタから自身を検索
-				auto iter = std::find(vpPole->cbegin(), vpPole->cend(), this);
-				if (iter == vpPole->cend())
+				auto iter = std::find(vpPole.begin(), vpPole.end(), this);
+				if (iter == vpPole.end() 
+					&& pConnected == nullptr
+					&& m_pConnect == nullptr)
 				{ // 既に繋げている電柱では無い場合
 					m_enableType = ICON_CAN;		// 可能アイコンに設定
 				}
@@ -199,7 +187,7 @@ void CUtilityPole::Update(void)
 			}
 			else
 			{ // プレイヤーの乗っているオブジェクトが電柱なら
-				if (m_pConnect == nullptr && m_pConnected == nullptr)
+				if (m_pConnect == nullptr && pConnected == nullptr)
 				{ // 自身が何処にもつながっていない場合
 					m_enableType = ICON_CAN;		// 可能アイコンに設定
 				}
@@ -252,17 +240,17 @@ void CUtilityPole::Draw(void)
 // --- 他の電柱との接続処理 ---
 //==================================================================================
 bool CUtilityPole::Connect(CUtilityPole *pPole)
-{
-	int nIdxNull = -1;		// nullがあったインデックス
-
-	// ポインタを確認
-	if (pPole == nullptr		// ポインタがnullだった場合
-		|| pPole == this		// ポインタが自分だった場合
-		|| pPole->m_pConnectedPowerPlant != nullptr		// 接続先が発電所とつながっていた場合
-		|| m_pConnect != nullptr	// 既に他の電柱と接続している場合
-		|| m_pConnect == pPole)
-	{ // 処理をスキップ
-		return false;
+{ // ポインタを確認
+	if (pPole == nullptr) return false;					// ポインタがnullだった場合、失敗
+	else if (pPole == this) return false;				// ポインタが自分だった場合、失敗
+	else if (m_pConnect != nullptr) return false;		// 既に他の電柱と接続している場合、失敗
+	else if (m_pConnect == pPole) return false;			// 既にその電柱と接続している場合、失敗
+	
+	// 発電所へのポインタを取得
+	CPowerPlant **ppPlant = std::get_if<CPowerPlant*>(&pPole->m_pConnected);
+	if (ppPlant)
+	{ // 発電所へのポインタだった場合
+		if (*ppPlant != nullptr) return false;			// 発電所へのポインタが代入されていれば、失敗
 	}
 
 	// ポインタを保存
@@ -272,13 +260,9 @@ bool CUtilityPole::Connect(CUtilityPole *pPole)
 	pPole->Connected(this);
 
 	// 電柱同士を電線で接続
-	auto pCable = CElectricalCable::Create(this, pPole);
-	pCable->SetParent(GetParent());
+	m_pCurrentCable = CElectricalCable::Create(this, pPole);
+	m_pCurrentCable->SetParent(GetParent());
 	m_nNumConnect++;
-
-	// 電流エフェクト生成
-	CElectricCurrent *pCurrect = CElectricCurrent::Create(this, pPole);
-	pCurrect->SetParent(CManager::GetInstance()->GetScene<CGame>()->GetPlanet()->GetMatrix());
 
 	return true;
 }
@@ -303,7 +287,7 @@ bool CUtilityPole::Connected(CPowerPlant *pPowerPlant)
 	if (pPowerPlant == nullptr) return false;
 
 	// 発電所へのポインタを保存
-	m_pConnectedPowerPlant = pPowerPlant;
+	m_pConnected = pPowerPlant;
 	return true;
 }
 
@@ -312,13 +296,90 @@ bool CUtilityPole::Connected(CPowerPlant *pPowerPlant)
 //==================================================================================
 void CUtilityPole::GenerateElectricity(void)
 { // 既に流れている場合は流さない
-	if (m_bElectriced == true) return;
+	if (m_bElectriced == true || m_pConnect == nullptr) return;
 
 	// 自身とつながっている電柱に電気を流す
-	CElectricCurrent::Create(this, m_pConnect);
+	CElectricCurrent *pCurrect = CElectricCurrent::Create(this, m_pConnect);
+	pCurrect->SetParent(CManager::GetInstance()->GetScene<CGame>()->GetPlanet()->GetMatrix());
+
+	// 電線の色を変更
+	m_pCurrentCable->SetColor(Colors::GetColor(Colors::C_YELLOW));
 
 	// 電流が流れたためフラグを立てる
 	m_bElectriced = true;
+}
+
+//==================================================================================
+// --- 接続の取り消し処理 ---
+//==================================================================================
+void CUtilityPole::RemoveConnected(void)
+{ // nullptrか確認
+	if (std::visit([](auto &x) { return (x != nullptr); }, m_pConnected))
+	{ // 自分に繋げてきた電柱にも通知
+		std::visit([](auto &x) { x->RemoveConnected(); }, m_pConnected);
+	}
+
+	if (m_pCurrentCable != nullptr)
+	{ // 繋げた電線があれば破棄
+		m_pCurrentCable->Uninit();
+		m_pCurrentCable = nullptr;
+	}
+
+	// 接続先ポインタを手放す
+	m_pConnect = nullptr;
+
+	// ポインタを手放す
+	m_pConnected = static_cast<CPowerPlant*>(nullptr);
+}
+
+//==================================================================================
+// --- プレイヤーがフォーカス可能か判定する処理 ---
+//==================================================================================
+bool CUtilityPole::CanFocus(const CPlayer *pPlayer)
+{ // 計算無しで判定できるものを先に判定
+	if (pPlayer == nullptr) return false;				// プレイヤーがnullの場合、false
+	else if (m_enableType != ICON_CAN) return false;	// タイプが接続不可の場合、false
+
+	CCamera *pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);		// プレイヤーのカメラ
+	Vector3 posWorld = VECTOR3_NULL;			// 自身の絶対座標
+	Vector3 posPlayerWorld = VECTOR3_NULL;		// プレイヤーの絶対座標
+	Vector3 rayCam = VECTOR3_NULL;				// カメラの視線ベクトル
+	Vector3 rayPlayerToPole = VECTOR3_NULL;		// プレイヤーと電柱を繋いだベクトル
+	float fDot = 0.0f;			// 視線ベクトルとプレイヤーと電柱を繋いだベクトルの内積結果
+	float fRadian = 0.0f;		// 二つのベクトル間の角度
+
+	// 自身の絶対座標を取得
+	posWorld.y = GetVtxMax()->y;
+	D3DXVec3TransformCoord(&posWorld, &posWorld, GetMatrix());
+
+	// プレイヤーの絶対座標を取得
+	D3DXVec3TransformCoord(&posPlayerWorld, &posPlayerWorld, pPlayer->GetMatrix());
+
+	// カメラのレイを取得 + Y軸のベクトルを0に戻す
+	rayCam = Vec3::Direction(posPlayerWorld, *pPlayerCam->GetPosV());
+	rayCam.y = 0.0f;
+
+	// ベクトルの長さが0だった場合、失敗
+	if (Vec3::Length(rayCam) == 0.0f) return false;
+
+	// プレイヤーと電柱を繋いだベクトルを求める
+	rayPlayerToPole = Vec3::Direction(posWorld, posPlayerWorld);
+	rayPlayerToPole.y = 0.0f;
+
+	// ベクトルの長さが0だった場合、失敗
+	if (Vec3::Length(rayPlayerToPole) == 0.0f) return false;
+
+	// 二つのベクトルから内積を求める
+	fDot = Vec3::Dot(rayCam, rayPlayerToPole);
+
+	// -1.0f～1.0fの間にクランプ
+	fDot = std::clamp(fDot, -1.0f, 1.0f);
+
+	// 角度を求める
+	fRadian = acosf(fDot);
+
+	// 角度が+-15°の範囲にいるならtrue
+	return (fRadian < FOCUS_ANGLE);
 }
 
 //==================================================================================

@@ -62,8 +62,11 @@ private:
 	const CPlayer *m_pPlayer;		// プレイヤーへのポインタ
 	Vector3 m_rotDefault;			// 通常のカメラ角度
 	Vector3 m_rotRidingDefault;		// 電柱登攀時の通常のカメラ角度
+	Vector3 m_posVBefore;			// 状態変化前の視点座標
+	Vector3 m_posRBefore;			// 状態変化前の注視点座標
 	float m_fLengthPlayer;		// プレイヤーとの距離
 	float m_fLengthRiding;		// 電柱登攀時の距離
+	float m_fTime;				// 線形補間用変数
 	STATE m_state;				// 現在の状態
 };
 #endif

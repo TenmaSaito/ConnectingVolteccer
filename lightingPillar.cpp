@@ -14,6 +14,7 @@
 // *** マクロ定義 ***
 //**********************************************************************************
 #define HEIGHT_VALUE		(15.0f)			// 縦幅の増加係数
+//#define ENABLE_GOD_JUDGE		// バグで発生した神の裁き風演出
 
 //==================================================================================
 // --- 生成処理 ---
@@ -81,8 +82,12 @@ void CLightingPillar::Update(void)
 			m_fCurrentHeight = m_fEndHeight;
 		}
 
-		// サイズを適用
+		// サイズを適用 + 位置を調整
 		CObjectBillboard3D::SetSize(Vector2(CObjectBillboard3D::GetSize()->x, m_fCurrentHeight));
+#ifndef ENABLE_GOD_JUDGE		// 神の裁き風演出なら無し
+		const Vector3 *pPos = CObjectBillboard3D::GetPosition();		// 位置の取得
+		CObjectBillboard3D::SetPosition(Vector3(pPos->x, m_fCurrentHeight * 0.5f, pPos->z));
+#endif
 	}
 
 	// 親クラスの更新

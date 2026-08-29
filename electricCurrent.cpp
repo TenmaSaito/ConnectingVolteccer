@@ -54,6 +54,7 @@ CElectricCurrent::CElectricCurrent()
 	m_pEnd = nullptr;
 	m_pThunder = nullptr;
 	m_pMtxParent = nullptr;
+	m_bGenerate = false;
 	m_pos = VECTOR3_NULL;
 	m_rot = VECTOR3_NULL;
 	m_fTime = 0.0f;
@@ -101,9 +102,6 @@ HRESULT CElectricCurrent::Init(CObjectXQuaternion *pStart,
 	// 雷エフェクトを生成
 	m_pThunder = CThunderEffect::Create(THUNDER_MIN, THUNDER_MAX, &m_mtxWorld);
 
-	// 電流が流れたため電柱のフラグを立てる
-	pEnd->SetEnableElectriced(true);
-
 	return S_OK;
 }
 
@@ -138,12 +136,15 @@ void CElectricCurrent::Update(void)
 		m_fTime += 1.0f / m_fTotalTime;
 	}
 
-	if (m_fTime >= 1.0f && m_pThunder->IsEndAnim(5.0f))
+	if (m_fTime >= 1.0f && m_bGenerate != true)
 	{ // 線形補間が終わった時
 		// 終了地点の電柱から電流を新規で生成
 		m_pEnd->GenerateElectricity();
+		m_bGenerate = true;
+	}
 
-		// 終了
+	if (m_pThunder->IsEndAnim(5.0f) && m_bGenerate == true)
+	{ // 電流がある程度短くなったら、終了
 		Uninit();
 	}
 }

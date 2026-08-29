@@ -13,6 +13,7 @@
 //**********************************************************************************
 #include "objectXQuaternion.h"
 #include <vector>
+#include <span>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -23,6 +24,7 @@
 // *** 前方宣言 ***
 //**********************************************************************************
 class CUtilityPole;
+class CElectricalCable;
 
 //**********************************************************************************
 // *** 発電所クラス ***
@@ -46,9 +48,13 @@ public:
 	void Update(void);
 	void Draw(void);
 	bool Connect(CUtilityPole *pPole);
-	const std::vector<CUtilityPole*> *GetConnectPoles(void) const { return &m_vpPole; }
+	void InvokeElectric(void);
+	void RemoveConnected(void);
+	std::span<CUtilityPole *const> GetConnectPole(void) const { return std::span(m_vpPole); }
 
 private:
-	std::vector<CUtilityPole*> m_vpPole;
+	std::vector<CUtilityPole*> m_vpPole;	// 今繋がっている電柱へのポインタ
+	CUtilityPole *m_pCurrentPole;			// 今回のコンボで繋げている電柱へのポインタ
+	CElectricalCable *m_pCurrentCable;		// 今回のコンボで繋げてた電線へのポインタ
 };
 #endif

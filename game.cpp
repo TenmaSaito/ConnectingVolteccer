@@ -116,6 +116,11 @@ void CGame::Update(void)
 	// 経過時間を表示
 	pProc->Print("[モード開始後からの経過時間 : {:.2f}]\n", m_pStopWatch->GetElapsed<float, std::ratio<1>>());
 
+	// プレイヤーのワールド座標
+	Vector3 posWorld = *m_pPlayer->GetPosition();
+	D3DXVec3TransformCoord(&posWorld, &posWorld, m_pPlayer->GetMatrix());
+	pProc->Print("[プレイヤーの絶対座標 : {:.2f} {:.2f} {:.2f}]\n", posWorld.x, posWorld.y, posWorld.z);
+
 	// モードの遷移
 	pProc->Print("<9/0で遷移 : ゲームオーバー画面 / ゲームクリア画面>\n");
 	if (pKeyboard->GetTrigger(DIK_9))

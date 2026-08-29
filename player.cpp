@@ -26,6 +26,7 @@
 #include "powerPlant.h"
 #include "building.h"
 #include "planet.h"
+#include "effect.h"
 #include "ray.h"
 #include "util.h"
 #include "lasso.h"
@@ -47,7 +48,8 @@
 #define PLAYERCAM_RIDINGROT	Vector3(0.0f, 0.0f, -1.16f)		// 電柱に乗っているときのカメラ角度
 #define PLAYERCAM_LEN			(1000.0f)		// プレイヤーのカメラの距離
 #define PLAYERCAM_RIDING_LEN	(250.0f)		// 電柱に乗っているときのカメラの距離
-//#define ENABLE_RAY_PLAYER_TO_POLE		// プレイヤーから投げ縄を投げられる電柱へのレイの表示
+//#define ENABLE_RAY_PLAYER_TO_POLE				// プレイヤーから投げ縄を投げられる電柱へのレイの表示
+//#define ENABLE_CAN_FOCUS_POLE_VECTOR			// プレイヤーがフォーカス可能な電柱へのポインタの配列の一時保持
 
 //==================================================================================
 // --- 生成処理 ---
@@ -110,6 +112,7 @@ HRESULT CPlayer::Init(const char *pFileName, const Vector3 &pos, const Vector3 &
 
 	if (m_pMotion == nullptr) return E_FAIL;		// 生成失敗
 
+	// パーツを生成
 	CPartsLoader *pPartsLoader = CPartsLoader::GetInstance();
 	m_vpModel = pPartsLoader->CreateParts(pPartsLoader->Register(pFileName));
 
@@ -213,6 +216,34 @@ void CPlayer::Draw(void)
 	{ // 各モデルの描画
 		model->Draw();
 	}
+}
+
+//==================================================================================
+// --- 投げ縄による接続の失敗時処理 ---
+//==================================================================================
+void CPlayer::FailedShot(void)
+{
+	CManager *pManager = CManager::GetInstance();					// マネージャーへのポインタ
+	CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera*>(CCamera::GetCamera(CCamera::TYPE_PLAYER));		// プレイヤーカメラへのポインタ
+
+	// 投げ縄フラグを下ろす
+	m_bShotLasso = false;
+
+	// オフセットを元に戻す
+	m_pos.y = m_offset.y;
+
+	// コンボリセット
+	CCombo *pCombo(pManager->GetScene<CGame>()->GetCombo());		// コンボ表示へのポインタ
+	pCombo->Withdrawal();
+
+	// 電柱から降りる処理を実行
+	DismountPole();
+
+	// カメラをプレイヤーフォーカスに変更
+	pPlayerCam->SetState(CPlayerCamera::STATE_PLAYER);
+
+	// モーションを終了
+	m_pMotion->Set(MOTIONTYPE_NEUTRAL, 10);
 }
 
 //==================================================================================
@@ -516,6 +547,7 @@ void CPlayer::InputPole(void)
 			{ // もし乗れる発電所が存在した場合
 				// ポインタを保存
 				m_pRidingObject = pPlantNear;
+				m_pStartPlant = pPlantNear;
 
 				// オフセットを電柱に設定し、マトリックスを設定
 				m_pos.y = pPlantNear->GetVtxMax()->y;
@@ -537,7 +569,7 @@ void CPlayer::InputPole(void)
 
 			// コンボリセット
 			CCombo *pCombo(pManager->GetScene<CGame>()->GetCombo());		// コンボ表示へのポインタ
-			pCombo->ResetCombo();
+			pCombo->Finish();
 
 			// カメラをプレイヤーフォーカスに変更
 			pPlayerCam->SetState(CPlayerCamera::STATE_PLAYER);
@@ -758,7 +790,7 @@ void CPlayer::CheckRidingRight(void)
 
 			// コンボリセット
 			CCombo *pCombo(pManager->GetScene<CGame>()->GetCombo());		// コンボ表示へのポインタ
-			pCombo->ResetCombo();
+			pCombo->Finish();
 
 			// カメラをプレイヤーフォーカスに変更
 			pPlayerCam->SetState(CPlayerCamera::STATE_PLAYER);
@@ -779,61 +811,71 @@ void CPlayer::FindNearestPole(void)
 		return;
 	}
 
-	CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera *>(CCamera::GetCamera(CCamera::TYPE_PLAYER));		// プレイヤーカメラへのポインタ
 	CObject *pObject = CObject::GetTop(UTILITYPOLE_PRIORITY);		// 最初のオブジェクト
-	Vector3 vecCam = VECTOR3_NULL;				// カメラの方向ベクトル
-	Vector3 vecPlayerToPole = VECTOR3_NULL;		// プレイヤーから電柱への方向ベクトル
+	Vector3 vecCam = VECTOR3_NULL;			// カメラの方向ベクトル
+	Vector3 pos = VECTOR3_NULL;				// プレイヤーの絶対座標
 	CUtilityPole *pPoleNear = nullptr;		// 最も画面の中心に近い電柱へのポインタ
-	float fDotMax = 0.0f;					// 内積の最小値
+	float fLengthMin = 10000.0f;			// 各絶対座標を結んで最小だった値
 
-	// カメラの方向ベクトルを求める
-	vecCam = pPlayerCam->GetRay();
+#ifdef ENABLE_CAN_FOCUS_POLE_VECTOR
+	std::vector<CUtilityPole*> vPole;		// プレイヤーがフォーカス可能な電柱へのポインタ
 
-	// XZ平面で計算する為Y軸のベクトルは0に設定
-	vecCam.y = 0.0f;
+	// 事前にサイズを確保
+	vPole.reserve(10);
+#endif
+
+	// プレイヤーの絶対座標を求める
+	D3DXVec3TransformCoord(&pos, &pos, &m_mtxWorld);
 
 	while (pObject != nullptr)
 	{ // オブジェクトを走査
 		CObject *pObjectNext = pObject->GetNext();			// 次のオブジェクトへのポインタ
+		if (pObject->GetType() != CObject::TYPE_POLE)
+		{ // もしオブジェクトが電柱で無ければスキップ
+			pObject = pObjectNext;		// ポインタ更新
+			continue;
+		}
 
-		if (pObject->GetType() == CObject::TYPE_POLE)
-		{ // もしオブジェクトが電柱であれば、ポインタをキャスト
-			CUtilityPole *pPole = static_cast<CUtilityPole *>(pObject);
-			Vector3 posPole = VECTOR3_NULL;	// マトリックスのキャスト用
-			Vector3 pos = VECTOR3_NULL;		// マトリックスのキャスト用
+		// ポインタを電柱のポインタにキャスト
+		CUtilityPole *pPole = static_cast<CUtilityPole *>(pObject);
+
+		// ポールの選択フラグをおろす
+		pPole->SetEnableSelect(false);
+
+		if (GetRidingObjectX() == pPole)
+		{ // プレイヤーの乗っている電柱なら、スキップ
+			pObject = pObjectNext;		// ポインタ更新
+			continue;
+		}
+
+		if (pPole->CanFocus(this))
+		{ // フォーカス可能なら
+			Vector3 posPole = VECTOR3_NULL;	// 電柱のの上の絶対座標
+			float fLength = 0.0f;	// 二点の距離
 			CRay ray;				// プレイヤーから電柱への光線
-			float fDot = 0.0f;		// 内積結果
 
-			// ポールの選択フラグをおろす
-			pPole->SetEnableSelect(false);
+			// 電柱の上の絶対座標を求める
+			posPole.y = pPole->GetVtxMax()->y;
+			D3DXVec3TransformCoord(&posPole, &posPole, pPole->GetMatrix());
 
-			if (GetRidingObjectX() != pPole && pPole->GetIconType() == CUtilityPole::ICON_CAN)
-			{ // プレイヤーの乗っている電柱ではなく、選択可能なら計算開始
-				// 各座標をマトリックスでワールド座標に変換
-				posPole.y = pPole->GetVtxMax()->y;
-				D3DXVec3TransformCoord(&pos, &m_pos, &m_mtxWorld);
-				D3DXVec3TransformCoord(&posPole, &posPole, pPole->GetMatrix());
-
-				// プレイヤーから電柱への方向ベクトルを求める
-				vecPlayerToPole = Vec3::Direction(posPole, pos);
-
-				// XZ平面で計算する為Y軸のベクトルは0に設定
-				vecPlayerToPole.y = 0.0f;
-
-#ifdef ENABLE_RAY_PLAYER_TO_POLE
-				// レイを作成して描画
-				pos.y = m_offset.y + m_pRidingPole->GetVtxMax()->y;
-				ray = CRay(pos, posPole);
-				ray.Draw();
-#endif
-				// 二つのベクトルから内積を求める
-				fDot = Vec3::Dot(vecCam, vecPlayerToPole);
-				if (fDot >= fDotMax)
-				{ // 現在の最小内積結果より小さかった場合、ポインタと結果を保存
-					pPoleNear = pPole;
-					fDotMax = fDot;
-				}
+			// 二点間の長さを求める
+			fLength = Vec3::Length(pos, posPole);
+			if (fLength <= fLengthMin)
+			{ // 今までで一番小さいなら、距離とポインタを保存
+				fLengthMin = fLength;
+				pPoleNear = pPole;
 			}
+
+#ifdef ENABLE_CAN_FOCUS_POLE_VECTOR
+			// 配列に追加
+			vPole.push_back(pPole);
+#endif
+#ifdef ENABLE_RAY_PLAYER_TO_POLE
+			// レイを作成して描画
+			pos.y = m_offset.y + pPole->GetVtxMax()->y;
+			ray = CRay(pos, posPole);
+			ray.Draw();
+#endif
 		}
 
 		pObject = pObjectNext;		// ポインタ更新

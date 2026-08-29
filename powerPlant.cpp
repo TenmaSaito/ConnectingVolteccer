@@ -14,6 +14,8 @@
 #include "planet.h"
 #include "utilityPole.h"
 #include "electricalCable.h"
+#include "electricCurrent.h"
+#include "color.h"
 #include <ranges>
 
 //**********************************************************************************
@@ -56,6 +58,9 @@ CPowerPlant *CPowerPlant::Create(const Vector3 &pos)
 //==================================================================================
 CPowerPlant::CPowerPlant(const int nPriority) : CObjectXQuaternion(nPriority)
 { // メンバ変数のクリア
+	m_pCurrentPole = nullptr;
+	m_pCurrentCable = nullptr;
+
 	// タイプ設定
 	SetType(CObject::TYPE_POWERPLANT);
 }
@@ -159,8 +164,43 @@ bool CPowerPlant::Connect(CUtilityPole *pPole)
 	// 接続済みとしてポインタを保存
 	m_vpPole.push_back(pPole);
 
+	// 今回繋げた電柱としてポインタを保存
+	m_pCurrentPole = pPole;
+
 	// 電柱同士を電線で接続
-	auto pCable = CElectricalCable::Create(this, pPole);
-	pCable->SetParent(GetParent());
+	m_pCurrentCable = CElectricalCable::Create(this, pPole);
+	m_pCurrentCable->SetParent(GetParent());
 	return true;
+}
+
+//==================================================================================
+// --- 今回繋げた電柱へ電流を流す処理 ---
+//==================================================================================
+void CPowerPlant::InvokeElectric(void)
+{ // 今回繋げた電柱から電流を生成
+	// 自身とつながっている電柱に電気を流す
+	CElectricCurrent *pCurrect = CElectricCurrent::Create(this, m_pCurrentPole);
+	pCurrect->SetParent(CManager::GetInstance()->GetScene<CGame>()->GetPlanet()->GetMatrix());
+
+	// 電線の色を黄色に変更
+	m_pCurrentCable->SetColor(Colors::GetColor(Colors::C_YELLOW));
+}
+
+//==================================================================================
+// --- 今回繋げたのを取り消す処理 ---
+//==================================================================================
+void CPowerPlant::RemoveConnected(void)
+{
+	if (m_pCurrentCable != nullptr)
+	{ // 繋げた電線があれば破棄
+		m_pCurrentCable->Uninit();
+		m_pCurrentCable = nullptr;
+	}
+
+	// 接続先のポインタが登録済みなら消す
+	auto iter = std::ranges::find(m_vpPole, m_pCurrentPole);
+	if(iter != m_vpPole.cend()) m_vpPole.erase(iter);
+
+	// 接続先のポインタを手放す
+	m_pCurrentPole = nullptr;
 }

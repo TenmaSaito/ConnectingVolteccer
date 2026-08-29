@@ -12,10 +12,13 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "object.h"
+#include <array>
+#include <span>
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
+#define CABLE_PRIORITY			(DEFAULT_OBJ_PRIORITY)		// 電線の優先順位
 #define ENABLE_QUATERNION		// クォータニオンの有効化
 
 //**********************************************************************************
@@ -44,6 +47,9 @@ public:
 	void Draw(void);
 	void BindTexture(const int nIdxTexture) { m_nIdxTexture = nIdxTexture; }
 	void SetParent(const Matrix *pMtxParent) { m_pMtxParent = pMtxParent; }
+	void SetColor(const Color &col);
+	const Matrix *GetMatrix(void) const { return &m_mtxWorld; }
+	std::array<Vector3, DEFAULT_VERTEX_NUM> const GetVtxPosition(void) { return m_aVtxPos; }
 
 private:
 	LPDIRECT3DVERTEXBUFFER9 m_pVtxBuff;		// 頂点バッファへのポインタ
@@ -54,6 +60,7 @@ private:
 	Quaternion m_qua;		// クォータニオン
 	Matrix m_mtxWorld;		// ワールドマトリックス
 	const Matrix *m_pMtxParent;		// 親のワールドマトリックス
+	std::array<Vector3, DEFAULT_VERTEX_NUM> m_aVtxPos;		// 各頂点の座標
 	bool m_bElectric;		// プレイヤーが端に着き、電流が流れたか
 };
 #endif

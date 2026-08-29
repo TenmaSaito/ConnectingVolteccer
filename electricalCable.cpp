@@ -26,7 +26,7 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define CABLE_HEIGHT		(10.0f)		// ケーブルの太さ
+#define CABLE_HEIGHT		(25.0f)		// ケーブルの太さ
 
 //==================================================================================
 // --- 生成処理 (CObjectXQuaternion -> CObjectXQuaternion) ---
@@ -52,7 +52,7 @@ CElectricalCable *CElectricalCable::Create(const CObjectXQuaternion *pStart,
 //==================================================================================
 // --- コンストラクタ ---
 //==================================================================================
-CElectricalCable::CElectricalCable()
+CElectricalCable::CElectricalCable() : CObject(CABLE_PRIORITY)
 { // メンバ変数をクリア
 	m_pVtxBuff = nullptr;
 	m_nIdxTexture = -1;
@@ -90,20 +90,27 @@ HRESULT CElectricalCable::Init(const CObjectXQuaternion *pStart,
 	Vector3 posStart2 = VECTOR3_NULL;		// 始点の座標2
 	Vector3 posEnd = VECTOR3_NULL;			// 終点の座標
 	Vector3 posEnd2 = VECTOR3_NULL;			// 終点の座標2
+	Color col;				// 頂点カラー
 	float fLength;			// 電柱間の距離
 	HRESULT hr = S_OK;		// 初期化結果
 	VERTEX_3D *pVtx;		// 頂点へのポインタ
 
 	// 二点の位置をマトリックスから求める
-	posStart.y = pStart->GetVtxMax()->y;
-	posStart2.y = pStart->GetVtxMax()->y + 10.0f;
-	posEnd.y = pEnd->GetVtxMax()->y;
-	posEnd2.y = pEnd->GetVtxMax()->y + 10.0f;
+	posStart.y = pStart->GetVtxMax()->y - (CABLE_HEIGHT * 0.5f);
+	posStart2.y = pStart->GetVtxMax()->y + (CABLE_HEIGHT * 0.5f);
+	posEnd.y = pEnd->GetVtxMax()->y - (CABLE_HEIGHT * 0.5f);
+	posEnd2.y = pEnd->GetVtxMax()->y + (CABLE_HEIGHT * 0.5f);
 
 	D3DXVec3TransformCoord(&posStart, &posStart, pStart->GetMatrix());
 	D3DXVec3TransformCoord(&posStart2, &posStart2, pStart->GetMatrix());
 	D3DXVec3TransformCoord(&posEnd, &posEnd, pEnd->GetMatrix());
 	D3DXVec3TransformCoord(&posEnd2, &posEnd2, pEnd->GetMatrix());
+
+	// 各頂点の座標を保存
+	m_aVtxPos.at(0) = posStart;
+	m_aVtxPos.at(1) = posStart2;
+	m_aVtxPos.at(2) = posEnd;
+	m_aVtxPos.at(3) = posEnd2;
 
 	// 二点間の距離を求める
 	fLength = Vec3::Length(posEnd, posStart);
@@ -132,7 +139,7 @@ HRESULT CElectricalCable::Init(const CObjectXQuaternion *pStart,
 	pVtx[3].nor = Vector3(0.0f, 0.0f, -1.0f);
 
 	// 頂点カラー設定
-	Color col = Colors::GetColor(Colors::C_GRAY);
+	col = Colors::GetColor(Colors::C_GRAY);
 	pVtx[0].col = col;
 	pVtx[1].col = col;
 	pVtx[2].col = col;
@@ -182,34 +189,6 @@ void CElectricalCable::Uninit(void)
 //==================================================================================
 void CElectricalCable::Update(void)
 {
-	if (m_bElectric == false)
-	{ // まだ電流が流れていなければ
-		CGame *pGame = CManager::GetInstance()->GetScene(&pGame);
-		if (pGame)
-		{ // ゲームシーンなら
-			CPlayer *pPlayer = pGame->GetPlayer();		// プレイヤーへのポインタ
-
-			// まだプレイヤーが端についていなければ、スキップ
-			if (pPlayer->IsShotLasso() == true) return;
-
-			VERTEX_3D *pVtx;		// 頂点へのポインタ
-
-			// 頂点バッファをロック
-			m_pVtxBuff->Lock(0, 0, (void **)&pVtx, 0);
-
-			// 頂点カラー設定
-			Color col = Colors::GetColor(Colors::C_YELLOW);
-			pVtx[0].col = col;
-			pVtx[1].col = col;
-			pVtx[2].col = col;
-			pVtx[3].col = col;
-
-			// ロック解除
-			m_pVtxBuff->Unlock();
-			
-			m_bElectric = true;		// 電流が流れたためフラグを立てる
-		}
-	}
 }
 
 //==================================================================================
@@ -255,4 +234,24 @@ void CElectricalCable::Draw(void)
 	// カリングとライティングを有効に設定
 	pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
 	pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
+}
+
+//==================================================================================
+// --- 色の変更処理 ---
+//==================================================================================
+void CElectricalCable::SetColor(const Color &col)
+{
+	VERTEX_3D *pVtx;		// 頂点へのポインタ
+
+	// 頂点バッファをロック
+	m_pVtxBuff->Lock(0, 0, (void **)&pVtx, 0);
+
+	// 頂点カラー設定
+	pVtx[0].col = col;
+	pVtx[1].col = col;
+	pVtx[2].col = col;
+	pVtx[3].col = col;
+
+	// ロック解除
+	m_pVtxBuff->Unlock();
 }

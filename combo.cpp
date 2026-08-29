@@ -15,6 +15,8 @@
 #include "renderer.h"
 #include "game.h"
 #include "player.h"
+#include "powerPlant.h"
+#include "utilityPole.h"
 #include "util.h"
 #include "texture.h"
 #include "observer_pointer.h"
@@ -24,7 +26,7 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define COMBO_TIME		(3)				// コンボ表示が持続する時間
+#define COMBO_TIME		(20)				// コンボ表示が持続する時間
 #define COMBO_FRAME		(CManager::SecToFrame(COMBO_TIME))		// コンボ表示が持続するフレーム数
 #define COMBO_SIZE		(Vector2(200.0f, 80.0f))		// コンボ表示のサイズ
 #define NUMBER_SIZE		(Vector2(64.0f, 128.0f))		// 数値オブジェクトのサイズ
@@ -32,9 +34,7 @@
 #define GAUGE_SIZE		Vector2(COMBO_SIZE.x + (NUMBER_SIZE.x * MAX_COMBO_NUM), 15.0f)		// ゲージのサイズ
 #define COMBO_TEX_PATH	"data/TEXTURE/Combo.png"		// コンボテクスチャ
 #define SIZE_MAGNI		(1.65f)			// コンボ増加時の拡大倍率
-#define LERP_VALUE		(0.01f)			// 1フレーム当たりの透明になる線形補間の増加係数
-#define LERP_TIME		(CManager::RatioToSec(LERP_VALUE))		// 線形補間にかかる秒数
-#define GAUGE_TIME		(LERP_TIME + static_cast<float>(COMBO_TIME))		// コンボ表示が完全に消えるまでの時間
+#define GAUGE_TIME		(static_cast<float>(COMBO_TIME))		// コンボ表示が完全に消えるまでの時間
 #define GAUGE_VALUE		(CManager::SecToRatio(GAUGE_TIME))		// 1フレーム当たりのゲージの線形補間の増加係数
 
 //==================================================================================
@@ -74,6 +74,7 @@ HRESULT CCombo::Init(const Vector3 &pos, const Vector3 &rot)
 	m_pos = pos;
 	m_rot = rot;
 	m_fTimeCatmullRom = 1.0f;
+	m_nDispLife = COMBO_FRAME;
 
 	float fWidthAll = COMBO_SIZE.x + (NUMBER_SIZE.x * MAX_COMBO_NUM);		// 総合幅
 
@@ -155,10 +156,14 @@ void CCombo::Uninit(void)
 //==================================================================================
 void CCombo::Update(void)
 {
-	m_nDispLife--;
-	if (m_nDispLife < 0 && m_bDisp == true)
-	{ // 描画時間が過ぎた場合
-		UpdateAlpha();
+	if (m_bDisp == true)
+	{ // 描画している場合のみ
+		m_nDispLife--;
+		if (m_nDispLife < 0)
+		{ // 描画時間が過ぎた場合、描画しないように設定し体力を元に戻す
+			m_bDisp = false;
+			m_nDispLife = COMBO_FRAME;
+		}
 	}
 	
 	// サイズ更新
@@ -253,10 +258,8 @@ void CCombo::SetCombo(const int nValue)
 	}
 
 	// 描画時間と各補間用変数を再設定
-	m_nDispLife = COMBO_FRAME;
 	m_fTimeCatmullRom = 0.0f;
 	m_fTimeAlphaLerp = 0.0f;
-	m_fTimeGaugeLerp = 0.0f;
 	m_bDisp = true;
 }
 
@@ -266,6 +269,50 @@ void CCombo::SetCombo(const int nValue)
 void CCombo::AddCombo(const int nValue)
 { // 現コンボ数に加算した値で再設定
 	SetCombo(m_nCombo + nValue);
+}
+
+//==================================================================================
+// --- コンボ確定処理 ---
+//==================================================================================
+void CCombo::Finish(void)
+{ // 現在までのコンボで確定させ、電気を流した後コンボをリセットする
+	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
+	CGame *pGame = pManager->GetScene(&pGame);			// ゲームシーンへのポインタ
+	CPlayer *pPlayer = pGame->GetPlayer();				// プレイヤーへのポインタ
+	CPowerPlant *pPlant = pPlayer->GetStartPlant();		// プレイヤーの乗っていた発電所へのポインタ
+	
+	// コンボが0以下の場合スキップ
+	if (m_nCombo <= 0) return;
+
+	// 電流を流し始める
+	pPlant->InvokeElectric();
+
+	// コンボをリセット
+	ResetCombo();
+}
+
+//==================================================================================
+// --- コンボ取り消し処理 ---
+//==================================================================================
+void CCombo::Withdrawal(void)
+{ // 現在までのコンボを取り消し、電気を流さずにコンボをリセットする
+	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
+	CGame *pGame = pManager->GetScene(&pGame);			// ゲームシーンへのポインタ
+	CPlayer *pPlayer = pGame->GetPlayer();				// プレイヤーへのポインタ
+	auto pCurrentObject = pPlayer->GetRidingObject();	// プレイヤーの乗っているオブジェクト
+
+	// 発電所に乗っている場合、スキップ
+	if (pCurrentObject->index() == CPlayer::CPOWERPLANT_PTR) return;
+
+	// 電柱へのポインタへキャスト
+	auto pPole = std::get_if<CUtilityPole*>(pCurrentObject);
+	if (pPole)
+	{ // 取得成功時、電線の破棄処理を呼び出し
+		(*pPole)->RemoveConnected();
+	}
+
+	// コンボをリセット
+	ResetCombo();
 }
 
 //==================================================================================
@@ -283,6 +330,8 @@ void CCombo::ResetCombo(void)
 	m_pCombo->SetAlpha(1.0f);
 	m_pGauge->SetDisp(false);
 
+	m_nDispLife = COMBO_FRAME;	// 体力を元に戻す
+	m_fTimeGaugeLerp = 0.0f;	// 補間用変数をリセット
 	m_nCombo = 0;			// コンボ数リセット
 	m_bDisp = false;		// 描画フラグをおろす
 }
@@ -292,45 +341,7 @@ void CCombo::ResetCombo(void)
 //==================================================================================
 void CCombo::UpdateAlpha(void)
 {
-	CGame *pGame = CManager::GetInstance()->GetScene(&pGame);		// ゲームシーンへのポインタ
-	CPlayer *pPlayer = (pGame) ? pGame->GetPlayer() : nullptr;		// プレイヤーへのポインタ
-
-	m_fTimeAlphaLerp += LERP_VALUE;
-	if (m_fTimeAlphaLerp >= 1.0f)
-	{ // 透明に変更
-		for (auto &pNumber : m_apNumber)
-		{ // 非表示化
-			pNumber->SetDisp(false);
-			pNumber->SetAlpha(1.0f);
-		}
-
-		// 非表示化
-		m_pCombo->SetDisp(false);
-		m_pCombo->SetAlpha(1.0f);
-		m_pGauge->SetDisp(false);
-
-		if (pPlayer)
-		{ // プレイヤーがnullではなく、投げ縄を既に投げていなければ
-			if(pPlayer->IsShotLasso() != true) m_nCombo = 0;			// コンボ数リセット
-		}
-		else
-		{ // プレイヤーがnullの場合
-			m_nCombo = 0;			// コンボ数リセット
-		}
-		m_bDisp = false;		// 描画フラグをおろす
-	}
-	else
-	{ // 徐々に透明度を上げる
-		float fValue = std::lerp(1.0f, 0.0f, m_fTimeAlphaLerp);
-
-		for (auto &pNumber : m_apNumber)
-		{ // 透明度を適用
-			pNumber->SetAlpha(fValue);
-		}
-
-		// 透明度を適用
-		m_pCombo->SetAlpha(fValue);
-	}
+	
 }
 
 //==================================================================================
@@ -379,6 +390,30 @@ void CCombo::UpdateScale(void)
 		if (m_fTimeGaugeLerp >= 1.0f)
 		{ // 補間用変数が1.0fを超えた場合、1.0fに修正
 			m_fTimeGaugeLerp = 1.0f;
+
+			CGame *pGame = CManager::GetInstance()->GetScene(&pGame);		// ゲームシーンへのポインタ
+			CPlayer *pPlayer = (pGame) ? pGame->GetPlayer() : nullptr;		// プレイヤーへのポインタ
+			// 透明に変更
+			for (auto &pNumber : m_apNumber)
+			{ // 非表示化
+				pNumber->SetDisp(false);
+				pNumber->SetAlpha(1.0f);
+			}
+
+			// 非表示化
+			m_pCombo->SetDisp(false);
+			m_pCombo->SetAlpha(1.0f);
+			m_pGauge->SetDisp(false);
+
+			if (pPlayer)
+			{ // プレイヤーがnullではなく、投げ縄を既に投げていなければ
+				if (pPlayer->IsShotLasso() != true) m_nCombo = 0;			// コンボ数リセット
+			}
+			else
+			{ // プレイヤーがnullの場合
+				m_nCombo = 0;			// コンボ数リセット
+			}
+			m_bDisp = false;			// 描画フラグをおろす
 		}
 	}
 }

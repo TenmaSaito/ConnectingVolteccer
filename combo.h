@@ -43,6 +43,8 @@ public:
 	void Draw(void);
 	void SetCombo(const int nValue);
 	void AddCombo(const int nValue);
+	void Finish(void);
+	void Withdrawal(void);
 	void ResetCombo(void);
 	int GetCombo(void) const { return m_nCombo; }
 	bool GetDisp(void) const { return m_bDisp; }

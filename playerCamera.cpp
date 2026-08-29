@@ -35,6 +35,7 @@
 #define DEFAULT_PLANET_Z	(-0.08f)	// 惑星フォーカス時のカメラのZ角度
 #define ENABLE_RAY_PLAYER_CAM			// プレイヤーのカメラの光線ベクトルの表示
 #define RAY_LENGTH			(1000.0f)	// レイの長さ
+#define LERP_SPD			(CManager::SecToRatio(0.5f))		// 線形補間の増加値
 
 //==================================================================================
 // --- カメラの生成 ---
@@ -66,8 +67,11 @@ CPlayerCamera::CPlayerCamera() : CCamera(TYPE_PLAYER)
 { // メンバ変数をクリア
 	m_pPlayer = nullptr;
 	m_rotDefault = VECTOR3_NULL;
+	m_posVBefore = VECTOR3_NULL;
+	m_posRBefore = VECTOR3_NULL;
 	m_fLengthPlayer = 0.0f;
 	m_fLengthRiding = 0.0f;
+	m_fTime = 0.0f;
 	m_state = STATE_PLAYER;
 }
 
@@ -96,6 +100,7 @@ void CPlayerCamera::Init(const Vector3 &rot,
 	m_rotRidingDefault = rotRiding;
 	m_fLengthPlayer = fLengthPlayer;
 	m_fLengthRiding = fLengthRiding;
+	m_fTime = 1.0f;
 }
 
 //==================================================================================
@@ -121,126 +126,6 @@ void CPlayerCamera::Update(void)
 	Vector3 rot = *CCamera::GetRotate();	// 角度
 	Vector3 stick;		// スティックの入力
 
-#ifndef ENABLE_PLANET
-	/*** 視点の平行移動！ ***/
-	if (pKeyboard->GetPress(DIK_W))
-	{ // Wを押したとき
-		/** 追加入力 **/
-		if (pKeyboard->GetPress(DIK_A))
-		{// Aを押したとき
-			posV.x += sinf(rot.y + (D3DX_PI * 0.75f)) * DEFAULT_SPD;
-			posV.z += cosf(rot.y + (D3DX_PI * 0.75f)) * DEFAULT_SPD;
-			posR.x += sinf(rot.y + (D3DX_PI * 0.75f)) * DEFAULT_SPD;
-			posR.z += cosf(rot.y + (D3DX_PI * 0.75f)) * DEFAULT_SPD;
-		}
-		else if (pKeyboard->GetPress(DIK_D))
-		{ // Dを押したとき
-			posV.x += sinf(rot.y + (D3DX_PI * 1.25f)) * DEFAULT_SPD;
-			posV.z += cosf(rot.y + (D3DX_PI * 1.25f)) * DEFAULT_SPD;
-			posR.x += sinf(rot.y + (D3DX_PI * 1.25f)) * DEFAULT_SPD;
-			posR.z += cosf(rot.y + (D3DX_PI * 1.25f)) * DEFAULT_SPD;
-		}
-		else
-		{ // 純粋なW入力時
-			posV.x += sinf(rot.y + D3DX_PI) * DEFAULT_SPD;
-			posV.z += cosf(rot.y + D3DX_PI) * DEFAULT_SPD;
-			posR.x += sinf(rot.y + D3DX_PI) * DEFAULT_SPD;
-			posR.z += cosf(rot.y + D3DX_PI) * DEFAULT_SPD;
-		}
-	}
-	else if (pKeyboard->GetPress(DIK_S))
-	{ // Sを押したとき
-		/** 追加入力 **/
-		if (pKeyboard->GetPress(DIK_A))
-		{// Aを押したとき
-			posV.x += sinf(rot.y + (D3DX_PI * 0.25f)) * DEFAULT_SPD;
-			posV.z += cosf(rot.y + (D3DX_PI * 0.25f)) * DEFAULT_SPD;
-			posR.x += sinf(rot.y + (D3DX_PI * 0.25f)) * DEFAULT_SPD;
-			posR.z += cosf(rot.y + (D3DX_PI * 0.25f)) * DEFAULT_SPD;
-
-		}
-		else if (pKeyboard->GetPress(DIK_D))
-		{ // Dを押したとき
-			posV.x += sinf(rot.y + (D3DX_PI * 1.75f)) * DEFAULT_SPD;
-			posV.z += cosf(rot.y + (D3DX_PI * 1.75f)) * DEFAULT_SPD;
-			posR.x += sinf(rot.y + (D3DX_PI * 1.75f)) * DEFAULT_SPD;
-			posR.z += cosf(rot.y + (D3DX_PI * 1.75f)) * DEFAULT_SPD;
-		}
-		else
-		{ // 純粋なS入力時
-			posV.x += sinf(rot.y) * DEFAULT_SPD;
-			posV.z += cosf(rot.y) * DEFAULT_SPD;
-			posR.x += sinf(rot.y) * DEFAULT_SPD;
-			posR.z += cosf(rot.y) * DEFAULT_SPD;
-		}
-	}
-	else if (pKeyboard->GetPress(DIK_A))
-	{ // Aを押したとき
-		posV.x += sinf(rot.y + (D3DX_PI * 0.5f)) * DEFAULT_SPD;
-		posV.z += cosf(rot.y + (D3DX_PI * 0.5f)) * DEFAULT_SPD;
-		posR.x += sinf(rot.y + (D3DX_PI * 0.5f)) * DEFAULT_SPD;
-		posR.z += cosf(rot.y + (D3DX_PI * 0.5f)) * DEFAULT_SPD;
-	}
-	else if (pKeyboard->GetPress(DIK_D))
-	{ // Dを押したとき
-		posV.x += sinf(rot.y + (D3DX_PI * 1.5f)) * DEFAULT_SPD;
-		posV.z += cosf(rot.y + (D3DX_PI * 1.5f)) * DEFAULT_SPD;
-		posR.x += sinf(rot.y + (D3DX_PI * 1.5f)) * DEFAULT_SPD;
-		posR.z += cosf(rot.y + (D3DX_PI * 1.5f)) * DEFAULT_SPD;
-	}
-
-	// カメラの回転！(注視点中心)
-	if (pKeyboard->GetPress(DIK_E))
-	{ // 角度をずらして修正
-		rot.y += DEFAULT_ROTSPD;
-		rot = Vec3::FixedRotation(rot);
-	}
-	else if (pKeyboard->GetPress(DIK_Q))
-	{ // 角度をずらして修正
-		rot.y -= DEFAULT_ROTSPD;
-		rot = Vec3::FixedRotation(rot);
-	}
-
-	// カメラの上下回転！
-	if (pKeyboard->GetPress(DIK_Y))
-	{ // 角度をずらして修正
-		rot.z += DEFAULT_ROTSPD;
-		rot = Vec3::FixedRotation(rot);
-	}
-	else if (pKeyboard->GetPress(DIK_N))
-	{ // 角度をずらして修正
-		rot.z -= DEFAULT_ROTSPD;
-		rot = Vec3::FixedRotation(rot);
-	}
-#elif _DEBUG
-	if (pKeyboard->GetPress(DIK_SPACE))
-	{
-		/*** カメラの回転！(注視点中心) ***/
-		if (pKeyboard->GetPress(DIK_E))
-		{ // 角度をずらして修正
-			rot.y += DEFAULT_ROTSPD;
-			rot = Vec3::FixedRotation(rot);
-		}
-		else if (pKeyboard->GetPress(DIK_Q))
-		{ // 角度をずらして修正
-			rot.y -= DEFAULT_ROTSPD;
-			rot = Vec3::FixedRotation(rot);
-		}
-
-		// カメラの上下回転！
-		if (pKeyboard->GetPress(DIK_Y))
-		{ // 角度をずらして修正
-			rot.z += DEFAULT_ROTSPD;
-			rot = Vec3::FixedRotation(rot);
-		}
-		else if (pKeyboard->GetPress(DIK_N))
-		{ // 角度をずらして修正
-			rot.z -= DEFAULT_ROTSPD;
-			rot = Vec3::FixedRotation(rot);
-		}
-	}
-#endif
-
 	if (m_state == STATE_RIDING)
 	{ // 電柱に載っている場合は視点移動を可能にする
 		// カメラの回転！(注視点中心)
@@ -255,8 +140,8 @@ void CPlayerCamera::Update(void)
 			rot = Vec3::FixedRotation(rot);
 		}
 		else if (pJoypad->GetStick(CJoypad::STICK_LEFT, &stick) && Vec3::Length(stick) > STICK_DEADZONE)
-		{
-			rot.y += Vec3::Normalize(stick).x * DEFAULT_ROTSPD;
+		{ // スティックから角度を取得
+			rot.y += stick.x * DEFAULT_ROTSPD;
 		}
 	}
 
@@ -296,6 +181,19 @@ void CPlayerCamera::Update(void)
 #endif
 	}
 
+	if (m_fTime < 1.0f)
+	{ // 線形補間が終わっていなければ
+		m_fTime += LERP_SPD;		// 時間を増加
+		if (m_fTime >= 1.0f)
+		{ // 1.0fを超えた場合、修正
+			m_fTime = 1.0f;
+		}
+
+		// 座標を求める
+		posV = Vec3::Lerp(m_posVBefore, posV, m_fTime);
+		posR = Vec3::Lerp(m_posRBefore, posR, m_fTime);
+	}
+
 	// 位置と角度を適用
 	CCamera::SetPosV(posV);
 	CCamera::SetPosR(posR);
@@ -318,7 +216,14 @@ void CPlayerCamera::SetCamera(void)
 //==================================================================================
 void CPlayerCamera::SetState(const STATE state)
 { // フォーカスを変更
-	m_state = state;
+	if (m_state != state)
+	{ // 前回の状態と異なっていた場合、線形補間リセット + 座標保存
+		m_fTime = 0.0f;
+		m_posVBefore = *CCamera::GetPosV();
+		m_posRBefore = *CCamera::GetPosR();
+	}
+
+	m_state = state;		// 状態保存
 
 	if (state == STATE_PLAYER)
 	{ // カメラの角度を通常の角度に戻す

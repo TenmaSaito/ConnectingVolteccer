@@ -213,23 +213,21 @@ HRESULT CBuilding::Init(const Vector3 &position)
 	// 増減値を設定
 	m_fValue = SCALE_VALUE;
 
-	// 光の柱を生成
-	auto pBill = CObjectBillboard3D::Create(Vector3(0.0f, 500.0f, 0.0f),
-		VECTOR3_NULL,
+	// 光の柱用のビルボードを生成
+	m_pPillar = CLightingPillar::Create(Vector3(0.0f, 500.0f, 0.0f),
 		Vector2(25.0f, 1000.0f),
-		INT_MAX,
-		DEFAULT_ADD_PRIORITY);
-	pBill->BindTexture(CTexture::GetInstance()->Register(PILLAR_PATH));
+		COLOR_ONE);
+	m_pPillar->BindTexture(CTexture::GetInstance()->Register(PILLAR_PATH));
 
 	// 加算合成の前後処理を登録
-	pBill->SetStateFunctionBeforeDraw([](LPDIRECT3DDEVICE9 pDevice)
+	m_pPillar->SetStateFunctionBeforeDraw([](LPDIRECT3DDEVICE9 pDevice)
 		{ // 加算合成開始
 			pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
 			pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
 			pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
 			pDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
 		});
-	pBill->SetStateFunctionAfterDraw([](LPDIRECT3DDEVICE9 pDevice)
+	m_pPillar->SetStateFunctionAfterDraw([](LPDIRECT3DDEVICE9 pDevice)
 		{ // 加算合成終了
 			pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
 			pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
@@ -238,10 +236,10 @@ HRESULT CBuilding::Init(const Vector3 &position)
 		});
 
 	// 親マトリックスを適用
-	pBill->SetParent(GetMatrix());
+	m_pPillar->SetParent(GetMatrix());
 
 	// Y軸の回転を無効化
-	pBill->SetEnableYBill(true);
+	m_pPillar->SetEnableYBill(true);
 	return hr;
 }
 
@@ -306,6 +304,9 @@ void CBuilding::Update(void)
 				pParticle->SetParent(GetMatrix());
 				pParticle->BindTexture(CTexture::GetInstance()->Register(PARTICLE_PATH));
 				m_bLighting = true;
+
+				// 光の柱のスケール上昇開始
+				m_pPillar->StartScaleUp();
 
 				CGame *pGame = nullptr;			// ゲームへのポインタ
 				CPlayer *pPlayer = nullptr;		// プレイヤーへのポインタ
