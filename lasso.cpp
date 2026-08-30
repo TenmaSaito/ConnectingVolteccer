@@ -95,7 +95,8 @@ HRESULT CLasso::Init(const Vector3 &pos,
 	m_pEnd = pEnd;
 
 	// 親クラスの初期化
-	return CObjectXQuaternion::Init(MODEL_PATH, pos, *pStart->GetQuaternion());
+	Quaternion qua;
+	return CObjectXQuaternion::Init(MODEL_PATH, pos, *D3DXQuaternionIdentity(&qua));
 }
 
 //==================================================================================
@@ -110,7 +111,8 @@ HRESULT CLasso::Init(const Vector3 &pos,
 	m_pEnd = pEnd;
 
 	// 親クラスの初期化
-	return CObjectXQuaternion::Init(MODEL_PATH, pos, *pStart->GetQuaternion());
+	Quaternion qua;
+	return CObjectXQuaternion::Init(MODEL_PATH, pos, *D3DXQuaternionIdentity(&qua));
 }
 
 //==================================================================================
@@ -149,12 +151,19 @@ void CLasso::UpdateTransform(void)
 	if (IsDeath() == true) return;
 
 	Quaternion *pQuaLasso = GetQuaternionPtr();		// 現在のクォータニオン
+	Vector3 posStartWorld = Vector3(0.0f, std::visit([](auto &x) { return x->GetVtxMax()->y; }, m_pStart), 0.0f);
+	Vector3 posEndWorld = Vector3(0.0f, m_pEnd->GetVtxMax()->y, 0.0f);
+	Vector3 pos = VECTOR3_NULL;
 
-	// 球面線形補間を行う
-	D3DXQuaternionSlerp(pQuaLasso,
-		std::visit([](auto &x) { return x->GetQuaternion(); }, m_pStart),
-		m_pEnd->GetQuaternion(),
-		m_fSlerpTime);
+	// 絶対座標を求める
+	D3DXVec3TransformCoord(&posStartWorld, &posStartWorld, std::visit([](auto &x) { return x->GetMatrix(); }, m_pStart));
+	D3DXVec3TransformCoord(&posEndWorld, &posEndWorld, m_pEnd->GetMatrix());
+
+	// 線形補間を行う
+	pos = Vec3::Lerp(posStartWorld, posEndWorld, m_fSlerpTime);
+	
+	// 座標を更新
+	SetPosition(pos);
 
 	// 球面線形補間の補間係数を進める
 	m_fSlerpTime += (1.0f / static_cast<float>(DEF_LIFE));
@@ -185,8 +194,6 @@ void CLasso::CheckCollision(void)
 
 	// 自身の絶対座標を求める
 	D3DXVec3TransformCoord(&pos, &pos, GetMatrix());
-
-	CEffect::Create(pos, 2, 100);
 
 	while (pObject != nullptr)
 	{ // オブジェクトを走査

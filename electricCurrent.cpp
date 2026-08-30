@@ -13,6 +13,8 @@
 #include "utilityPole.h"
 #include "planet.h"
 #include "effect.h"
+#include "manager.h"
+#include "game.h"
 #include "vec3math.h"
 #include "vec2math.h"
 #include "matrix.h"
@@ -141,10 +143,18 @@ void CElectricCurrent::Update(void)
 		// 終了地点の電柱から電流を新規で生成
 		m_pEnd->GenerateElectricity();
 		m_bGenerate = true;
+
+		CGame *pGame = CManager::GetInstance()->GetScene(&pGame);		// ゲームシーンへのポインタ
+		if (pGame)
+		{ // 電気がついた家の数と演出生成の有無をリセット
+			pGame->ResetCurrentLightingHouseNum();
+		}
 	}
 
-	if (m_pThunder->IsEndAnim(4.0f) && m_bGenerate == true)
-	{ // 電流がある程度短くなったら、終了
+	if ((m_pThunder->IsEndAnim(5.0f) 
+		|| CManager::GetInstance()->GetMode() == CScene::MODE_RESULT)
+		&& m_bGenerate == true)
+	{ // 電流がある程度短くなったもしくはリザルトシーンで、既に次の電線に電気を流したなら終了
 		Uninit();
 	}
 }

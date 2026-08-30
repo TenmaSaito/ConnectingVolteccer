@@ -31,8 +31,8 @@
 //==================================================================================
 // --- 生成処理 (CObjectXQuaternion -> CObjectXQuaternion) ---
 //==================================================================================
-CElectricalCable *CElectricalCable::Create(const CObjectXQuaternion *pStart,
-	const CObjectXQuaternion *pEnd,
+CElectricalCable *CElectricalCable::Create(CObjectXQuaternion *pStart,
+	CObjectXQuaternion *pEnd,
 	const CPlanet *pPlanet)
 {
 	CElectricalCable *pCable = NULL;		// 生成したオブジェクトへのポインタ
@@ -82,8 +82,8 @@ CElectricalCable::~CElectricalCable()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CElectricalCable::Init(const CObjectXQuaternion *pStart,
-	const CObjectXQuaternion *pEnd,
+HRESULT CElectricalCable::Init(CObjectXQuaternion *pStart,
+	CObjectXQuaternion *pEnd,
 	const CPlanet *pPlanet)
 {
 	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
@@ -103,9 +103,9 @@ HRESULT CElectricalCable::Init(const CObjectXQuaternion *pStart,
 	posEnd.y = pEnd->GetVtxMax()->y - (CABLE_HEIGHT * 0.5f);
 	posEnd2.y = pEnd->GetVtxMax()->y + (CABLE_HEIGHT * 0.5f);
 
-	D3DXVec3TransformCoord(&posStart, &posStart, pStart->GetMatrix());
+	D3DXVec3TransformCoord(&posStart, &posStart, pStart->CalcMatrix());
 	D3DXVec3TransformCoord(&posStart2, &posStart2, pStart->GetMatrix());
-	D3DXVec3TransformCoord(&posEnd, &posEnd, pEnd->GetMatrix());
+	D3DXVec3TransformCoord(&posEnd, &posEnd, pEnd->CalcMatrix());
 	D3DXVec3TransformCoord(&posEnd2, &posEnd2, pEnd->GetMatrix());
 
 	// 各頂点の座標を保存

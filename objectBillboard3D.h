@@ -46,6 +46,8 @@ public:
 	void BindTexture(const int nIdxTexture) { m_nIdxTexture = nIdxTexture; }
 	void SetPosition(const Vector3 &position) { m_pos = position; }
 	const Vector3 *GetPosition(void) const { return &m_pos; }
+	void SetRotation(const Vector3 &rotation);
+	const Vector3 *GetRotation(void) const { return &m_rot; }
 	void SetSize(const Vector2 &size);
 	const Vector2 *GetSize(void) const { return &m_size; }
 	void SetColor(const Color &color);
@@ -68,10 +70,13 @@ private:
 	Matrix m_mtxWorld;		// ワールドマトリックス
 	const Matrix *m_pMtxParent;		// 親ワールドマトリックスへのポインタ
 	Vector3 m_pos;			// 位置
+	Vector3 m_rot;			// 角度
 	Vector3 m_move;			// 移動量
 	Vector2 m_size;			// サイズ
 	Color m_col;			// 色
 	Vector2 m_decreaseScale;// 一フレームで減少するサイズ
+	float m_fLength;		// 対角線の長さ
+	float m_fAngle;			// 対角線の角度
 	int m_nLife;			// 体力
 	bool m_bDisp;			// 描画するか
 	bool m_bAlpha;			// αテストの有効化

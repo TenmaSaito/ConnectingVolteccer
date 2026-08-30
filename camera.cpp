@@ -22,7 +22,7 @@
 //**********************************************************************************
 #define DEFAULT_FOVY		(45.0f)		// ‹–ìŠp
 #define DEFAULT_ZN			(1.0f)		// Å’Z‹——£
-#define DEFAULT_ZF			(10000.0f)	// Å‰“‹——£
+#define DEFAULT_ZF			(3000.0f)	// Å‰“‹——£
 #define DEFAULT_SPD			(1.0f)		// ˆÚ“®‘¬“x
 #define DEFAULT_ROTSPD		(0.01f)		// ‰ñ“]‘¬“x
 #define DEFAULT_LENGTH		(300.0f)	// ’‹“_‚Æ‚Ì‹——£

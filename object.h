@@ -52,6 +52,7 @@ public:
 		TYPE_TIMER,			// タイマー
 		TYPE_TITLEMENU,		// タイトルメニュー
 		TYPE_COMBO,			// コンボ表示
+		TYPE_SHOCK,			// 感電エフェクト
 		TYPE_EVALUATE,		// 評価表示
 		TYPE_EFFECT,		// エフェクト
 		TYPE_POLE,			// 電柱

@@ -20,7 +20,7 @@
 #include "map.h"
 #include "util.h"
 #include "texture.h"
-#include "observer_pointer.h"
+#include "color.h"
 #include <algorithm>
 #include <array>
 
@@ -37,6 +37,7 @@
 #define SIZE_MAGNI		(1.65f)			// コンボ増加時の拡大倍率
 #define GAUGE_TIME		(static_cast<float>(COMBO_TIME))		// コンボ表示が完全に消えるまでの時間
 #define GAUGE_VALUE		(CManager::SecToRatio(GAUGE_TIME))		// 1フレーム当たりのゲージの線形補間の増加係数
+#define SHOCKED_COL		(Color(Colors::GetColor(Colors::C_DIMGRAY)))	// 感電時のテクスチャカラー
 
 //==================================================================================
 // --- 生成処理 ---
@@ -159,7 +160,8 @@ void CCombo::Uninit(void)
 // --- 更新処理 ---
 //==================================================================================
 void CCombo::Update(void)
-{
+{ // 一時停止の間はスキップ
+	if (m_bPause == true) return;
 	if (m_bContinuing == true)
 	{ // 描画している場合のみ
 		m_nDispLife--;
@@ -181,9 +183,28 @@ void CCombo::Draw(void)
 { // 描画フラグが立っていない場合スキップ
 	if (m_bDisp != true) return;
 
-	own::ObserverPtr pManager(CManager::GetInstance());		// マネージャへのポインタ
-	own::ObserverPtr pRenderer(pManager->GetRenderer());	// レンダラーへのポインタ
-	own::ObserverPtr pDevice(pRenderer->GetDevice());		// デバイスへのポインタ
+	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
+	CRenderer *pRenderer = pManager->GetRenderer();		// レンダラーへのポインタ
+	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();	// デバイスへのポインタ
+	CGame *pGame = pManager->GetScene(&pGame);			// ゲームシーンへのポインタ
+	CPlayer *pPlayer = nullptr;		// プレイヤーへのポインタ
+
+	if (pGame != nullptr)
+	{ // ゲームシーンであれば
+		// プレイヤーを取得
+		pPlayer = pGame->GetPlayer();
+
+		if (pPlayer->IsShocked() == true)
+		{ // 感電していれば
+			for (auto &pNumber : m_apNumber)
+			{ // タイマーが生成した数値オブジェクトを描画
+				if (pNumber != nullptr)
+				{ // NULLではなかった場合、描画処理
+					pNumber->SetColor(SHOCKED_COL);
+				}
+			}
+		}
+	}
 
 	// αテストを有効化
 	pDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
@@ -214,6 +235,20 @@ void CCombo::Draw(void)
 	pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
 	pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_ALWAYS);
 	pDevice->SetRenderState(D3DRS_ALPHAREF, 0);
+
+	if (pGame != nullptr)
+	{ // ゲームシーンであれば
+		if (pPlayer->IsShocked() == true)
+		{ // 感電していれば
+			for (auto &pNumber : m_apNumber)
+			{ // タイマーが生成した数値オブジェクトを描画
+				if (pNumber != nullptr)
+				{ // NULLではなかった場合、描画処理
+					pNumber->SetColor(COLOR_ONE);
+				}
+			}
+		}
+	}
 }
 
 //==================================================================================

@@ -70,7 +70,6 @@ CManager::CManager()
 	m_pScene = nullptr;
 	m_nCountFPS = 0;
 	m_nCounterFrame = 0;
-	m_nNumPole = 0;
 	m_bPause = false;
 }
 

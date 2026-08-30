@@ -357,6 +357,12 @@
     <ClCompile Include="resultCamera.cpp">
       <Filter>ソース ファイル\manager\camera</Filter>
     </ClCompile>
+    <ClCompile Include="meshCylinder.cpp">
+      <Filter>ソース ファイル\object\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="shock.cpp">
+      <Filter>ソース ファイル\object\effect</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="model.h">
@@ -622,6 +628,12 @@
     </ClInclude>
     <ClInclude Include="resultCamera.h">
       <Filter>ヘッダー ファイル\manager\camera</Filter>
+    </ClInclude>
+    <ClInclude Include="meshCylinder.h">
+      <Filter>ヘッダー ファイル\object\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="shock.h">
+      <Filter>ヘッダー ファイル\object\effect</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

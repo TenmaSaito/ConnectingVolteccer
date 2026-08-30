@@ -40,5 +40,6 @@ private:
 	void Start(void);
 
 	CPlanet *m_pPlanet;		// 惑星へのポインタ
+	float m_fPercent;		// 電気のついた家の割合
 };
 #endif

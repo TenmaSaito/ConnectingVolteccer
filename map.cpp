@@ -84,10 +84,9 @@ CMap::~CMap()
 // --- 変数のリセット処理 ---
 //==================================================================================
 void CMap::Reset(void)
-{ // メンバ変数をリセット
+{ // 各変数をリセット
 	m_nNumBuilding = 0;
 	m_nNumID = 0;
-	m_pPlanet = nullptr;
 	m_vConnectID.clear();
 	m_vCurrentID.clear();
 	m_currentFilePath.clear();
@@ -99,6 +98,23 @@ void CMap::Reset(void)
 void CMap::ReloadByConnectID(void)
 { // 建物を再出現させる
 	m_nNumID = 0;
+
+	// データ読み込み
+	std::unique_ptr<CFileStream> pFile(new CFileStream);	// ファイルストリーム
+	std::string sPath;		// マップファイル名
+
+	if (pFile->OpenFile(LATEST_MAPFILE, true))
+	{ // ファイルオープン成功
+		pFile->ReadString(sPath);
+
+		// ファイルを閉じる
+		pFile->CloseFile();
+	}
+	
+	// 最新のファイルと現在のファイル名が異なる場合、アサーション
+	assert(m_currentFilePath == sPath);
+
+	// ファイル読み込み
 	Load(m_currentFilePath);
 
 	// 電線を繋げ直す

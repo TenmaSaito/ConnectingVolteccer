@@ -55,6 +55,7 @@ public:
 	const Vector3 *GetVtxMin(void) const { return &m_vtxMin; }
 	const Vector3 *GetVtxMax(void) const { return &m_vtxMax; }
 	const Matrix *GetMatrix(void) const { return &m_mtxWorld; }
+	const Matrix *CalcMatrix(void);
 	void SetParent(const Matrix *pParent) { m_pMtxParent = pParent; }
 	const Matrix *GetParent(void) const { return m_pMtxParent; }
 	const char *GetFileName(void) const { return m_aFileName; }

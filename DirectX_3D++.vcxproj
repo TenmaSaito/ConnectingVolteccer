@@ -170,6 +170,8 @@
     <ClCompile Include="electricCurrent.cpp" />
     <ClCompile Include="filestream.cpp" />
     <ClCompile Include="game.cpp" />
+    <ClCompile Include="shock.cpp" />
+    <ClCompile Include="meshCylinder.cpp" />
     <ClCompile Include="result.cpp" />
     <ClCompile Include="grass.cpp" />
     <ClCompile Include="grassland.cpp" />
@@ -254,6 +256,8 @@
     <ClInclude Include="directX.h" />
     <ClInclude Include="directXSubDrawer.h" />
     <ClInclude Include="game.h" />
+    <ClInclude Include="shock.h" />
+    <ClInclude Include="meshCylinder.h" />
     <ClInclude Include="result.h" />
     <ClInclude Include="lasso.h" />
     <ClInclude Include="lighingLevel.h" />

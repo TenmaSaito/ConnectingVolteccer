@@ -36,7 +36,7 @@
 #define PILLAR_PATH		"data/TEXTURE/gradation202.jpg"	// 光の柱のテクスチャパス
 #define DETACHED_HOUSE_ROOF_POS		(2)		// 一軒家の屋根のマテリアルインデックス
 #define MAKE_FUNCTION(func, ...)		[&](__VA_ARGS__){func}		// ラムダ式生成マクロ
-#define PILLAR_SIZE		Vector2(25.0f, 2000.0f)		// 光の柱の長さ
+#define PILLAR_SIZE		Vector2(25.0f, 1000.0f)		// 光の柱の長さ
 #define PILLAR_POS		Vector3(0.0f, PILLAR_SIZE.y * 0.5f, 0.0f)		// 光の柱の座標
 
 //**********************************************************************************
@@ -302,16 +302,15 @@ void CBuilding::Update(void)
 				pParticle->BindTexture(CTexture::GetInstance()->Register(PARTICLE_PATH));
 				m_bLighting = true;
 
-				// 光の柱のスケール上昇開始
-				m_pPillar->StartScaleUp();
-
 				CGame *pGame = nullptr;			// ゲームへのポインタ
 				CPlayer *pPlayer = nullptr;		// プレイヤーへのポインタ
 
 				if (CManager::GetInstance()->GetScene(&pGame))
-				{ // 今がゲームシーンなら、プレイヤーを取得し電気のついた家の数を増加
-					pPlayer = pGame->GetPlayer();
-					pPlayer->AddLightingHouse();
+				{ // 今がゲームシーンなら、電気のついた家の数を増加
+					pGame->AddLightingHouse();
+
+					// 光の柱のスケール上昇開始
+					m_pPillar->StartScaleUp();
 				}
 			}
 		}

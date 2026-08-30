@@ -13,6 +13,7 @@
 #include "renderer.h"
 #include "texture.h"
 #include "matrix.h"
+#include "vec3math.h"
 
 //==================================================================================
 // --- 生成処理 ---
@@ -46,9 +47,12 @@ CObjectBillboard3D::CObjectBillboard3D(const int nPriority) : CObject(nPriority)
 	m_pVtxBuff = nullptr;
 	m_nIdxTexture = INVALID_TEX_ID;
 	m_pos = VECTOR3_NULL;
+	m_rot = VECTOR3_NULL;
 	m_move = VECTOR3_NULL;
 	m_size = VECTOR2_NULL;
 	m_col = COLOR_NULL;
+	m_fLength = 0.0f;
+	m_fAngle = 0.0f;
 	m_pMtxParent = nullptr;
 	m_bDisp = true;
 	m_bAlpha = true;
@@ -101,24 +105,28 @@ HRESULT CObjectBillboard3D::Init(const Vector3 &pos,
 	m_nLife = nLife;
 	m_col = COLOR_ONE;
 
+	// 対角線の長さと角度を求める
+	m_fLength = sqrtf(powf(size.x, 2) + powf(size.y, 2)) * 0.5f;
+	m_fAngle = atan2f(size.x, size.y);
+
 	// 頂点バッファをロック
 	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
 
 	// 頂点座標設定
-	pVtx[0].pos.x = -m_size.x * 0.5f;
-	pVtx[0].pos.y = m_size.y * 0.5f;
+	pVtx[0].pos.x = sinf(-m_fAngle + m_rot.y) * m_fLength;
+	pVtx[0].pos.y = cosf(-m_fAngle + m_rot.y) * m_fLength;
 	pVtx[0].pos.z = 0.0f;
 
-	pVtx[1].pos.x = m_size.x * 0.5f;
-	pVtx[1].pos.y = m_size.y * 0.5f;
+	pVtx[1].pos.x = sinf(m_fAngle + m_rot.y) * m_fLength;
+	pVtx[1].pos.y = cosf(m_fAngle + m_rot.y) * m_fLength;
 	pVtx[1].pos.z = 0.0f;
 
-	pVtx[2].pos.x = -m_size.x * 0.5f;
-	pVtx[2].pos.y = -m_size.y * 0.5f;
+	pVtx[2].pos.x = sinf(D3DX_PI + m_fAngle + m_rot.y) * m_fLength;
+	pVtx[2].pos.y = cosf(D3DX_PI + m_fAngle + m_rot.y) * m_fLength;
 	pVtx[2].pos.z = 0.0f;
 
-	pVtx[3].pos.x = m_size.x * 0.5f;
-	pVtx[3].pos.y = -m_size.y * 0.5f;
+	pVtx[3].pos.x = sinf(D3DX_PI - m_fAngle + m_rot.y) * m_fLength;
+	pVtx[3].pos.y = cosf(D3DX_PI - m_fAngle + m_rot.y) * m_fLength;
 	pVtx[3].pos.z = 0.0f;
 
 	// 座標変換用変数設定
@@ -284,6 +292,40 @@ void CObjectBillboard3D::Draw(void)
 //==================================================================================
 // --- サイズの変更処理 ---
 //==================================================================================
+void CObjectBillboard3D::SetRotation(const Vector3 &rotation)
+{
+	VERTEX_3D *pVtx = nullptr;		// 頂点情報へのポインタ
+
+	// 引数を保存
+	m_rot = Vec3::FixedRotation(rotation);
+
+	// 頂点バッファをロック
+	m_pVtxBuff->Lock(0, 0, (void **)&pVtx, 0);
+
+	// 頂点座標設定
+	pVtx[0].pos.x = sinf(-m_fAngle + m_rot.y) * m_fLength;
+	pVtx[0].pos.y = cosf(-m_fAngle + m_rot.y) * m_fLength;
+	pVtx[0].pos.z = 0.0f;
+
+	pVtx[1].pos.x = sinf(m_fAngle + m_rot.y) * m_fLength;
+	pVtx[1].pos.y = cosf(m_fAngle + m_rot.y) * m_fLength;
+	pVtx[1].pos.z = 0.0f;
+
+	pVtx[2].pos.x = sinf(D3DX_PI + m_fAngle + m_rot.y) * m_fLength;
+	pVtx[2].pos.y = cosf(D3DX_PI + m_fAngle + m_rot.y) * m_fLength;
+	pVtx[2].pos.z = 0.0f;
+
+	pVtx[3].pos.x = sinf(D3DX_PI - m_fAngle + m_rot.y) * m_fLength;
+	pVtx[3].pos.y = cosf(D3DX_PI - m_fAngle + m_rot.y) * m_fLength;
+	pVtx[3].pos.z = 0.0f;
+
+	// 頂点バッファをアンロック
+	m_pVtxBuff->Unlock();
+}
+
+//==================================================================================
+// --- サイズの変更処理 ---
+//==================================================================================
 void CObjectBillboard3D::SetSize(const Vector2 &size)
 { // サイズの変更及び変更フラグを立てる
 	VERTEX_3D *pVtx = nullptr;		// 頂点情報へのポインタ
@@ -291,24 +333,28 @@ void CObjectBillboard3D::SetSize(const Vector2 &size)
 	// 引数を保存
 	m_size = size;
 
+	// 対角線の長さと角度を求める
+	m_fLength = sqrtf(powf(size.x, 2) + powf(size.y, 2)) * 0.5f;
+	m_fAngle = atan2f(size.x, size.y);
+
 	// 頂点バッファをロック
 	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
 
 	// 頂点座標設定
-	pVtx[0].pos.x = -m_size.x * 0.5f;
-	pVtx[0].pos.y = m_size.y * 0.5f;
+	pVtx[0].pos.x = sinf(-m_fAngle + m_rot.y) * m_fLength;
+	pVtx[0].pos.y = cosf(-m_fAngle + m_rot.y) * m_fLength;
 	pVtx[0].pos.z = 0.0f;
 
-	pVtx[1].pos.x = m_size.x * 0.5f;
-	pVtx[1].pos.y = m_size.y * 0.5f;
+	pVtx[1].pos.x = sinf(m_fAngle + m_rot.y) * m_fLength;
+	pVtx[1].pos.y = cosf(m_fAngle + m_rot.y) * m_fLength;
 	pVtx[1].pos.z = 0.0f;
 
-	pVtx[2].pos.x = -m_size.x * 0.5f;
-	pVtx[2].pos.y = -m_size.y * 0.5f;
+	pVtx[2].pos.x = sinf(D3DX_PI + m_fAngle + m_rot.y) * m_fLength;
+	pVtx[2].pos.y = cosf(D3DX_PI + m_fAngle + m_rot.y) * m_fLength;
 	pVtx[2].pos.z = 0.0f;
 
-	pVtx[3].pos.x = m_size.x * 0.5f;
-	pVtx[3].pos.y = -m_size.y * 0.5f;
+	pVtx[3].pos.x = sinf(D3DX_PI - m_fAngle + m_rot.y) * m_fLength;
+	pVtx[3].pos.y = cosf(D3DX_PI - m_fAngle + m_rot.y) * m_fLength;
 	pVtx[3].pos.z = 0.0f;
 
 	// 頂点バッファをアンロック

@@ -41,6 +41,10 @@ namespace Vec3
 	// ƒtƒ‰ƒOŠÇ—
 	using AxisFlags = std::array<bool, static_cast<std::size_t>(Axis::MAX)>;
 
+	// ’è”
+	inline static const Vector3 Zero = VECTOR3_NULL;	// VECTOR3_NULL
+	inline static const Vector3 One = VECTOR3_ONE;		// VECTOR3_ONE
+
 	//******************************************************************************
 	// *** ²—ñ‹“ (•¡”²—L‚è) ***
 	//******************************************************************************

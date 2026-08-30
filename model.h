@@ -16,6 +16,11 @@
 #include <string>
 
 //**********************************************************************************
+// *** マクロ定義 ***
+//**********************************************************************************
+#define INVALID_MAT		D3DMATERIAL9{0}
+
+//**********************************************************************************
 // *** モデルクラス ***
 //**********************************************************************************
 class CModel
@@ -46,6 +51,7 @@ public:
 	void SetRotationLocal(const Vector3& rotation) { m_rotLocal = rotation; }
 	const Vector3 *GetRotationLocal(void) const { return &m_rotLocal; }
 	const char *GetFileName(void) const { return m_sFileName.c_str(); }
+	void SetCustomMat(const D3DMATERIAL9 &customMat = INVALID_MAT) { m_customMat = customMat; }
 	CModel *CreateCopy(void) const;
 
 private:
@@ -60,5 +66,6 @@ private:
 	Vector3 m_rotLocal;		// オフセット角度
 	Matrix m_mtxWorld;		// ワールドマトリックス
 	CModel *m_pParent;		// 親モデルへのポインタ
+	D3DMATERIAL9 m_customMat;	// カスタムマテリアル
 };
 #endif

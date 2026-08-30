@@ -35,15 +35,15 @@ class CPlanet;
 class CElectricalCable : public CObject
 {
 public:
-	static CElectricalCable *Create(const CObjectXQuaternion *pStart,
-		const CObjectXQuaternion *pEnd,
+	static CElectricalCable *Create(CObjectXQuaternion *pStart,
+		CObjectXQuaternion *pEnd,
 		const CPlanet *pPlanet);
 
 	CElectricalCable();
 	~CElectricalCable();
 
-	HRESULT Init(const CObjectXQuaternion *pStart,
-		const CObjectXQuaternion *pEnd,
+	HRESULT Init(CObjectXQuaternion *pStart,
+		CObjectXQuaternion *pEnd,
 		const CPlanet *pPlanet);
 	void Uninit(void);
 	void Update(void);

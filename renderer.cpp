@@ -71,6 +71,31 @@ HRESULT CRenderer::Init(HWND hWnd, BOOL bWindow)
 		return E_FAIL;
 	}
 
+	D3DFORMAT AutoDepthStencilFormat = D3DFMT_D24S8;		// 深度バッファ及びステンシルバッファのビット数
+
+	// 深度24,ステンシル8bitで使用できるかチェック
+	if (FAILED(m_pD3D->CheckDeviceFormat(
+		D3DADAPTER_DEFAULT,
+		D3DDEVTYPE_HAL,
+		d3ddm.Format,
+		D3DUSAGE_DEPTHSTENCIL,
+		D3DRTYPE_SURFACE,
+		AutoDepthStencilFormat)))
+	{ // 深度24,ステンシル8bitを使えない場合
+		// 深度24bitのみに制限して再チェック
+		AutoDepthStencilFormat = D3DFMT_D24X8;
+		if (FAILED(m_pD3D->CheckDeviceFormat(
+			D3DADAPTER_DEFAULT,
+			D3DDEVTYPE_HAL,
+			d3ddm.Format,
+			D3DUSAGE_DEPTHSTENCIL,
+			D3DRTYPE_SURFACE,
+			AutoDepthStencilFormat)))
+		{ // 深度24bitを使えない場合
+			AutoDepthStencilFormat = D3DFMT_D16;		// 深度16bitのみに制限
+		}
+	}
+
 	// デバイスのプレゼンテーションパラメータの設定
 	ZeroMemory(&d3dpp, sizeof(d3dpp));			// パラメータのゼロクリア
 
@@ -80,7 +105,7 @@ HRESULT CRenderer::Init(HWND hWnd, BOOL bWindow)
 	d3dpp.BackBufferCount = 1;					// バックバッファの数
 	d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;	// ダブルバッファの切り替え(映像信号と同期)
 	d3dpp.EnableAutoDepthStencil = TRUE;		// デプスバッファとステンシルバッファを作成
-	d3dpp.AutoDepthStencilFormat = D3DFMT_D16;	// デプスバッファとして16bitを使う
+	d3dpp.AutoDepthStencilFormat = AutoDepthStencilFormat;	// デプスバッファとして使えるbitを使う
 	d3dpp.Windowed = bWindow;					// ウィンドウモード
 	d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;			// リフレッシュレート
 	d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;			// インターバル

@@ -236,6 +236,26 @@ Vector3 CObjectXQuaternion::GetWorldPosition(void)
 }
 
 //==================================================================================
+// --- クマトリックスの計算処理 ---
+//==================================================================================
+const Matrix *CObjectXQuaternion::CalcMatrix(void)
+{ // マトリックスを即時計算する
+	if (m_bCalcMatrix == false)
+	{ // 未だマトリックスを計算していなければ
+		Mtx::CalcWorld(&m_mtxWorld,
+			m_pMtxParent,
+			m_scale,
+			m_pos,
+			m_qua);
+
+		// 計算フラグを立てる
+		m_bCalcMatrix = true;
+	}
+
+	return &m_mtxWorld;
+}
+
+//==================================================================================
 // --- クォータニオンの計算処理 ---
 //==================================================================================
 void CObjectXQuaternion::CaluQuaternion(void)

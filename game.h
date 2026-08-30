@@ -38,6 +38,8 @@ public:
 	void Uninit(void) override;
 	void Update(void) override;
 	void Draw(void) override;
+	void AddLightingHouse(void) { m_nCurrentConnectLighting++; }
+	void ResetCurrentLightingHouseNum(void);
 	void SetEnablePause(const bool bEnable) { m_bPause = bEnable; }
 	bool GetEnableEdit(void) { return m_bEdit; }
 	constexpr CPlayer *GetPlayer(void) const { return m_pPlayer; }
@@ -63,6 +65,9 @@ private:
 	CConnectingEvaluate *m_pEvaluate;		// 接続時評価用クラスへのポインタ
 	bool m_bEdit;			// エディットモードフラグ
 	bool m_bPause;			// ポーズ状態
+	int m_nNumLightingHouse;			// 電線の接続で電気のついた家の総数
+	int m_nCurrentConnectLighting;		// 今回の電線の接続で電気のついた家の数
+	bool m_bCreateConnectEffect;		// 電気のついた家の数で表示が変わる演出を既に生成したか
 	int m_nCounterFrame;	// フレームカウント
 };
 #endif

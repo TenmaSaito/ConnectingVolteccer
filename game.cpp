@@ -26,6 +26,8 @@
 #include "directXSubDrawer.h"
 #include "sceneTransition.h"
 #include "thunderCamera.h"
+#include "meshCylinder.h"
+#include "filestream.h"
 #include <string>
 
 //**********************************************************************************
@@ -38,6 +40,7 @@
 #define EVALUATE_SCALE		Vector2(328.0f, 64.0f)				// 評価表示のサイズ
 #define PLAYER_MOTION_PATH	"data/SCRIPT/motion_nabeatsu.txt"	// プレイヤーのモーションパス
 #define THUNDER_CAM_LENGTH	(1000.0f)		// 電流とカメラの距離
+#define CURRENT_SCORE_PATH	"data/SCORE/current.bin"		// ゲームシーン終了時のスコアを書き出すファイルパス
 
 //==================================================================================
 // --- コンストラクタ ---
@@ -52,7 +55,10 @@ CGame::CGame()
 	m_pThunderCam = nullptr;
 	m_bEdit = false;
 	m_bPause = false;
+	m_bCreateConnectEffect = false;
 	m_nCounterFrame = 0;
+	m_nNumLightingHouse = 0;
+	m_nCurrentConnectLighting = 0;
 }
 
 //==================================================================================
@@ -123,13 +129,6 @@ void CGame::Update(void)
 	D3DXVec3TransformCoord(&posWorld, &posWorld, m_pPlayer->GetMatrix());
 	pProc->Print("[プレイヤーの絶対座標 : {:.2f} {:.2f} {:.2f}]\n", posWorld.x, posWorld.y, posWorld.z);
 
-	// モードの遷移
-	pProc->Print("<9/0で遷移 : ゲームオーバー画面 / ゲームクリア画面>\n");
-	if (pKeyboard->GetTrigger(DIK_9))
-	{
-		pManager->SetTransition(MODE_RESULT);
-	}
-
 	// マップのセーブ・ロード
 	if (pKeyboard->GetTrigger(DIK_I) && pKeyboard->GetPress(DIK_LSHIFT))
 	{
@@ -152,6 +151,15 @@ void CGame::Update(void)
 		CMap::GetInstance()->Save(filePath.c_str());
 	}
 
+	if (m_nCurrentConnectLighting > 0 && m_bCreateConnectEffect == false)
+	{ // 電気のついた家が1軒以上あり、未だその演出を出していないならば
+		// 評価演出を追加 + 演出フラグを立てる
+		m_pEvaluate->AddEvaluate(m_nCurrentConnectLighting);
+		m_bCreateConnectEffect = true;
+
+		m_nNumLightingHouse += m_nCurrentConnectLighting;		// 電気のついた家分総数増加
+	}
+
 	if (m_bEdit == true)
 	{ // エディットモードの場合
 		UpdateEdit();
@@ -161,7 +169,22 @@ void CGame::Update(void)
 	CCamera::UpdateAll();
 
 	if (m_pTimer->GetTimer() <= 0 && pManager->GetTransition()->GetState() == CSceneTransition::STATE_STAY)
-	{ // 0以下になった場合ゲームオーバー
+	{ // 0以下になった場合リザルトへ移行
+		std::unique_ptr pFile = std::make_unique<CFileStream>();		// ファイルストリームへのポインタ
+
+		// 今回の結果をファイルに書き出し
+		if (pFile->CreateFile(CURRENT_SCORE_PATH, true, CFileStream::FLAG_OVERWRITE))
+		{ // ファイル生成成功時
+			float fPercent = static_cast<float>(m_nNumLightingHouse)	// 電気のついた家の割合
+				/ static_cast<float>(CMap::GetInstance()->GetNumBuilding());
+
+			// 割合を書き出し
+			pFile->Write(fPercent);
+			
+			// ファイルを閉じる
+			pFile->CloseFile();
+		}
+
 		pManager->SetTransition(MODE_RESULT);
 	}
 
@@ -173,6 +196,15 @@ void CGame::Update(void)
 //==================================================================================
 void CGame::Draw(void)
 {
+}
+
+//==================================================================================
+// --- 評価演出用変数リセット処理 ---
+//==================================================================================
+void CGame::ResetCurrentLightingHouseNum(void)
+{ // 電気がついた家の数と演出生成の有無をリセット
+	m_nCurrentConnectLighting = 0;
+	m_bCreateConnectEffect = false;
 }
 
 //==================================================================================
@@ -220,8 +252,7 @@ void CGame::Start(void)
 // --- エディットモードの更新処理 ---
 //==================================================================================
 void CGame::UpdateEdit(void)
-{
-	// マップ関連
+{ // マップ関連
 	MapEdit();
 }
 

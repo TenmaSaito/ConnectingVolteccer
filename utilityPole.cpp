@@ -28,6 +28,7 @@
 #include "map.h"
 #include <algorithm>
 #include <ranges>
+#include <string_view>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -35,11 +36,23 @@
 #define POLE_PATH			"data/MODEL/utilityPole.x"		// 電柱のパス
 #define DEF_ICON_SIZE		Vector2(50.0f, 50.0f)			// アイコンサイズ
 #define SELECT_ICON_SIZE	(DEF_ICON_SIZE * 2.0f)			// 最も近いアイコンのサイズ
-#define ICON_CAN_PATH		"data/TEXTURE/LOGO_CAN.png"		// 可能アイコンへのパス
-#define ICON_CANT_PATH		"data/TEXTURE/LOGO_CANT.png"	// 不可能アイコンへのパス
 #define FOCUS_ANGLE			(D3DXToRadian(45.0f))			// フォーカス可能な角度
 #define CONNECT_HEIGHT		(150.0f)	// 繋げられる電柱との高さの差分の最大値
 #define CONNECT_HEIGHT_EX	(30.0f)		// 発電所の場合の追加差分
+#define AIMING_ROTATE_SPD	(0.02f)		// エイムアイコンの回転速度
+
+//**********************************************************************************
+// *** 定数宣言 ***
+//**********************************************************************************
+namespace
+{
+	std::string_view c_asIconPath[CUtilityPole::ICON_MAX] =
+	{ // 各アイコンのテクスチャパス
+		"data/TEXTURE/icon/can.png",		// 可能アイコン
+		"data/TEXTURE/icon/cant.png",		// 不可能アイコン
+		"data/TEXTURE/icon/aiming.png",		// ターゲットアイコン
+	};
+}
 
 //==================================================================================
 // --- オブジェクト3Dの生成処理 ---
@@ -105,15 +118,13 @@ HRESULT CUtilityPole::Init(const Vector3 &pos,
 	posIcon = Vector3(0.0f, GetVtxMax()->y, 0.0f);
 
 	// ビルボード生成
-	m_apBillboard[ICON_CAN] = CObjectBillboard3D::Create(posIcon, VECTOR3_NULL, DEF_ICON_SIZE);
-	m_apBillboard[ICON_CAN]->BindTexture(pTexture->Register(ICON_CAN_PATH));
-	m_apBillboard[ICON_CAN]->SetDisp(false);
-	m_apBillboard[ICON_CAN]->SetAlpha(true);
-
-	m_apBillboard[ICON_CANT] = CObjectBillboard3D::Create(posIcon, VECTOR3_NULL, DEF_ICON_SIZE);
-	m_apBillboard[ICON_CANT]->BindTexture(pTexture->Register(ICON_CANT_PATH));
-	m_apBillboard[ICON_CANT]->SetDisp(false);
-	m_apBillboard[ICON_CANT]->SetAlpha(true);
+	for (int nCntIcon = 0; nCntIcon < ICON_MAX; nCntIcon++)
+	{
+		m_apBillboard[nCntIcon] = CObjectBillboard3D::Create(posIcon, VECTOR3_NULL, DEF_ICON_SIZE);
+		m_apBillboard[nCntIcon]->BindTexture(pTexture->Register(c_asIconPath[nCntIcon]));
+		m_apBillboard[nCntIcon]->SetDisp(false);
+		m_apBillboard[nCntIcon]->SetAlpha(true);
+	}
 
 	// タイプを初期化
 	m_enableType = ICON_CAN;
@@ -181,9 +192,9 @@ void CUtilityPole::Update(void)
 		// 絶対座標同士で距離を測る
 		if (posPlayer.y - posPole.y <= CONNECT_HEIGHT + (CONNECT_HEIGHT_EX * (1 - nIndexVariant)))
 		{ // プレイヤーと電柱の距離が一定以下の場合
-			if (std::holds_alternative<CPowerPlant*>(*pObj))
+			if (std::holds_alternative<CPowerPlant *>(*pObj))
 			{ // プレイヤーの乗っているオブジェクトが発電所の場合
-				auto pPowerPlant = std::get<CPowerPlant*>(*pObj);		// 発電所のポインタを取得
+				auto pPowerPlant = std::get<CPowerPlant *>(*pObj);		// 発電所のポインタを取得
 				auto vpPole = pPowerPlant->GetConnectPole();			// 発電所とつながっている電柱のポインタ
 
 				// 電柱のポインタから自身を検索
@@ -200,7 +211,8 @@ void CUtilityPole::Update(void)
 			}
 			else
 			{ // プレイヤーの乗っているオブジェクトが電柱なら
-				if (m_pConnect == nullptr && pConnected == nullptr)
+				if (m_pConnect == nullptr
+					&& pConnected == nullptr)
 				{ // 自身が何処にもつながっていない場合
 					m_enableType = ICON_CAN;		// 可能アイコンに設定
 				}
@@ -215,6 +227,20 @@ void CUtilityPole::Update(void)
 			m_enableType = ICON_CANT;		// 不可能アイコンに設定
 		}
 	}
+	else
+	{ // プレイヤーが電柱に載っていない場合
+		m_enableType = ICON_CANT;
+	}
+
+	// 回転
+	float fRotate = m_apBillboard[ICON_AIMING]->GetRotation()->y;		// 現在のポリゴンの角度
+	float fScale = 1.25f + (sinf(fRotate) * 0.5f);		// 拡縮倍率
+
+	// 回転
+	m_apBillboard[ICON_AIMING]->SetRotation(Vector3(0.0f, fRotate + AIMING_ROTATE_SPD, 0.0f));
+
+	// サイズ拡縮
+	m_apBillboard[ICON_AIMING]->SetSize(SELECT_ICON_SIZE * fScale);
 }
 
 //==================================================================================
@@ -239,16 +265,20 @@ void CUtilityPole::Draw(void)
 	// ポインタを取得
 	std::visit([&](auto &x) { pRidingObject = x; }, *pObj);
 
+	for (auto &pBill : m_apBillboard)
+	{ // 全ビルボードを非表示に設定
+		pBill->SetDisp(false);
+	}
+
 	if (pRidingObject != nullptr)
 	{ // プレイヤーが電柱に乗っていれば
 		// 現在のアイコンタイプのビルボードのみ表示
 		m_apBillboard[m_enableType]->SetDisp(true);
-		m_apBillboard[(m_enableType + 1) % ICON_MAX]->SetDisp(false);
-	}
-	else
-	{ // 全ビルボードを非表示に設定
-		m_apBillboard[ICON_CAN]->SetDisp(false);
-		m_apBillboard[ICON_CANT]->SetDisp(false);
+
+		if (m_bSelected == true)
+		{ // 選択されていれば、エイムビルボードを表示
+			m_apBillboard[ICON_AIMING]->SetDisp(true);
+		}
 	}
 }
 

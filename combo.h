@@ -46,6 +46,7 @@ public:
 	void Finish(void);
 	void Withdrawal(void);
 	void ResetCombo(void);
+	void SetEnablePause(const bool bEnable) { m_bPause = bEnable; }
 	int GetCombo(void) const { return m_nCombo; }
 	bool GetDisp(void) const { return m_bDisp; }
 	bool GetContinuing(void) const { return m_bContinuing; }
@@ -67,5 +68,6 @@ private:
 	int m_nDispLife = 0;		// 描画する時間
 	bool m_bDisp = false;		// 描画状態
 	bool m_bContinuing = false;	// コンボが続いているか
+	bool m_bPause = false;		// コンボの制限時間更新を一時停止するか
 };
 #endif

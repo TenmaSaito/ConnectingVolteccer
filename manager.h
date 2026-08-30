@@ -94,7 +94,6 @@ private:
 	HWND m_hWnd;			// ウィンドウハンドル
 	int m_nCountFPS;		// FPSカウント
 	int m_nCounterFrame;	// フレームカウンター
-	int m_nNumPole;			// ポールの数
 	bool m_bPause;			// ポーズ状態
 };
 

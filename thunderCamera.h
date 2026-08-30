@@ -39,5 +39,6 @@ public:
 private:
 	const CElectricCurrent *m_pTarget;		// 現在ターゲットしている電流
 	float m_fLength;		// カメラと電流の距離
+	D3DLIGHT9 m_light;		// 電流カメラ用ライト
 };
 #endif

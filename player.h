@@ -33,7 +33,7 @@ class CThunderEffect;
 class CObjectXQuaternion;
 class CUtilityPole;
 class CPowerPlant;
-class CObjectLine;
+class CShock;
 
 //**********************************************************************************
 // *** プレイヤークラス ***
@@ -81,10 +81,9 @@ public:
 	const Matrix *GetMatrix(void) const { return &m_mtxWorld; }
 	const std::variant<CPowerPlant*, CUtilityPole*> *GetRidingObject(void) const { return &m_pRidingObject; }
 	CPowerPlant *GetStartPlant(void) const { return m_pStartPlant; }
-	int GetNumLightingHouse(void) const { return m_nNumLightingHouse; }
 	bool IsShotLasso(void) const { return m_bShotLasso; }
+	bool IsShocked(void) const { return m_bShocked; }
 	void ChangeRidingPole(CUtilityPole *pNext);
-	void AddLightingHouse(void) { m_nCurrentConnectLighting++; }
 	void FailedShot(void);
 
 private:
@@ -108,6 +107,7 @@ private:
 	Vector3 m_rot;		// 角度
 	Vector3 m_rotDest;	// 目標角度
 	Matrix m_mtxWorld;	// ワールドマトリックス
+	CShock *m_pShock;			// 感電エフェクトへのポインタ
 	CThunderEffect *m_pThunderEffect;	// 雷エフェクトへのポインタ
 	std::variant<CPowerPlant*, CUtilityPole*> m_pRidingObject;		// 乗っているオブジェクト (発電所 or 電柱)
 	CPowerPlant *m_pStartPlant;		// 初めに乗った発電所へのポインタ
@@ -119,8 +119,6 @@ private:
 	bool m_bShotLasso;		// 投げ縄を投げたか
 	Vector3 m_vecQua;		// 回転の任意軸
 	float m_fAngleRest;		// 次の電柱への残りの角度
-	int m_nNumLightingHouse;			// 電線の接続で電気のついた家の総数
-	int m_nCurrentConnectLighting;		// 今回の電線の接続で電気のついた家の数
-	bool m_bCreateConnectEffect;		// 電気のついた家の数で表示が変わる演出を既に生成したか
+	bool m_bShocked;		// 感電したか
 };
 #endif

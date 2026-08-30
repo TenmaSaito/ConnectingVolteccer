@@ -35,6 +35,8 @@
 #include "vec2math.h"
 #include "vec3math.h"
 #include "connectingEvaluate.h"
+#include "shock.h"
+#include "color.h"
 #include <algorithm>
 
 //**********************************************************************************
@@ -78,13 +80,12 @@ CPlayer::CPlayer(const int nPriority) : CObject(nPriority)
 	m_rotDest = VECTOR3_NULL;
 	m_vecQua = VECTOR3_NULL;
 	m_pMotion = nullptr;
+	m_pShock = nullptr;
 	m_pThunderEffect = nullptr;
 	m_pPoleNext = nullptr;
 	m_bShotLasso = false;
+	m_bShocked = false;
 	m_fAngleRest = 0.0f;
-	m_nNumLightingHouse = 0;
-	m_nCurrentConnectLighting = 0;
-	m_bCreateConnectEffect = false;
 
 	// タイプ設定
 	SetType(TYPE_PLAYER);
@@ -105,6 +106,9 @@ HRESULT CPlayer::Init(const char *pFileName, const Vector3 &pos, const Vector3 &
 	m_pos = pos;
 	m_offset = pos;
 	m_rot = rot;
+
+	// 感電エフェクト用インスタンスを生成
+	m_pShock = CShock::Create(&m_mtxWorld, Vector3(0.0f, 25.0f, 0.0f));
 
 	// モーションを生成
 	CMotionLoader *pMotionLoader = CMotionLoader::GetInstance();
@@ -215,6 +219,17 @@ void CPlayer::Draw(void)
 
 	for (auto &model : m_vpModel)
 	{ // 各モデルの描画
+		if (m_bShocked)
+		{ // 感電中は黒色に指定
+			D3DMATERIAL9 matBlack = {};
+			matBlack.Diffuse = Colors::GetColor(Colors::C_BLACK);
+			model->SetCustomMat(matBlack);
+		}
+		else
+		{ // デフォルトマテリアルを指定
+			model->SetCustomMat();
+		}
+
 		model->Draw();
 	}
 }
@@ -223,28 +238,16 @@ void CPlayer::Draw(void)
 // --- 投げ縄による接続の失敗時処理 ---
 //==================================================================================
 void CPlayer::FailedShot(void)
-{
-	CManager *pManager = CManager::GetInstance();					// マネージャーへのポインタ
-	CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera*>(CCamera::GetCamera(CCamera::TYPE_PLAYER));		// プレイヤーカメラへのポインタ
+{ // 感電
+	m_pShock->Set();
+	m_bShocked = true;
+
+	// コンボの時間を一時停止
+	CCombo *pCombo = CManager::GetInstance()->GetScene<CGame>()->GetCombo();		// コンボ表示へのポインタ
+	pCombo->SetEnablePause(true);
 
 	// 投げ縄フラグを下ろす
 	m_bShotLasso = false;
-
-	// オフセットを元に戻す
-	m_pos.y = m_offset.y;
-
-	// コンボリセット
-	CCombo *pCombo(pManager->GetScene<CGame>()->GetCombo());		// コンボ表示へのポインタ
-	pCombo->Withdrawal();
-
-	// 電柱から降りる処理を実行
-	DismountPole();
-
-	// カメラをプレイヤーフォーカスに変更
-	pPlayerCam->SetState(CPlayerCamera::STATE_PLAYER);
-
-	// モーションを終了
-	m_pMotion->Set(MOTIONTYPE_NEUTRAL, 10);
 }
 
 //==================================================================================
@@ -299,17 +302,15 @@ void CPlayer::ChangeRidingPole(CUtilityPole *pNext)
 	// コンボ追加
 	CCombo *pCombo = pGame->GetCombo();		// コンボ表示へのポインタ
 	pCombo->AddCombo(1);
-
-	// 電気がついた家の数と演出生成の有無をリセット
-	m_nCurrentConnectLighting = 0;
-	m_bCreateConnectEffect = false;
 }
 
 //==================================================================================
 // --- Input時関連処理 ---
 //==================================================================================
 void CPlayer::InputAction(void)
-{
+{ // プレイヤーフォーカスのカメラではない場合、スキップ
+	if (CCamera::GetFocus() != CCamera::TYPE_PLAYER) return;
+
 	// 移動関連の入力
 	InputMoving();
 
@@ -624,11 +625,12 @@ void CPlayer::InputPole(void)
 			
 			// 投げ縄生成
 			CLasso *pLasso = std::visit([&](auto &x)
-				{ 
-					CMap::GetInstance()->AddID(x->GetID());
-					return CLasso::Create(pos, x, pPoleSelected);
+				{ // マップにどのインデックスのオブジェクトに繋げたのかを追加
+					CMap::GetInstance()->AddID(x->GetID());	 
+
+					// 生成した投げ縄へのポインタを返す
+					return CLasso::Create(pos, x, pPoleSelected);	
 				}, m_pRidingObject);
-			pLasso->SetParent(pPlanet->GetMatrix());
 
 			// カメラの角度に合わせて、モデルの目標角度を求める！
 			m_rotDest.y = (pPlayerCam->GetRotate()->y + D3DX_PI);
@@ -694,18 +696,30 @@ void CPlayer::UpdateRotateDest(void)
 //==================================================================================
 void CPlayer::UpdatePole(void)
 {
-	if (m_nCurrentConnectLighting > 0 && m_bCreateConnectEffect == false)
-	{ // 電気のついた家が1軒以上あり、未だその演出を出していないならば
-		// 評価表示
-		CManager *pManager = CManager::GetInstance();	// マネージャへのポインタ
-		CGame *pGame = pManager->GetScene(&pGame);		// ゲームシーンへのポインタ
-		CConnectingEvaluate *pEvaluate = pGame->GetConnectingEvaluate();		// 接続時評価用クラスへのポインタ
+	if (m_pShock->IsLightning() != true
+		&& m_bShocked == true
+		&& GetRidingObjectX() != nullptr)
+	{
+		CManager *pManager = CManager::GetInstance();					// マネージャーへのポインタ
+		CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera *>(CCamera::GetCamera(CCamera::TYPE_PLAYER));		// プレイヤーカメラへのポインタ
 
-		// 評価演出を追加 + 演出フラグを立てる
-		pEvaluate->AddEvaluate(m_nCurrentConnectLighting);
-		m_bCreateConnectEffect = true;
+		// オフセットを元に戻す
+		m_pos.y = m_offset.y;
 
-		m_nNumLightingHouse += m_nCurrentConnectLighting;		// 電気のついた家分総数増加
+		// コンボリセット
+		CCombo *pCombo(pManager->GetScene<CGame>()->GetCombo());		// コンボ表示へのポインタ
+		pCombo->SetEnablePause(false);
+		pCombo->Withdrawal();
+
+		// 電柱から降りる処理を実行
+		DismountPole();
+
+		// カメラをプレイヤーフォーカスに変更
+		pPlayerCam->SetState(CPlayerCamera::STATE_PLAYER);
+
+		// モーションを終了
+		m_pMotion->Set(MOTIONTYPE_NEUTRAL, 10);
+		m_bShocked = false;
 	}
 
 	// 電柱間の移動処理

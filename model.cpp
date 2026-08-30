@@ -171,8 +171,15 @@ void CModel::Draw(void)
 	// 各マテリアルを描画
 	for (int nCntMat = 0; nCntMat < static_cast<int>(m_dwNumMat); nCntMat++)
 	{
+		D3DMATERIAL9 matD3D = pMat[nCntMat].MatD3D;		// マテリアル
+		constexpr D3DMATERIAL9 matInvalid = INVALID_MAT;			// カスタムマテリアル無効値
+		if (memcmp(&m_customMat, &matInvalid, sizeof(D3DMATERIAL9)) != 0)
+		{ // 無効値でなければ、マテリアルを指定
+			matD3D = m_customMat;
+		}
+
 		// マテリアルの設定
-		pDevice->SetMaterial(&pMat[nCntMat].MatD3D);
+		pDevice->SetMaterial(&matD3D);
 
 		// テクスチャの設定
 		pDevice->SetTexture(0, pTexture->GetAddress(m_vIdx.at(nCntMat)));

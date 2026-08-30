@@ -59,5 +59,6 @@ private:
 	float m_fTime;		// 線形補間用変数
 	float m_fTotalTime;	// 線形補間完了にかかる時間
 	bool m_bGenerate;	// 次の電流を流し終えたか
+	bool m_bCreateConnectEffect;		// 電気のついた家の数で表示が変わる演出を既に生成したか
 };
 #endif

@@ -39,6 +39,7 @@ public:
 	{
 		ICON_CAN = 0,	// 可能アイコン
 		ICON_CANT,		// 不可能アイコン
+		ICON_AIMING,	// ターゲットアイコン
 		ICON_MAX
 	} ICON;
 
