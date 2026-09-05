@@ -11,7 +11,10 @@
 #include "player.h"
 #include "manager.h"
 #include "renderer.h"
+#include "sound.h"
 #include "game.h"
+#include "tutorial.h"
+#include "tutorialManager.h"
 #include "input.h"
 #include "joypad.h"
 #include "playerCamera.h"
@@ -26,7 +29,7 @@
 #include "powerPlant.h"
 #include "building.h"
 #include "planet.h"
-#include "map.h"
+#include "mapManager.h"
 #include "effect.h"
 #include "ray.h"
 #include "util.h"
@@ -46,7 +49,7 @@
 #define PLAYER_ROTSPD		(0.1f)		// モデルの回転スピード
 #define RESIST_POW			(0.25f)		// 摩擦
 #define RIDE_LENGTH			(120.0f)	// 電柱に乗れる距離
-#define POLE_MOVE_SPEED		(0.01f)		// 電柱を乗り移る際の角度
+#define POLE_MOVE_SPEED		(0.0175f)	// 電柱を乗り移る際の角度
 #define PLAYERCAM_DEFROT	Vector3(0.0f, 0.0f, -0.4f)		// デフォルトのカメラ角度
 #define PLAYERCAM_RIDINGROT	Vector3(0.0f, 0.0f, -1.16f)		// 電柱に乗っているときのカメラ角度
 #define PLAYERCAM_LEN			(1000.0f)		// プレイヤーのカメラの距離
@@ -74,17 +77,20 @@ CPlayer *CPlayer::Create(const char *pXFileName, const Vector3 &pos, const Vecto
 CPlayer::CPlayer(const int nPriority) : CObject(nPriority)
 { // メンバ変数をクリア
 	m_pos = VECTOR3_NULL;
+	m_posOld = VECTOR3_NULL;
 	m_offset = VECTOR3_NULL;
 	m_move = VECTOR3_NULL;
 	m_rot = VECTOR3_NULL;
 	m_rotDest = VECTOR3_NULL;
 	m_vecQua = VECTOR3_NULL;
+	m_pCombo = nullptr;
 	m_pMotion = nullptr;
 	m_pShock = nullptr;
 	m_pThunderEffect = nullptr;
 	m_pPoleNext = nullptr;
 	m_bShotLasso = false;
 	m_bShocked = false;
+	m_bDismountPowerPlant = false;
 	m_fAngleRest = 0.0f;
 
 	// タイプ設定
@@ -176,6 +182,8 @@ void CPlayer::Update(void)
 	CManager *pManager = CManager::GetInstance();		// マネージャーへのポインタ
 	auto pProc = pManager->GetDebugProc();				// デバッグ表示へのポインタ
 
+	m_posOld = m_pos;		// 座標を保存
+
 	// 入力関連処理
 	InputAction();
 
@@ -243,10 +251,17 @@ void CPlayer::FailedShot(void)
 	m_bShocked = true;
 
 	// コンボの時間を一時停止
-	CCombo *pCombo = CManager::GetInstance()->GetScene<CGame>()->GetCombo();		// コンボ表示へのポインタ
-	pCombo->SetEnablePause(true);
+	if(m_pCombo != nullptr) m_pCombo->SetEnablePause(true);
 
 	// 投げ縄フラグを下ろす
+	m_bShotLasso = false;
+}
+
+//==================================================================================
+// --- 投げた投げ縄が途中で死んだ場合の処理 ---
+//==================================================================================
+void CPlayer::CutoutComboThrowing(void)
+{ // 投げ縄フラグを下ろす
 	m_bShotLasso = false;
 }
 
@@ -255,8 +270,8 @@ void CPlayer::FailedShot(void)
 //==================================================================================
 void CPlayer::ChangeRidingPole(CUtilityPole *pNext)
 { 
-	CGame *pGame = CManager::GetInstance()->GetScene(&pGame);		// シーンの取得
-	CPlanet *pPlanet = pGame->GetPlanet();			// 惑星の取得
+	CMapManager *pMap = CMapManager::GetInstance();	// マップへのポインタ
+	CPlanet *pPlanet = pMap->GetPlanet();			// 惑星の取得
 
 	// 惑星から各電柱の座標を求め、内積を求める
 	// 内積の角度分、次の電柱への角度へ回転させる
@@ -300,8 +315,10 @@ void CPlayer::ChangeRidingPole(CUtilityPole *pNext)
 	m_pPoleNext = pNext;			// 次の電柱を保存
 
 	// コンボ追加
-	CCombo *pCombo = pGame->GetCombo();		// コンボ表示へのポインタ
-	pCombo->AddCombo(1);
+	if (m_pCombo != nullptr) m_pCombo->AddCombo(1);
+
+	// スライドモーションへの移行
+	m_pMotion->Set(MOTIONTYPE_SLIDING, 5);
 }
 
 //==================================================================================
@@ -310,6 +327,27 @@ void CPlayer::ChangeRidingPole(CUtilityPole *pNext)
 void CPlayer::InputAction(void)
 { // プレイヤーフォーカスのカメラではない場合、スキップ
 	if (CCamera::GetFocus() != CCamera::TYPE_PLAYER) return;
+
+	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
+	if (pManager->GetMode() == CScene::MODE_TUTORIAL)
+	{ // 今のモードがチュートリアルなら
+		CTutorialManager *pTutorialManager = pManager->GetScene<CTutorial>()->GetTutorialManager();		// チュートリアルマネージャへのポインタ
+		bool bInputFocus = pTutorialManager->GetFocus();		// 現在のフォーカス状態
+
+		if (bInputFocus == true)
+		{ // もし今チュートリアルが入力をフォーカスしているなら、基本入力処理をスキップ
+			CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();		// キーボードへのポインタ
+			CJoypad *pJoypad = pManager->GetJoypad();		// ジョイパッドへのポインタ
+
+			if (pKeyboard->GetTrigger(DIK_RETURN)
+				|| pJoypad->GetTrigger(CJoypad::KEY_A))
+			{ // AもしくはEnterでフェーズを進める
+				pTutorialManager->SetNextPhase();
+			}
+
+			return;
+		}
+	}
 
 	// 移動関連の入力
 	InputMoving();
@@ -327,6 +365,7 @@ void CPlayer::InputMoving(void)
 	CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();		// キーボードへのポインタ
 	CJoypad *pJoypad = pManager->GetJoypad();						// ジョイパッドへのポインタ
 	CCamera *pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);	// プレイヤーカメラへのポインタ
+	CSound *pSound = pManager->GetSound();						// サウンドへのポインタ
 	const Vector3 *pCameraRot = pPlayerCam->GetRotate();		// カメラの角度
 	Vector3 move = m_move;						// 代入予定の移動量
 	Vector3 stick = VECTOR3_NULL;				// ジョイパッドのスティック入力
@@ -465,7 +504,7 @@ void CPlayer::InputMoving(void)
 		}
 	}
 	else
-	{
+	{ // 何も押されていない場合
 		if (m_pMotion->GetType() == MOTIONTYPE_MOVE
 			&& m_pMotion->GetBlendType() != MOTIONTYPE_NEUTRAL)
 		{ // 移動モーション
@@ -486,6 +525,9 @@ void CPlayer::InputMoving(void)
 				&& m_pMotion->GetBlendType() != MOTIONTYPE_NEUTRAL)
 			{ // モーション遷移
 				m_pMotion->Set(type, nFrameBleand);
+
+				// 歩行音を停止
+				pSound->Stop(CSound::LABEL_SE_WALK);
 			}
 		}
 		else
@@ -494,8 +536,19 @@ void CPlayer::InputMoving(void)
 				&& m_pMotion->GetBlendType() != MOTIONTYPE_MOVE)
 			{ // モーション遷移
 				m_pMotion->Set(type, nFrameBleand);
+
+				// 歩行音を再生
+				pSound->Play(CSound::LABEL_SE_WALK);
 			}
 		}
+	}
+	else if(m_pMotion->GetType() != MOTIONTYPE_RIDING
+		&& m_pMotion->GetBlendType() != MOTIONTYPE_RIDING)
+	{ // 電柱に乗っている間の待機モーション
+		m_pMotion->Set(MOTIONTYPE_RIDING, 10);
+
+		// 歩行音を停止
+		pSound->Stop(CSound::LABEL_SE_WALK);
 	}
 }
 
@@ -508,76 +561,56 @@ void CPlayer::InputPole(void)
 	CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();		// キーボードへのポインタ
 	CJoypad *pJoypad = pManager->GetJoypad();						// ジョイパッドへのポインタ
 	CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera*>(CCamera::GetCamera(CCamera::TYPE_PLAYER));
+	CTutorial *pTutorial = pManager->GetScene<CTutorial>();		// チュートリアルシーンへのポインタ
+	CSound *pSound = pManager->GetSound();						// サウンドへのポインタ
 
 	// プレイヤーの行動
 	if ((pKeyboard->GetTrigger(DIK_SPACE) || pJoypad->GetTrigger(CJoypad::KEY_A)) && !m_bShotLasso)
 	{ // 押された場合
-		if (GetRidingObjectX() == nullptr)
-		{ // 電柱に載っていない場合
-			CObject *pObject = CObject::GetTop(POWERPLANT_PRIORITY);		// 最初のオブジェクト
-			float fLengthMin = RIDE_LENGTH;			// 現状最も近い発電所との距離
-			CPowerPlant *pPlantNear = nullptr;		// 最も近い発電所へのポインタ
-
-			while (pObject != nullptr)
-			{ // オブジェクトを走査
-				CObject *pObjectNext = pObject->GetNext();			// 次のオブジェクトへのポインタ
-
-				if (pObject->GetType() == CObject::TYPE_POWERPLANT)
-				{ // もしオブジェクトが電柱であれば、ポインタをキャスト
-					CPowerPlant *pPlant = static_cast<CPowerPlant*>(pObject);
-
-					Vector3 posPole;			// マトリックスのキャスト用
-					Vector3 pos = m_pos;		// マトリックスのキャスト用
-
-					// 各座標をマトリックスでワールド座標に変換
-					D3DXVec3TransformCoord(&pos, &pos, &m_mtxWorld);
-					D3DXVec3TransformCoord(&posPole, pPlant->GetPosition(), pPlant->GetMatrix());
-
-					// 距離を計算
-					float fLength = Vec3::Length(posPole, pos);
-					if (fLength < fLengthMin)
-					{ // もし前回の距離よりも近いなら、ポインタ保存 + 距離更新
-						fLengthMin = fLength;
-						pPlantNear = pPlant;
-					}
-				}
-
-				pObject = pObjectNext;		// ポインタ更新
-			}
-
-			if (pPlantNear != nullptr)
-			{ // もし乗れる発電所が存在した場合
-				// ポインタを保存
-				m_pRidingObject = pPlantNear;
-				m_pStartPlant = pPlantNear;
-
-				// オフセットを電柱に設定し、マトリックスを設定
-				m_pos.y = pPlantNear->GetVtxMax()->y;
-
-				// カメラを電柱上フォーカスに変更
-				pPlayerCam->SetState(CPlayerCamera::STATE_RIDING);
-			}
-
-			// モーションを終了
-			m_pMotion->Set(MOTIONTYPE_NEUTRAL, 10);
-		}
-		else
+		if (GetRidingObjectX() != nullptr)
 		{ // 既に乗っている場合
-			// オフセットを元に戻す
-			m_pos.y = m_offset.y;
+			m_pos.y = m_offset.y;		// オフセットを元に戻す
 
 			// 電柱から降りる処理を実行
 			DismountPole();
 
-			// コンボリセット
-			CCombo *pCombo(pManager->GetScene<CGame>()->GetCombo());		// コンボ表示へのポインタ
-			pCombo->Finish();
+			if (m_pCombo != nullptr)
+			{ // コンボ表示へのポインタがnullではない場合
+				// コンボが1以上なら電流を流し始める
+				if (m_pCombo->GetCombo() > 0) m_pStartPlant->InvokeElectric();
+
+				// コンボリセット
+				m_pCombo->Finish();
+
+				// 通電音を流す
+				pSound->Play(CSound::LABEL_SE_ELECTRIC);
+			}
+			else
+			{ // コンボ表示へのポインタがnullなら無条件で電流を流す
+				m_pStartPlant->InvokeElectric();
+
+				// 通電音を流す
+				pSound->Play(CSound::LABEL_SE_ELECTRIC);
+			}
 
 			// カメラをプレイヤーフォーカスに変更
 			pPlayerCam->SetState(CPlayerCamera::STATE_PLAYER);
 
 			// モーションを終了
 			m_pMotion->Set(MOTIONTYPE_NEUTRAL, 10);
+
+			if (pTutorial != nullptr)
+			{ // もし今がチュートリアルシーンなら
+				CTutorialManager *pTutorialManager = pTutorial->GetTutorialManager();		// チュートリアルマネージャへのポインタ
+
+				if (pTutorialManager->GetPhase() == CTutorialManager::PHASE_INVOKE_ELECTRIC)
+				{ // チュートリアルのフェーズが電流を流すことなら、次に進める
+					pTutorialManager->SetNextPhase();
+				}
+			}
+
+			// 乗っていたのが発電所なら発電所から降りたフラグを立てる
+			if (std::holds_alternative<CPowerPlant*>(m_pRidingObject)) m_bDismountPowerPlant = true;
 		}
 	}
 
@@ -586,37 +619,30 @@ void CPlayer::InputPole(void)
 		&& GetRidingObjectX() != nullptr
 		&& m_bShotLasso == false)
 	{ // 投げ縄を飛ばす
-		CObject *pObject = CObject::GetTop(UTILITYPOLE_PRIORITY);		// 最初のオブジェクト
+		CMapManager *pMap = CMapManager::GetInstance();	// マップへのポインタ
+		CPlanet *pPlanet = pMap->GetPlanet();			// 惑星の取得
+		auto vpPole = pMap->GetUtilityPole();			// マップに存在する電柱へのポインタ
 		CUtilityPole *pPoleSelected = nullptr;		// 最も近い電柱へのポインタ
 
-		while (pObject != nullptr)
-		{ // オブジェクトを走査
-			CObject *pObjectNext = pObject->GetNext();			// 次のオブジェクトへのポインタ
+		// 電柱の個数分だけ繰り返し
+		for (auto &pPole : vpPole)
+		{ // nullの場合スキップ
+			if (pPole == nullptr) continue;
 
-			if (pObject->GetType() == CObject::TYPE_POLE)
-			{ // もしオブジェクトが電柱であれば、ポインタをキャスト
-				CUtilityPole *pPole = static_cast<CUtilityPole*>(pObject);
-
-				if (pPole->IsSelected() == true)
-				{ // もし前回の距離よりも近い場合
-					if (m_pRidingObject.index() == 0)
-					{ // 発電所に載っている場合、ポインタを保存
-						pPoleSelected = pPole;
-					}
-					else if(m_pRidingObject.index() == 1)
-					{ // 電柱に載っている場合、自身の乗っている電柱でなければポインタを保存
-						if(std::get<CUtilityPole*>(m_pRidingObject) != pPole) pPoleSelected = pPole;
-					}
-
-					break;
+			if (pPole->IsSelected() == true)
+			{ // もし選ばれている場合
+				if (m_pRidingObject.index() == 0)
+				{ // 発電所に載っている場合、ポインタを保存
+					pPoleSelected = pPole;
 				}
+				else if (m_pRidingObject.index() == 1)
+				{ // 電柱に載っている場合、自身の乗っている電柱でなければポインタを保存
+					if (std::get<CUtilityPole*>(m_pRidingObject) != pPole) pPoleSelected = pPole;
+				}
+
+				break;
 			}
-
-			pObject = pObjectNext;		// ポインタ更新
 		}
-
-		CGame *pGame = pManager->GetScene(&pGame);		// ゲームシーンへのポインタ
-		auto pPlanet = pGame->GetPlanet();				// 惑星へのポインタ
 
 		// 選ばれた電柱が存在すれば
 		if (pPoleSelected)
@@ -626,17 +652,39 @@ void CPlayer::InputPole(void)
 			// 投げ縄生成
 			CLasso *pLasso = std::visit([&](auto &x)
 				{ // マップにどのインデックスのオブジェクトに繋げたのかを追加
-					CMap::GetInstance()->AddID(x->GetID());	 
+					pMap->AddID(x->GetID());
 
 					// 生成した投げ縄へのポインタを返す
 					return CLasso::Create(pos, x, pPoleSelected);	
 				}, m_pRidingObject);
+
+			// ポインタを紐付け
+			pLasso->BindPlayer(this);
+			pLasso->BindCombo(m_pCombo);
 
 			// カメラの角度に合わせて、モデルの目標角度を求める！
 			m_rotDest.y = (pPlayerCam->GetRotate()->y + D3DX_PI);
 
 			// 投げ縄を投げた為フラグを立てる
 			m_bShotLasso = true;
+
+			// 投擲モーションを設定
+			m_pMotion->Set(MOTIONTYPE_THROW);
+
+			// 投擲音を流す
+			pSound->Play(CSound::LABEL_SE_SWING);
+
+			if (pTutorial != nullptr)
+			{ // もし今がチュートリアルシーンなら
+				CTutorialManager *pTutorialManager = pTutorial->GetTutorialManager();		// チュートリアルマネージャへのポインタ
+				CTutorialManager::PHASE phase = pTutorialManager->GetPhase();		// チュートリアルのフェーズ
+
+				if (phase == CTutorialManager::PHASE_CONNECT
+					|| phase == CTutorialManager::PHASE_CONNECT_2)
+				{ // チュートリアルのフェーズが電線を繋ぐことなら、次に進める
+					pTutorialManager->SetNextPhase();
+				}
+			}
 		}
 	}
 }
@@ -648,11 +696,10 @@ void CPlayer::UpdatePotision(void)
 { // 移動量の更新
 	m_move += (VECTOR3_NULL - m_move) * RESIST_POW;
 
-	CGame *pGame = CManager::GetInstance()->GetScene(&pGame);		// ゲームシーンへのポインタ
-	if (pGame != nullptr)
+	CMapManager *pMap = CMapManager::GetInstance();	// マップへのポインタ
+	CPlanet *pPlanet = pMap->GetPlanet();			// 惑星の取得
+	if (pPlanet != nullptr)
 	{ // nullでなければ
-		CPlanet *pPlanet = pGame->GetPlanet();		// 惑星へのポインタ
-
 		// 惑星に移動量を設定
 		pPlanet->Move(m_rotDest, Vec3::Length(m_move));
 	}
@@ -699,7 +746,7 @@ void CPlayer::UpdatePole(void)
 	if (m_pShock->IsLightning() != true
 		&& m_bShocked == true
 		&& GetRidingObjectX() != nullptr)
-	{
+	{ // 感電後、電線を消していなければ
 		CManager *pManager = CManager::GetInstance();					// マネージャーへのポインタ
 		CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera *>(CCamera::GetCamera(CCamera::TYPE_PLAYER));		// プレイヤーカメラへのポインタ
 
@@ -707,9 +754,15 @@ void CPlayer::UpdatePole(void)
 		m_pos.y = m_offset.y;
 
 		// コンボリセット
-		CCombo *pCombo(pManager->GetScene<CGame>()->GetCombo());		// コンボ表示へのポインタ
-		pCombo->SetEnablePause(false);
-		pCombo->Withdrawal();
+		m_pCombo->SetEnablePause(false);
+		m_pCombo->Withdrawal();
+
+		// 電柱へのポインタへキャスト
+		auto pPole = std::get_if<CUtilityPole*>(&m_pRidingObject);
+		if (pPole)
+		{ // 取得成功時、電線の破棄処理を呼び出し
+			(*pPole)->RemoveConnected();
+		}
 
 		// 電柱から降りる処理を実行
 		DismountPole();
@@ -730,6 +783,74 @@ void CPlayer::UpdatePole(void)
 
 	// 視点の中央に最も近い電柱の検索
 	FindNearestPole();
+
+	CManager *pManager = CManager::GetInstance();					// マネージャーへのポインタ
+	CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera *>(CCamera::GetCamera(CCamera::TYPE_PLAYER));
+	CTutorial *pTutorial = pManager->GetScene<CTutorial>();		// チュートリアルシーンへのポインタ
+
+	if (GetRidingObjectX() == nullptr && m_bShotLasso == false)
+	{ // 電柱に載っていない場合
+		CMapManager *pMap = CMapManager::GetInstance();	// マップへのポインタ
+		auto vpPlant = pMap->GetPowerPlant();		// マップに存在する発電所へのポインタ
+		CPowerPlant *pPlantNear = nullptr;		// 最も近い発電所へのポインタ
+
+		CObject *pObject = CObject::GetTop(POWERPLANT_PRIORITY);		// 最初のオブジェクト
+		float fLengthMin = RIDE_LENGTH;			// 現状最も近い発電所との距離
+
+		// 発電所の個数分だけ繰り返し
+		for (auto &pPlant : vpPlant)
+		{ // nullの場合スキップ
+			if (pPlant == nullptr) continue;
+
+			Vector3 posPole = VECTOR3_NULL;		// マトリックスのキャスト用
+			Vector3 pos = m_offset;			// マトリックスのキャスト用
+
+			// 各座標をマトリックスでワールド座標に変換
+			//if(pos.y != m_offset.y) D3DXVec3TransformCoord(&pos, &pos, &m_mtxWorld);
+			D3DXVec3TransformCoord(&posPole, &posPole, pPlant->GetMatrix());
+
+			// 距離を計算
+			float fLength = Vec3::Length(posPole, pos);
+			if (fLength < fLengthMin)
+			{ // もし前回の距離よりも近いなら、ポインタ保存 + 距離更新
+				fLengthMin = fLength;
+				pPlantNear = pPlant;
+			}
+		}
+
+		if (pPlantNear != nullptr && m_bDismountPowerPlant != true)
+		{ // もし乗れる発電所が存在していて、発電所から降りたフラグが立っていなければ
+			// ポインタを保存
+			m_pRidingObject = pPlantNear;
+			m_pStartPlant = pPlantNear;
+
+			// クォータニオンを修正
+			FixedQuaternion(pPlantNear);
+
+			// オフセットを電柱に設定し、マトリックスを設定
+			m_pos.y = pPlantNear->GetVtxMax()->y;
+
+			// カメラを電柱上フォーカスに変更
+			pPlayerCam->SetState(CPlayerCamera::STATE_RIDING);
+
+			if (pTutorial != nullptr)
+			{ // もし今がチュートリアルシーンなら
+				CTutorialManager *pTutorialManager = pTutorial->GetTutorialManager();		// チュートリアルマネージャへのポインタ
+
+				if (pTutorialManager->GetPhase() == CTutorialManager::PHASE_RIDEON)
+				{ // チュートリアルのフェーズが発電所に乗ることなら、次に進める
+					pTutorialManager->SetNextPhase();
+				}
+
+				// モーションを終了
+				m_pMotion->Set(MOTIONTYPE_NEUTRAL, 10);
+			}
+		}
+		else if(pPlantNear == nullptr)
+		{ // 乗れる発電所が見つからなかった場合
+			m_bDismountPowerPlant = false;		// 発電所から降りたフラグを下ろす
+		}
+	}
 }
 
 //==================================================================================
@@ -739,11 +860,11 @@ void CPlayer::MoveToNextPole(void)
 {
 	CManager *pManager = CManager::GetInstance();			// マネージャへのポインタ
 	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
-	CGame *pGame = pManager->GetScene(&pGame);			// ゲームシーンへのポインタ
+	CMapManager *pMap = CMapManager::GetInstance();			// マップへのポインタ
+	CPlanet *pPlanet = pMap->GetPlanet();					// 惑星の取得
 
-	if (m_pPoleNext != nullptr && pGame != nullptr)
+	if (m_pPoleNext != nullptr && pPlanet != nullptr)
 	{ // 次に移動するべき電柱がある場合
-		CPlanet *pPlanet = pGame->GetPlanet();		// 惑星へのポインタ
 		Quaternion quaMultiply;				// 乗算するクォータニオン
 		float fVolume = POLE_MOVE_SPEED;	// 回転する角度
 
@@ -793,39 +914,34 @@ void CPlayer::MoveToNextPole(void)
 //==================================================================================
 void CPlayer::CheckRidingRight(void)
 {
-	if (GetRidingObjectX() == nullptr)
+	if (GetRidingObjectX() == nullptr || m_pCombo == nullptr)
 	{ // オブジェクトに乗っていない場合、処理スキップ
 		return;
 	}
 
-	CManager *pManager = CManager::GetInstance();			// マネージャへのポインタ
-	CGame *pGame = pManager->GetScene(&pGame);			// ゲームシーンへのポインタ
-	CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera *>(CCamera::GetCamera(CCamera::TYPE_PLAYER));		// プレイヤーカメラへのポインタ
+	CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera*>(CCamera::GetCamera(CCamera::TYPE_PLAYER));		// プレイヤーカメラへのポインタ
 
-	// ゲームシーンの取得
-	if (pGame != nullptr)
-	{ // 取得成功時
-		CCombo *pCombo = pGame->GetCombo();		// コンボ表示へのポインタ
-		if (pCombo->GetContinuing() == false
-			&& std::holds_alternative<CUtilityPole*>(m_pRidingObject)
-			&& m_bShotLasso == false)
-		{ // コンボ表示が消えた且つ投げ縄を投げていないなら、電柱から強制的におろす
-			// オフセットを元に戻す
-			m_pos.y = m_offset.y;
+	if (m_pCombo->GetContinuing() == false
+		&& std::holds_alternative<CUtilityPole *>(m_pRidingObject)
+		&& m_bShotLasso == false)
+	{ // コンボ表示が消えた且つ投げ縄を投げていないもしくは途中で死んだなら、電柱から強制的におろす
+		// オフセットを元に戻す
+		m_pos.y = m_offset.y;
 
-			// 電柱から降りる処理を実行
-			DismountPole();
+		// 電柱から降りる処理を実行
+		DismountPole();
 
-			// コンボリセット
-			CCombo *pCombo(pManager->GetScene<CGame>()->GetCombo());		// コンボ表示へのポインタ
-			pCombo->Finish();
+		// コンボが1以上なら電流を流し始める
+		if (m_pCombo->GetCombo() > 0) m_pStartPlant->InvokeElectric();
 
-			// カメラをプレイヤーフォーカスに変更
-			pPlayerCam->SetState(CPlayerCamera::STATE_PLAYER);
+		// コンボリセット
+		m_pCombo->Finish();
 
-			// モーションを終了
-			m_pMotion->Set(MOTIONTYPE_NEUTRAL, 10);
-		}
+		// カメラをプレイヤーフォーカスに変更
+		pPlayerCam->SetState(CPlayerCamera::STATE_PLAYER);
+
+		// モーションを終了
+		m_pMotion->Set(MOTIONTYPE_NEUTRAL, 10);
 	}
 }
 
@@ -916,25 +1032,25 @@ void CPlayer::FindNearestPole(void)
 }
 
 //==================================================================================
-// --- 乗っている電柱から降りる際の惑星角度修正処理 ---
+// --- 発電所に乗る際の惑星角度修正処理 ---
 //==================================================================================
-void CPlayer::DismountPole(void)
+void CPlayer::FixedQuaternion(CObjectXQuaternion *pRide)
 {
-	CGame *pGame = CManager::GetInstance()->GetScene(&pGame);		// シーンの取得
-	CPlanet *pPlanet = pGame->GetPlanet();			// 惑星の取得
+	CMapManager *pMap = CMapManager::GetInstance();	// マップへのポインタ
+	CPlanet *pPlanet = pMap->GetPlanet();			// 惑星の取得
 
 	// 惑星から各電柱の座標を求め、内積を求める
 	// 内積の角度分、次の電柱への角度へ回転させる
 	Vector3 planetToPlayer = VECTOR3_NULL;		// 惑星からプレイヤーへのベクトル
-	Vector3 planetToRiding = VECTOR3_NULL;		// 惑星からプレイヤーの乗っていた電柱へのベクトル
-	Vector3 playerWorldPos = m_pos;				// 降りた後の自身の絶対座標(プレイヤーのXZ座標は動かない為posを代入)
-	Vector3 ridingWorldPos = GetRidingObjectX()->GetWorldPosition();		// 乗っていた電柱の絶対座標
+	Vector3 planetToRiding = VECTOR3_NULL;		// 惑星からプレイヤーの乗るオブジェクトへのベクトル
+	Vector3 playerWorldPos = Vector3(0.0f, m_pos.y, 0.0f);				// 乗る前の自身の絶対座標
+	Vector3 ridingWorldPos = pRide->GetWorldPosition();		// 乗っていた電柱の絶対座標
 	Vector3 vecQua;			// 任意軸
 	Quaternion quaMultiply;	// 乗算するクォータニオン
 
 	// 各ベクトルを求める
 	planetToRiding = Vec3::Direction(ridingWorldPos, *pPlanet->GetPosition());
-	planetToPlayer = Vec3::Direction(m_pos, *pPlanet->GetPosition());
+	planetToPlayer = Vec3::Direction(playerWorldPos, *pPlanet->GetPosition());
 
 	// ベクトルから内積計算
 	float fDot = Vec3::Dot(planetToRiding, planetToPlayer);
@@ -950,6 +1066,7 @@ void CPlayer::DismountPole(void)
 	fAngle += HALF_PI;
 	fAngle = Util::FixedRotation(fAngle);
 
+	// 軸を作成
 	vecQua = Vec2::ToVector3(Vec2::Direction(fAngle));
 	vecQua.z = vecQua.y;
 	vecQua.y = 0.0f;
@@ -964,9 +1081,17 @@ void CPlayer::DismountPole(void)
 
 	// クォータニオンを加算
 	pPlanet->MultiplyQuaternion(quaMultiply);
+}
+
+//==================================================================================
+// --- 乗っている電柱から降りる際の惑星角度修正処理 ---
+//==================================================================================
+void CPlayer::DismountPole(void)
+{ // クォータニオン修正
+	FixedQuaternion(GetRidingObjectX());
 
 	// 電柱をnullに変更
-	m_pRidingObject = static_cast<CUtilityPole*>(nullptr);
+	m_pRidingObject = static_cast<CPowerPlant*>(nullptr);
 }
 
 //==================================================================================

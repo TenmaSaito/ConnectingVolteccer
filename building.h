@@ -12,7 +12,6 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "objectXQuaternion.h"
-#include <memory>
 
 //**********************************************************************************
 // *** 前方宣言 ***
@@ -20,9 +19,8 @@
 class CUtilityPole;
 class CBillboard3D;
 class CLightingPillar;
-
-// 各モデルには、電気のついていない窓とついている窓のポリゴンがそれぞれ別のマテリアルで設定されている
-// その為、基本は一番最後のマテリアルは描画せず、電気がついた場合のみ描画するようにすること
+class CHappyNote;
+class CConnectingEvaluate;
 
 //**********************************************************************************
 // *** 建造物クラス ***
@@ -58,17 +56,23 @@ public:
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
+	void BindConnectingEvaluate(CConnectingEvaluate *pEvaluate) { m_pEvaluate = pEvaluate; }
 	TYPE GetType(void) const { return m_buildingType; }
+	bool IsDisp(void) const { return m_bDisp; }
 
 private:
 	void FindUtilityPole(void);
 
-	const CUtilityPole *m_pNearPole;		// 最も近い電柱
-	CLightingPillar *m_pPillar;		// 光の柱へのポインタ
+	const CUtilityPole *m_pNearPole;	// 最も近い電柱
+	CLightingPillar *m_pPillar;			// 光の柱へのポインタ
+	CHappyNote *m_pHappyNote;			// 音符発生インスタンスへのポインタ
+	CConnectingEvaluate *m_pEvaluate;	// 評価表示へのポインタ
 	bool m_bFound;				// 最も近い電柱の検索済みフラグ
 	bool m_bLighting;			// 電流が流れたか
 	float m_fLerp;				// 線形補間用変数
 	float m_fValue;				// 補間時の変化量
 	TYPE m_buildingType;		// 建物の種類
+	bool m_bHitByPlayerCamRay;	// プレイヤーカメラとプレイヤの間にいるか
+	bool m_bDisp;				// 描画フラグ
 };
 #endif

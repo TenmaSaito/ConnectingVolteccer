@@ -12,7 +12,6 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "object.h"
-#include <vector>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -56,6 +55,7 @@ public:
 	const Vector3 *GetVtxMax(void) const { return &m_vtxMax; }
 	const Matrix *GetMatrix(void) const { return &m_mtxWorld; }
 	const Matrix *CalcMatrix(void);
+	Matrix *CalcMatrixUnaffect(Matrix *pOut) const;
 	void SetParent(const Matrix *pParent) { m_pMtxParent = pParent; }
 	const Matrix *GetParent(void) const { return m_pMtxParent; }
 	const char *GetFileName(void) const { return m_aFileName; }

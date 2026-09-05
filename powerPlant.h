@@ -12,8 +12,6 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "objectXQuaternion.h"
-#include <vector>
-#include <span>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -25,6 +23,8 @@
 //**********************************************************************************
 class CUtilityPole;
 class CElectricalCable;
+class CObjectBillboard3D;
+class CPlayer;
 
 //**********************************************************************************
 // *** 発電所クラス ***
@@ -54,11 +54,15 @@ public:
 	void RemoveConnected(void);
 	std::span<CUtilityPole *const> GetConnectPole(void) const { return std::span(m_vpPole); }
 	int GetID(void) const { return m_nID; }
+	void BindPlayer(CPlayer *pPlayer) { m_pPlayer = pPlayer; }
 
 private:
 	std::vector<CUtilityPole*> m_vpPole;	// 今繋がっている電柱へのポインタ
 	CUtilityPole *m_pCurrentPole;			// 今回のコンボで繋げている電柱へのポインタ
 	CElectricalCable *m_pCurrentCable;		// 今回のコンボで繋げてた電線へのポインタ
+	CPlayer *m_pPlayer;			// プレイヤーへのポインタ
 	int m_nID;		// 生成されたID
+	bool m_bHitByPlayerCamRay;	// プレイヤーカメラとプレイヤの間にいるか
+	bool m_bDisp;				// 描画フラグ
 };
 #endif

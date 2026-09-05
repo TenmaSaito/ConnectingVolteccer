@@ -12,8 +12,6 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "object.h"
-#include <memory>
-#include <array>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -57,7 +55,7 @@ private:
 
 	std::array<std::unique_ptr<CNumber>, MAX_COMBO_NUM> m_apNumber;		// 数値オブジェクトへのポインタ
 	std::unique_ptr<CPolygon2D> m_pCombo;			// コンボ用ポリゴン
-	std::unique_ptr<CPolygon2D> m_pGauge;			// ゲージ用ポリゴン
+	std::unique_ptr<CPolygon2D> m_pGauge;			// ゲージ用ポリゴン	
 	Vector3 m_pos = VECTOR3_NULL;		// 表示する中心座標
 	Vector3 m_rot = VECTOR3_NULL;		// 角度
 	float m_fTimeCatmullRom = 0.0f;		// スプライン補間用変数

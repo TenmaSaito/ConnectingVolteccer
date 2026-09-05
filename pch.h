@@ -15,6 +15,14 @@
 #include <imm.h>							// IME無効化に必要
 #include <assert.h>							// アサーションに必要
 #include <time.h>							// 時刻取得に必要
+#include <array>							// 固定長配列
+#include <vector>							// 可変長配列
+#include <list>								// リスト構造
+#include <memory>							// スマートポインタ
+#include <algorithm>						// アルゴリズム
+#include <string>							// 文字列
+#include <string_view>						// 文字列参照
+#include <span>								// 配列参照
 #include "d3dx9.h"							// 描画処理に必要
 #define DIRECTINPUT_VERSION		(0x0800)	// dinputの警告対処マクロ
 #include "dinput.h"							// 入力処理に必要(先に上のマクロを定義する)

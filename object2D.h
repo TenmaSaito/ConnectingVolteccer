@@ -43,18 +43,18 @@ public:
 	void Update(void);
 	void Draw(void);
 	void SetPosition(const Vector3 &position);
-	Vector3 GetPosition(void) const { return m_pos; }
+	const Vector3 *GetPosition(void) const { return &m_pos; }
 	void SetOffset(const Vector3 &offset);
-	Vector3 GetOffset(void) const { return m_offset; }
+	const Vector3 *GetOffset(void) const { return &m_offset; }
 	void SetRotation(const Vector3 &rotation);
-	Vector3 GetRotation(void) const { return m_rot; }
+	const Vector3 *GetRotation(void) const { return &m_rot; }
 	void SetPositionAndRotation(const Vector3 &position, const Vector3 &rotation);
 	void SetSize(const Vector2 &size);
-	Vector2 GetSize(void) const { return m_size; }
+	const Vector2 *GetSize(void) const { return &m_size; }
 	void SetLength(const float fLength);
 	float GetLength(void) const { return m_fLength; }
 	void SetColor(const Color &color);
-	Color GetColor(void) const { return m_color; }
+	const Color *GetColor(void) const { return &m_color; }
 	void SetDisp(const bool bDisp) { m_bDisp = bDisp; }
 	bool GetDisp(void) { return m_bDisp; }
 	void BindTexture(const int nIdxTexture) { m_nIdxTexture = nIdxTexture; }

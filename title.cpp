@@ -12,6 +12,7 @@
 #include "object.h"
 #include "manager.h"
 #include "renderer.h"
+#include "sound.h"
 #include "camera.h"
 #include "input.h"
 #include "joypad.h"
@@ -40,8 +41,7 @@ CTitle::~CTitle()
 // --- 初期化処理 ---
 //==================================================================================
 HRESULT CTitle::Init(void)
-{
-	// 開始処理
+{ // 開始処理
 	Start();
 
 	return S_OK;
@@ -82,4 +82,9 @@ void CTitle::Start(void)
 
 	// タイトル画面のメニューを生成
 	m_pMenu = CTitleMenu::Create();
+
+	CSound *pSound = CManager::GetInstance()->GetSound();		// サウンドへのポインタ
+
+	// タイトル画面のBGMを流す
+	pSound->Play(CSound::LABEL_BGM_TITLE);
 }

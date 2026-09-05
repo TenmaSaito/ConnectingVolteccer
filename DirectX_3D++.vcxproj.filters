@@ -210,7 +210,7 @@
     <ClCompile Include="grassland.cpp">
       <Filter>ソース ファイル\object</Filter>
     </ClCompile>
-    <ClCompile Include="map.cpp">
+    <ClCompile Include="mapManager.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="util.cpp">
@@ -363,6 +363,27 @@
     <ClCompile Include="shock.cpp">
       <Filter>ソース ファイル\object\effect</Filter>
     </ClCompile>
+    <ClCompile Include="happyNote.cpp">
+      <Filter>ソース ファイル\object\effect</Filter>
+    </ClCompile>
+    <ClCompile Include="percent.cpp">
+      <Filter>ソース ファイル\object\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="resultmenu.cpp">
+      <Filter>ソース ファイル\object\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="tutorial.cpp">
+      <Filter>ソース ファイル\manager\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="edit.cpp">
+      <Filter>ソース ファイル\manager\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="tutorialManager.cpp">
+      <Filter>ソース ファイル\object</Filter>
+    </ClCompile>
+    <ClCompile Include="pause.cpp">
+      <Filter>ソース ファイル\manager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="model.h">
@@ -470,10 +491,10 @@
     <ClInclude Include="grassland.h">
       <Filter>ヘッダー ファイル\object</Filter>
     </ClInclude>
-    <ClInclude Include="enemy.h">
+    <ClInclude Include="tutorialManager.h">
       <Filter>ヘッダー ファイル\object</Filter>
     </ClInclude>
-    <ClInclude Include="map.h">
+    <ClInclude Include="mapManager.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="util.h">
@@ -634,6 +655,27 @@
     </ClInclude>
     <ClInclude Include="shock.h">
       <Filter>ヘッダー ファイル\object\effect</Filter>
+    </ClInclude>
+    <ClInclude Include="happyNote.h">
+      <Filter>ヘッダー ファイル\object\effect</Filter>
+    </ClInclude>
+    <ClInclude Include="tree.h">
+      <Filter>ヘッダー ファイル\object\building</Filter>
+    </ClInclude>
+    <ClInclude Include="percent.h">
+      <Filter>ヘッダー ファイル\object\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="resultmenu.h">
+      <Filter>ヘッダー ファイル\object\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="tutorial.h">
+      <Filter>ヘッダー ファイル\manager\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="edit.h">
+      <Filter>ヘッダー ファイル\manager\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="pause.h">
+      <Filter>ヘッダー ファイル\manager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

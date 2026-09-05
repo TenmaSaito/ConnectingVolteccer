@@ -12,6 +12,7 @@
 #include "powerPlant.h"
 #include "manager.h"
 #include "renderer.h"
+#include "sound.h"
 #include "game.h"
 #include "debugproc.h"
 #include "texture.h"
@@ -25,7 +26,7 @@
 #include "thunderCamera.h"
 #include "vec3math.h"
 #include "color.h"
-#include "map.h"
+#include "mapManager.h"
 #include <algorithm>
 #include <ranges>
 #include <string_view>
@@ -39,7 +40,7 @@
 #define FOCUS_ANGLE			(D3DXToRadian(45.0f))			// フォーカス可能な角度
 #define CONNECT_HEIGHT		(150.0f)	// 繋げられる電柱との高さの差分の最大値
 #define CONNECT_HEIGHT_EX	(30.0f)		// 発電所の場合の追加差分
-#define AIMING_ROTATE_SPD	(0.02f)		// エイムアイコンの回転速度
+#define AIMING_ROTATE_SPD	(0.04f)		// エイムアイコンの回転速度
 
 //**********************************************************************************
 // *** 定数宣言 ***
@@ -140,7 +141,10 @@ HRESULT CUtilityPole::Init(const Vector3 &pos,
 // --- 終了処理 ---
 //==================================================================================
 void CUtilityPole::Uninit(void)
-{ // 親クラスの終了
+{ // 繋がっている電線の終了
+	RemoveConnected();
+	
+	// 親クラスの終了
 	CObjectXQuaternion::Uninit();
 }
 
@@ -149,15 +153,12 @@ void CUtilityPole::Uninit(void)
 //==================================================================================
 void CUtilityPole::Update(void)
 {
-	CManager *pManager = CManager::GetInstance();	// マネージャーへのポインタ
-	CGame *pGame = pManager->GetScene<CGame>();		// ゲームシーンへのポインタ
-	if (pGame == nullptr) return;					// ゲームシーンの取得に失敗した場合、以下の処理を無視
+	if (m_pPlayer == nullptr) return;			// プレイヤーがnullの場合、以下の処理を無視
 
-	CPlayer *pPlayer = pGame->GetPlayer();			// プレイヤーへのポインタ
 	CCamera *pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);		// プレイヤーカメラへのポインタ
 	Vector3 posPlayer = VECTOR3_NULL;			// プレイヤーの絶対座標
 	Vector3 posPole = *GetPosition();			// 電柱の絶対座標
-	auto pObj = pPlayer->GetRidingObject();		// プレイヤーの乗っているオブジェクトが保存されている変数
+	auto pObj = m_pPlayer->GetRidingObject();	// プレイヤーの乗っているオブジェクトが保存されている変数
 	int nIndexVariant = pObj->index();			// 現在入っている型のインデックス
 	CObjectXQuaternion *pConnected = nullptr;	// 繋げてきたオブジェクト
 	const CObjectXQuaternion *pRidingObject = nullptr;	// プレイヤーの乗っているオブジェクト
@@ -187,7 +188,7 @@ void CUtilityPole::Update(void)
 		}
 
 		// プレイヤーの絶対座標を求める
-		D3DXVec3TransformCoord(&posPlayer, &posPlayer, pPlayer->GetMatrix());
+		D3DXVec3TransformCoord(&posPlayer, &posPlayer, m_pPlayer->GetMatrix());
 
 		// 絶対座標同士で距離を測る
 		if (posPlayer.y - posPole.y <= CONNECT_HEIGHT + (CONNECT_HEIGHT_EX * (1 - nIndexVariant)))
@@ -232,14 +233,13 @@ void CUtilityPole::Update(void)
 		m_enableType = ICON_CANT;
 	}
 
-	// 回転
 	float fRotate = m_apBillboard[ICON_AIMING]->GetRotation()->y;		// 現在のポリゴンの角度
 	float fScale = 1.25f + (sinf(fRotate) * 0.5f);		// 拡縮倍率
 
 	// 回転
 	m_apBillboard[ICON_AIMING]->SetRotation(Vector3(0.0f, fRotate + AIMING_ROTATE_SPD, 0.0f));
 
-	// サイズ拡縮
+	// サイズ変更
 	m_apBillboard[ICON_AIMING]->SetSize(SELECT_ICON_SIZE * fScale);
 }
 
@@ -255,11 +255,9 @@ void CUtilityPole::Draw(void)
 	// モデルの描画
 	CObjectXQuaternion::Draw();
 
-	CGame *pGame = pManager->GetScene<CGame>();			// ゲームシーンへのポインタ
-	if (pGame == nullptr) return;						// ゲームシーンの取得に失敗した場合、以下の処理を無視
+	if (m_pPlayer == nullptr) return;			// プレイヤーがnullの場合、以下の処理を無視
 
-	CPlayer *pPlayer = pGame->GetPlayer();				// プレイヤーへのポインタ
-	auto pObj = pPlayer->GetRidingObject();		// プレイヤーの乗っているオブジェクトが保存されている変数
+	auto pObj = m_pPlayer->GetRidingObject();	// プレイヤーの乗っているオブジェクトが保存されている変数
 	const CObjectXQuaternion *pRidingObject;	// プレイヤーの乗っているオブジェクト
 
 	// ポインタを取得
@@ -308,7 +306,7 @@ bool CUtilityPole::Connect(CUtilityPole *pPole)
 	// 電柱同士を電線で接続
 	m_pCurrentCable = CElectricalCable::Create(this, 
 		pPole,
-		CMap::GetInstance()->GetCurrentScenePlanet());
+		CMapManager::GetInstance()->GetPlanet());
 	m_pCurrentCable->SetParent(GetParent());
 	m_nNumConnect++;
 
@@ -320,7 +318,7 @@ bool CUtilityPole::Connect(CUtilityPole *pPole)
 //==================================================================================
 bool CUtilityPole::Connected(CUtilityPole *pPole)
 { // 接続先が自身もしくはnullならスキップ
-	if (pPole == nullptr || pPole == this) return false;
+	if (pPole == nullptr || pPole == this || IsDeath() == true) return false;
 
 	// 電柱へのポインタを保存
 	m_pConnected = pPole;
@@ -332,7 +330,7 @@ bool CUtilityPole::Connected(CUtilityPole *pPole)
 //==================================================================================
 bool CUtilityPole::Connected(CPowerPlant *pPowerPlant)
 { // nullの場合スキップ
-	if (pPowerPlant == nullptr) return false;
+	if (pPowerPlant == nullptr || IsDeath() == true) return false;
 
 	// 発電所へのポインタを保存
 	m_pConnected = pPowerPlant;
@@ -343,29 +341,40 @@ bool CUtilityPole::Connected(CPowerPlant *pPowerPlant)
 // --- 接続済みの電柱へ電流を送信する処理 ---
 //==================================================================================
 void CUtilityPole::GenerateElectricity(void)
-{ // 既に流れている場合は流さない
-	CGame *pGame = CManager::GetInstance()->GetScene(&pGame);	// ゲームシーンへのポインタ
+{ // 既に死んでいる場合処理は行わない
+	if (IsDeath() == true) return;
 
-	if (m_bElectriced == true || m_pConnect == nullptr)
-	{ // カメラへnullを登録
-		if(pGame != nullptr) pGame->GetThunderCamera()->ChangeTarget(nullptr);
+	// 電流用カメラを取得
+	CThunderCamera *pThunderCam = static_cast<CThunderCamera*>(CCamera::GetCamera(CCamera::TYPE_THUNDER));
+
+	// 電流が流れたためフラグを立てる
+	m_bElectriced = true;
+
+	if (m_pConnect == nullptr)
+	{ // 電流用カメラにnullを登録
+		if(pThunderCam != nullptr) pThunderCam->ChangeTarget(nullptr);
 		return;
 	}
 
 	// 自身とつながっている電柱に電気を流す + カメラに登録
 	CElectricCurrent *pCurrent = CElectricCurrent::Create(this, m_pConnect);
-	pCurrent->SetParent(CMap::GetInstance()->GetCurrentScenePlanet()->GetMatrix());
+	pCurrent->SetParent(CMapManager::GetInstance()->GetPlanet()->GetMatrix());
 	
-	if (pGame != nullptr)
-	{ // カメラに電柱を登録
-		pGame->GetThunderCamera()->ChangeTarget(pCurrent);
+	if (pThunderCam != nullptr)
+	{ // 電流用カメラに電柱を登録
+		pThunderCam->ChangeTarget(pCurrent);
 	}
 
-	// 電線の色を変更
-	m_pCurrentCable->SetColor(Colors::GetColor(Colors::C_YELLOW));
+	// 電線を通電させる
+	m_pCurrentCable->Electric();
 
 	// 電流が流れたためフラグを立てる
 	m_bElectriced = true;
+
+	CSound *pSound = CManager::GetInstance()->GetSound();		// サウンドへのポインタ
+
+	// 通電音を流す
+	pSound->Play(CSound::LABEL_SE_ELECTRIC);
 }
 
 //==================================================================================

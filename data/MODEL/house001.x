@@ -441,7 +441,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\autoDoor.png";
+    "data\\TEXTURE\\xfile\\houses\\autoDoor.png";
    }
   }
   Material {
@@ -450,7 +450,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\window-1.png";
+    "data\\TEXTURE\\xfile\\houses\\window-1.png";
    }
   }
   Material {
@@ -459,7 +459,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\window-1-lighting.png";
+    "data\\TEXTURE\\xfile\\houses\\window-1-lighting.png";
    }
   }
  }

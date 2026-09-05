@@ -10,8 +10,10 @@
 //**********************************************************************************
 #include "scene.h"
 #include "title.h"
+#include "tutorial.h"
 #include "game.h"
 #include "result.h"
+#include "edit.h"
 
 //==================================================================================
 // --- モードの設定処理 ---
@@ -27,12 +29,20 @@ CScene *CScene::Create(const MODE mode)
 		pScene = new CTitle;
 		break;
 
+	case MODE_TUTORIAL:		// チュートリアルシーンを生成
+		pScene = new CTutorial;
+		break;
+
 	case MODE_GAME:			// ゲームシーンを生成
 		pScene = new CGame;
 		break;
 
 	case MODE_RESULT:		// リザルトシーンを生成
 		pScene = new CResult;
+		break;
+
+	case MODE_EDIT:			// エディットシーンを生成
+		pScene = new CEdit;
 		break;
 	}
 
@@ -58,12 +68,20 @@ CScene *CScene::Create(const MODE mode, std::unique_ptr<CScene> &rpOut)
 		pScene = new CTitle;
 		break;
 
+	case MODE_TUTORIAL:		// チュートリアルシーンを生成
+		pScene = new CTutorial;
+		break;
+
 	case MODE_GAME:			// ゲームシーンを生成
 		pScene = new CGame;
 		break;
 
 	case MODE_RESULT:		// リザルトシーンを生成
 		pScene = new CResult;
+		break;
+
+	case MODE_EDIT:			// エディットシーンを生成
+		pScene = new CEdit;
 		break;
 	}
 

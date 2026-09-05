@@ -123,3 +123,39 @@ CParticleQuaternionBuilder &CParticleQuaternionBuilder::SetScaleVariation(const 
 	m_setting.scaleVariation = scaleVariation;
 	return *this;
 }
+
+//==================================================================================
+// --- 発生数のぶれの設定 ---
+//==================================================================================
+CParticleQuaternionBuilder &CParticleQuaternionBuilder::SetNumEffectVariation(const int nNumEffectVariation)
+{
+	m_setting.nNumEffectVariation = nNumEffectVariation;
+	return *this;
+}
+
+//==================================================================================
+// --- 発生確率の設定 ---
+//==================================================================================
+CParticleQuaternionBuilder &CParticleQuaternionBuilder::SetPercent(const int nPercent)
+{
+	m_setting.nPercent = nPercent;
+	return *this;
+}
+
+//==================================================================================
+// --- エフェクトの体力の最大値の設定 ---
+//==================================================================================
+CParticleQuaternionBuilder &CParticleQuaternionBuilder::SetEffectLifeMax(const int nEffectLifeMax)
+{
+	m_setting.nEffectLifeMax = nEffectLifeMax;
+	return *this;
+}
+
+//==================================================================================
+// --- エフェクトのαブレンディングの設定 ---
+//==================================================================================
+CParticleQuaternionBuilder &CParticleQuaternionBuilder::SetEnableAlphaBlending(const bool bEnable)
+{
+	m_setting.bEnableAlphaBlending = bEnable;
+	return *this;
+}

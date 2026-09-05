@@ -239,11 +239,12 @@ void CElectricalCable::Draw(void)
 }
 
 //==================================================================================
-// --- 色の変更処理 ---
+// --- 通電処理 ---
 //==================================================================================
-void CElectricalCable::SetColor(const Color &col)
+void CElectricalCable::Electric(void)
 {
 	VERTEX_3D *pVtx;		// 頂点へのポインタ
+	Color col = Colors::GetColor(Colors::C_YELLOW);		// 通電色
 
 	// 頂点バッファをロック
 	m_pVtxBuff->Lock(0, 0, (void **)&pVtx, 0);
@@ -256,4 +257,6 @@ void CElectricalCable::SetColor(const Color &col)
 
 	// ロック解除
 	m_pVtxBuff->Unlock();
+
+	m_bElectric = true;		// 通電フラグを立てる
 }

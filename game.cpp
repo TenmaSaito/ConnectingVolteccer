@@ -10,13 +10,14 @@
 //**********************************************************************************
 #include "game.h"
 #include "manager.h"
+#include "sound.h"
 #include "input.h"
 #include "joypad.h"
 #include "debugproc.h"
 #include "player.h"
 #include "planet.h"
 #include "camera.h"
-#include "map.h"
+#include "mapManager.h"
 #include "timer.h"
 #include "combo.h"
 #include "connectingEvaluate.h"
@@ -38,7 +39,7 @@
 #define COMBO_POS			Vector3(1000.0f, 200.0f, 0.0f)		// コンボ表示の座標
 #define EVALUATE_POS		Vector3(1000.0f, 350.0f, 0.0f)		// 評価表示の座標
 #define EVALUATE_SCALE		Vector2(328.0f, 64.0f)				// 評価表示のサイズ
-#define PLAYER_MOTION_PATH	"data/SCRIPT/motion_nabeatsu.txt"	// プレイヤーのモーションパス
+#define PLAYER_MOTION_PATH	"data/SCRIPT/motion_player.txt"	// プレイヤーのモーションパス
 #define THUNDER_CAM_LENGTH	(1000.0f)		// 電流とカメラの距離
 #define CURRENT_SCORE_PATH	"data/SCORE/current.bin"		// ゲームシーン終了時のスコアを書き出すファイルパス
 
@@ -48,7 +49,6 @@
 CGame::CGame()
 { // メンバ変数のクリア
 	m_pPlayer = nullptr;
-	m_pPlanet = nullptr;
 	m_pTimer = nullptr;
 	m_pCombo = nullptr;
 	m_pEvaluate = nullptr;
@@ -59,6 +59,7 @@ CGame::CGame()
 	m_nCounterFrame = 0;
 	m_nNumLightingHouse = 0;
 	m_nCurrentConnectLighting = 0;
+	m_nNumEffect = 0;
 }
 
 //==================================================================================
@@ -110,6 +111,11 @@ void CGame::Update(void)
 		pManager->SetEnablePause(!pManager->GetEnablePause());
 	}
 
+	if (pKeyboard->GetTrigger(DIK_9))
+	{ // ポーズ変更！
+		pManager->SetTransition(CScene::MODE_RESULT);
+	}
+
 	if (pKeyboard->GetPress(DIK_LSHIFT) && pKeyboard->GetTrigger(DIK_E))
 	{ // エディットモードの変更！
 		m_bEdit = !m_bEdit;
@@ -122,42 +128,24 @@ void CGame::Update(void)
 	}
 
 	// 経過時間を表示
+	static int nBefore = 0;
 	pProc->Print("[モード開始後からの経過時間 : {:.2f}]\n", m_pStopWatch->GetElapsed<float, std::ratio<1>>());
+	pProc->Print("[エフェクト数 : {}]\n", m_nNumEffect);
+	pProc->Print("[エフェクトの増減数 : {}]\n", abs(nBefore - m_nNumEffect));
+	nBefore = m_nNumEffect;
 
 	// プレイヤーのワールド座標
 	Vector3 posWorld = *m_pPlayer->GetPosition();
 	D3DXVec3TransformCoord(&posWorld, &posWorld, m_pPlayer->GetMatrix());
 	pProc->Print("[プレイヤーの絶対座標 : {:.2f} {:.2f} {:.2f}]\n", posWorld.x, posWorld.y, posWorld.z);
 
-	// マップのセーブ・ロード
-	if (pKeyboard->GetTrigger(DIK_I) && pKeyboard->GetPress(DIK_LSHIFT))
-	{
-		time_t t = {};					// 時刻データ
-		struct tm *pTime = nullptr;		// 時刻ポインタ
-		char aTime[1024] = {};			// 時刻取得用文字列
-		std::string filePath;			// ファイル名
-
-		// 時刻を取得し文字列変換
-		t = time(NULL);
-		pTime = localtime(&t);
-		strftime(aTime, sizeof(aTime), "%Y-%m-%d-%H-%M-%S", pTime);
-
-		// ファイル名作成
-		filePath = "data/Maps/";
-		filePath += aTime;
-		filePath += ".bin";
-
-		// マップを保存
-		CMap::GetInstance()->Save(filePath.c_str());
-	}
-
-	if (m_nCurrentConnectLighting > 0 && m_bCreateConnectEffect == false)
+	int nNumCurrentLightingHouse = m_pEvaluate->GetLightingHouse();		// 今回の通電で電気のついた家の数
+	if (nNumCurrentLightingHouse > 0)
 	{ // 電気のついた家が1軒以上あり、未だその演出を出していないならば
-		// 評価演出を追加 + 演出フラグを立てる
-		m_pEvaluate->AddEvaluate(m_nCurrentConnectLighting);
-		m_bCreateConnectEffect = true;
+		m_nNumLightingHouse += nNumCurrentLightingHouse;		// 電気のついた家分総数増加
 
-		m_nNumLightingHouse += m_nCurrentConnectLighting;		// 電気のついた家分総数増加
+		// 評価演出を追加
+		m_pEvaluate->Evaluate();
 	}
 
 	if (m_bEdit == true)
@@ -176,7 +164,7 @@ void CGame::Update(void)
 		if (pFile->CreateFile(CURRENT_SCORE_PATH, true, CFileStream::FLAG_OVERWRITE))
 		{ // ファイル生成成功時
 			float fPercent = static_cast<float>(m_nNumLightingHouse)	// 電気のついた家の割合
-				/ static_cast<float>(CMap::GetInstance()->GetNumBuilding());
+				/ static_cast<float>(CMapManager::GetInstance()->GetNumBuilding());
 
 			// 割合を書き出し
 			pFile->Write(fPercent);
@@ -185,6 +173,10 @@ void CGame::Update(void)
 			pFile->CloseFile();
 		}
 
+		// 今回の接続インデックスを保存
+		CMapManager::GetInstance()->SaveConnectID();
+
+		// シーンを遷移
 		pManager->SetTransition(MODE_RESULT);
 	}
 
@@ -199,23 +191,11 @@ void CGame::Draw(void)
 }
 
 //==================================================================================
-// --- 評価演出用変数リセット処理 ---
-//==================================================================================
-void CGame::ResetCurrentLightingHouseNum(void)
-{ // 電気がついた家の数と演出生成の有無をリセット
-	m_nCurrentConnectLighting = 0;
-	m_bCreateConnectEffect = false;
-}
-
-//==================================================================================
 // --- 初期化後呼び出し処理 ---
 //==================================================================================
 void CGame::Start(void)
 {
-	CMap *pMap = CMap::GetInstance();		// マップへのポインタ
-
-	// マップをリセット
-	pMap->Reset();
+	CMapManager *pMap = CMapManager::GetInstance();		// マップへのポインタ
 
 	// タイマー生成
 	m_pTimer = CTimer::Create(TIMER_POS, TIMER_SIZE, 3, 120);
@@ -223,19 +203,18 @@ void CGame::Start(void)
 	// コンボ表示生成
 	m_pCombo = CCombo::Create(COMBO_POS, VECTOR3_NULL);
 
-	// コンボ表示生成
+	// 評価表示生成
 	m_pEvaluate = CConnectingEvaluate::Create(EVALUATE_POS, EVALUATE_SCALE);
-
-	// 惑星配置
-	m_pPlanet = CPlanet::Create();
-
-	// ポインタを登録
-	pMap->SetCurrentScenePlanet(m_pPlanet);
-	NULLPOINTER_ASSERT(m_pPlanet);
+	pMap->BindConnectingEvaluate(m_pEvaluate);
 
 	// プレイヤー出現
-	m_pPlayer = CPlayer::Create(PLAYER_MOTION_PATH, Vector3(0.0f, m_pPlanet->GetVtxMax().y, 0.0f), VECTOR3_NULL);
+	m_pPlayer = CPlayer::Create(PLAYER_MOTION_PATH, Vector3(0.0f, 1115.0f, 0.0f), VECTOR3_NULL);
+	m_pPlayer->BindCombo(m_pCombo);
+	pMap->BindPlayer(m_pPlayer);
 	NULLPOINTER_ASSERT(m_pPlayer);
+
+	// マップ読み込み + 惑星へのポインタを取得
+	pMap->LoadLatest();
 
 	// 電流用カメラ生成
 	m_pThunderCam = CThunderCamera::Create(THUNDER_CAM_LENGTH);
@@ -244,8 +223,10 @@ void CGame::Start(void)
 	m_pStopWatch = std::make_unique<CStopWatch>();
 	m_pStopWatch->Start();
 
-	// マップ読み込み
-	CMap::GetInstance()->LoadLatest();
+	CSound *pSound = CManager::GetInstance()->GetSound();		// サウンドへのポインタ
+
+	// タイトル画面のBGMを流す
+	pSound->Play(CSound::LABEL_BGM_GAME);
 }
 
 //==================================================================================
@@ -263,8 +244,9 @@ void CGame::MapEdit(void)
 {
 	CManager *pManager = CManager::GetInstance();					// マネージャーへのポインタ
 	CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();		// キーボードへのポインタ
-	Vector3 pos = Vector3(0.0f, m_pPlanet->GetVtxMax().y, 0.0f);	// 設置位置
-	CMap *pMap = CMap::GetInstance();			// マップへのポインタ
+	CMapManager *pMap = CMapManager::GetInstance();		// マップへのポインタ
+	CPlanet *pPlanet = pMap->GetPlanet();				// 惑星へのポインタ
+	Vector3 pos = Vector3(0.0f, pPlanet->GetVtxMax().y, 0.0f);	// 設置位置
 
 	if (pKeyboard->GetTrigger(DIK_1))
 	{ // 建物0生成
@@ -289,5 +271,29 @@ void CGame::MapEdit(void)
 	else if (pKeyboard->GetTrigger(DIK_6))
 	{ // 発電所生成
 		pMap->AddPowerPlant(pos);
+	}
+
+	// マップのセーブ・ロード
+	if (pKeyboard->GetTrigger(DIK_I)
+		&& pKeyboard->GetPress(DIK_LSHIFT)
+		&& m_bEdit == true)
+	{
+		time_t t = {};					// 時刻データ
+		struct tm *pTime = nullptr;		// 時刻ポインタ
+		char aTime[1024] = {};			// 時刻取得用文字列
+		std::string filePath;			// ファイル名
+
+		// 時刻を取得し文字列変換
+		t = time(NULL);
+		pTime = localtime(&t);
+		strftime(aTime, sizeof(aTime), "%Y-%m-%d-%H-%M-%S", pTime);
+
+		// ファイル名作成
+		filePath = "data/Maps/";
+		filePath += "tutorial";
+		filePath += ".bin";
+
+		// マップを保存
+		CMapManager::GetInstance()->Save(filePath.c_str(), false);
 	}
 }

@@ -14,7 +14,6 @@
 #include "planet.h"
 #include "effect.h"
 #include "manager.h"
-#include "game.h"
 #include "vec3math.h"
 #include "vec2math.h"
 #include "matrix.h"
@@ -50,13 +49,14 @@ CElectricCurrent *CElectricCurrent::Create(CObjectXQuaternion *pStart,
 //==================================================================================
 // --- コンストラクタ ---
 //==================================================================================
-CElectricCurrent::CElectricCurrent()
+CElectricCurrent::CElectricCurrent() : CObject(ELECTRIC_CURRENT_PRIORITY)
 { // メンバ変数をクリア
 	m_pStart = nullptr;
 	m_pEnd = nullptr;
 	m_pThunder = nullptr;
 	m_pMtxParent = nullptr;
 	m_bGenerate = false;
+	m_bCreateConnectEffect = false;
 	m_pos = VECTOR3_NULL;
 	m_rot = VECTOR3_NULL;
 	m_fTime = 0.0f;
@@ -126,7 +126,9 @@ void CElectricCurrent::Uninit(void)
 // --- 更新処理 ---
 //==================================================================================
 void CElectricCurrent::Update(void)
-{
+{ // 死んでいたらスキップ
+	if (IsDeath() == true) return;
+
 	if (m_fTime < 1.0f)
 	{ // 線形補間を行う
 		D3DXQuaternionSlerp(&m_qua,
@@ -143,12 +145,6 @@ void CElectricCurrent::Update(void)
 		// 終了地点の電柱から電流を新規で生成
 		m_pEnd->GenerateElectricity();
 		m_bGenerate = true;
-
-		CGame *pGame = CManager::GetInstance()->GetScene(&pGame);		// ゲームシーンへのポインタ
-		if (pGame)
-		{ // 電気がついた家の数と演出生成の有無をリセット
-			pGame->ResetCurrentLightingHouseNum();
-		}
 	}
 
 	if ((m_pThunder->IsEndAnim(5.0f) 

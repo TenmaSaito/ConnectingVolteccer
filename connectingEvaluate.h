@@ -12,8 +12,6 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "object.h"
-#include <memory>
-#include <vector>
 
 //**********************************************************************************
 // *** 前方宣言 ***
@@ -51,7 +49,9 @@ public:
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
-	void AddEvaluate(const int nNumLightingHouse);
+	void AddLightingHouse(const int nValue) { m_nNumCurrentLightingHouse += nValue; }
+	int GetLightingHouse(void) const { return m_nNumCurrentLightingHouse; }
+	void Evaluate(void);
 
 private:
 	void CreatePolygon(const EVALUATE eval);
@@ -60,5 +60,6 @@ private:
 	std::vector<PolyInfo> m_vPolyInfo;		// 各演出用ポリゴンの情報
 	Vector3 m_pos;		// 発生座標
 	Vector2 m_scale;	// 発生サイズ
+	int m_nNumCurrentLightingHouse;		// 現在評価する家の数
 };
 #endif

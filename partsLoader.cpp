@@ -20,9 +20,12 @@
 //**********************************************************************************
 // *** プロトタイプ宣言 ***
 //**********************************************************************************
-void LoadCharactor(std::unique_ptr<CFileStream> &rpFile, 
-	CPartsLoader::BUFFER &rBuffer,
-	const std::vector<std::string> &rsPathParts);
+namespace
+{
+	void LoadCharactor(std::unique_ptr<CFileStream> &rpFile,
+		CPartsLoader::BUFFER &rBuffer,
+		const std::vector<std::string> &rsPathParts);
+}
 
 //==================================================================================
 // --- インスタンス取得処理 ---
@@ -226,71 +229,74 @@ UINT CPartsLoader::Load(const std::string_view path)
 //==================================================================================
 // --- CHARACTOR部分の読み込み処理 ---
 //==================================================================================
-void LoadCharactor(std::unique_ptr<CFileStream> &rpFile, 
-	CPartsLoader::BUFFER &rBuffer,
-	const std::vector<std::string> &rsPathParts)
+namespace
 {
-	std::string line;	// 読み取った一行
-	size_t strPos;		// 読み込み開始するオフセット
-	Vector3 pos = VECTOR3_NULL;		// オフセット位置
-	Vector3 rot = VECTOR3_NULL;		// 角度
-	int nIdxParent = -1;	// 親モデルのインデックス
-	int nIdxModel = -1;		// モデルのインデックス
-	int nCntModel = 0;		// 読み込んだモデルパス数
+	void LoadCharactor(std::unique_ptr<CFileStream> &rpFile,
+		CPartsLoader::BUFFER &rBuffer,
+		const std::vector<std::string> &rsPathParts)
+	{
+		std::string line;	// 読み取った一行
+		size_t strPos;		// 読み込み開始するオフセット
+		Vector3 pos = VECTOR3_NULL;		// オフセット位置
+		Vector3 rot = VECTOR3_NULL;		// 角度
+		int nIdxParent = -1;	// 親モデルのインデックス
+		int nIdxModel = -1;		// モデルのインデックス
+		int nCntModel = 0;		// 読み込んだモデルパス数
 
-	while (1)
-	{ // キャラクター読み込み
-		// 一行読み込み
-		rpFile->ReadString(line);
-		if (line.empty() == true) continue;
+		while (1)
+		{ // キャラクター読み込み
+			// 一行読み込み
+			rpFile->ReadString(line);
+			if (line.empty() == true) continue;
 
-		// コメント消去
-		if (line.find('#') != std::string::npos) line.erase(line.begin() + line.find('#'), line.end());
+			// コメント消去
+			if (line.find('#') != std::string::npos) line.erase(line.begin() + line.find('#'), line.end());
 
-		if (CFileStream::FindString(line, "END_CHARACTERSET"))
-		{ // 読み込み終了
-			break;
-		}
-		else if (CFileStream::FindString(line, "PARTSSET"))
-		{ // パーツ読み込み開始
-			while (1)
-			{ // パーツ読み込み
-				// 一行読み込み
-				rpFile->ReadString(line);
-				if (line.empty() == true) continue;
+			if (CFileStream::FindString(line, "END_CHARACTERSET"))
+			{ // 読み込み終了
+				break;
+			}
+			else if (CFileStream::FindString(line, "PARTSSET"))
+			{ // パーツ読み込み開始
+				while (1)
+				{ // パーツ読み込み
+					// 一行読み込み
+					rpFile->ReadString(line);
+					if (line.empty() == true) continue;
 
-				// コメント消去
-				if (line.find('#') != std::string::npos) line.erase(line.begin() + line.find('#'), line.end());
+					// コメント消去
+					if (line.find('#') != std::string::npos) line.erase(line.begin() + line.find('#'), line.end());
 
-				if (CFileStream::FindString(line, "END_PARTSSET"))
-				{ // 読み込み終了
-					// パーツを生成
-					rBuffer.vpParts.emplace_back(std::move(std::unique_ptr<CModel>(CModel::Create(rsPathParts[nIdxModel].c_str(),
-						pos,
-						rot))));
+					if (CFileStream::FindString(line, "END_PARTSSET"))
+					{ // 読み込み終了
+						// パーツを生成
+						rBuffer.vpParts.emplace_back(std::move(std::unique_ptr<CModel>(CModel::Create(rsPathParts[nIdxModel].c_str(),
+							pos,
+							rot))));
 
-					// 親パーツのインデックスを保存
-					rBuffer.vParentIdx.push_back(nIdxParent);
+						// 親パーツのインデックスを保存
+						rBuffer.vParentIdx.push_back(nIdxParent);
 
-					// 生成したモデルの総数を増やして終了
-					nCntModel++;
-					break;
-				}
-				else if (CFileStream::FindString(line, "INDEX = ", &strPos, true))
-				{ // モデルのインデックス読み込み
-					nIdxModel = CFileStream::ToInt(&line.at(strPos));
-				}
-				else if (CFileStream::FindString(line, "PARENT = ", &strPos, true))
-				{ // 親モデルのインデックス読み込み
-					nIdxParent = CFileStream::ToInt(&line.at(strPos));
-				}
-				else if (CFileStream::FindString(line, "POS = ", &strPos, true))
-				{ // オフセット座標読み込み
-					pos = CFileStream::ToVector3(&line.at(strPos));
-				}
-				else if (CFileStream::FindString(line, "ROT = ", &strPos, true))
-				{ // 角度読み込み
-					rot = CFileStream::ToVector3(&line.at(strPos));
+						// 生成したモデルの総数を増やして終了
+						nCntModel++;
+						break;
+					}
+					else if (CFileStream::FindString(line, "INDEX = ", &strPos, true))
+					{ // モデルのインデックス読み込み
+						nIdxModel = CFileStream::ToInt(&line.at(strPos));
+					}
+					else if (CFileStream::FindString(line, "PARENT = ", &strPos, true))
+					{ // 親モデルのインデックス読み込み
+						nIdxParent = CFileStream::ToInt(&line.at(strPos));
+					}
+					else if (CFileStream::FindString(line, "POS = ", &strPos, true))
+					{ // オフセット座標読み込み
+						pos = CFileStream::ToVector3(&line.at(strPos));
+					}
+					else if (CFileStream::FindString(line, "ROT = ", &strPos, true))
+					{ // 角度読み込み
+						rot = CFileStream::ToVector3(&line.at(strPos));
+					}
 				}
 			}
 		}

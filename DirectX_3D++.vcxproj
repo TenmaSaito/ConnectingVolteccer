@@ -165,11 +165,16 @@
     <ClCompile Include="debugproc.cpp" />
     <ClCompile Include="directX.cpp" />
     <ClCompile Include="directXSubDrawer.cpp" />
+    <ClCompile Include="edit.cpp" />
     <ClCompile Include="efffect.cpp" />
     <ClCompile Include="electricalCable.cpp" />
     <ClCompile Include="electricCurrent.cpp" />
     <ClCompile Include="filestream.cpp" />
     <ClCompile Include="game.cpp" />
+    <ClCompile Include="happyNote.cpp" />
+    <ClCompile Include="percent.cpp" />
+    <ClCompile Include="pause.cpp" />
+    <ClCompile Include="resultmenu.cpp" />
     <ClCompile Include="shock.cpp" />
     <ClCompile Include="meshCylinder.cpp" />
     <ClCompile Include="result.cpp" />
@@ -184,7 +189,7 @@
     <ClCompile Include="lineScaleUpTransition.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="manager.cpp" />
-    <ClCompile Include="map.cpp" />
+    <ClCompile Include="mapManager.cpp" />
     <ClCompile Include="matrix.cpp" />
     <ClCompile Include="memdbg.cpp" />
     <ClCompile Include="mesh.cpp" />
@@ -231,6 +236,8 @@
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="title.cpp" />
     <ClCompile Include="titlemenu.cpp" />
+    <ClCompile Include="tutorial.cpp" />
+    <ClCompile Include="tutorialManager.cpp" />
     <ClCompile Include="util.cpp" />
     <ClCompile Include="windowCapture.cpp" />
     <ClCompile Include="sound.cpp" />
@@ -255,7 +262,12 @@
     <ClInclude Include="delegate_t.h" />
     <ClInclude Include="directX.h" />
     <ClInclude Include="directXSubDrawer.h" />
+    <ClInclude Include="edit.h" />
     <ClInclude Include="game.h" />
+    <ClInclude Include="happyNote.h" />
+    <ClInclude Include="pause.h" />
+    <ClInclude Include="percent.h" />
+    <ClInclude Include="resultmenu.h" />
     <ClInclude Include="shock.h" />
     <ClInclude Include="meshCylinder.h" />
     <ClInclude Include="result.h" />
@@ -279,7 +291,7 @@
     <ClInclude Include="planet.h" />
     <ClInclude Include="effect.h" />
     <ClInclude Include="electricCurrent.h" />
-    <ClInclude Include="enemy.h" />
+    <ClInclude Include="tutorialManager.h" />
     <ClInclude Include="field.h" />
     <ClInclude Include="filestream.h" />
     <ClInclude Include="grass.h" />
@@ -289,7 +301,7 @@
     <ClInclude Include="light.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="manager.h" />
-    <ClInclude Include="map.h" />
+    <ClInclude Include="mapManager.h" />
     <ClInclude Include="matrix.h" />
     <ClInclude Include="memdbg.h" />
     <ClInclude Include="mesh.h" />
@@ -321,6 +333,8 @@
     <ClInclude Include="title.h" />
     <ClInclude Include="titleCamera.h" />
     <ClInclude Include="titlemenu.h" />
+    <ClInclude Include="tree.h" />
+    <ClInclude Include="tutorial.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="windowCapture.h" />
     <ClInclude Include="sound.h" />

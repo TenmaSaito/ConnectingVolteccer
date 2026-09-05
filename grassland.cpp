@@ -148,7 +148,7 @@ void CGrassLand::Uninit(void)
 //==================================================================================
 void CGrassLand::Update(void)
 {
-	CPlayer *pPlayer = CManager::GetInstance()->GetScene<CGame>()->GetPlayer();		// プレイヤーへのポインタ
+	//CPlayer *pPlayer = CManager::GetInstance()->GetScene<CGame>()->GetPlayer();		// プレイヤーへのポインタ
 	
 	for (auto &pGrass : m_apGrass)
 	{ // 草が存在するなら更新
@@ -159,7 +159,7 @@ void CGrassLand::Update(void)
 	}
 
 	// プレイヤーと草むらの当たり判定
-	Collision(*pPlayer->GetPosition(), 70.0f);
+	//Collision(*pPlayer->GetPosition(), 70.0f);
 }
 
 //==================================================================================

@@ -13,11 +13,10 @@
 #include "polygon2D.h"
 #include "manager.h"
 #include "renderer.h"
-#include "game.h"
 #include "player.h"
 #include "powerPlant.h"
 #include "utilityPole.h"
-#include "map.h"
+#include "mapManager.h"
 #include "util.h"
 #include "texture.h"
 #include "color.h"
@@ -186,25 +185,6 @@ void CCombo::Draw(void)
 	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
 	CRenderer *pRenderer = pManager->GetRenderer();		// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();	// デバイスへのポインタ
-	CGame *pGame = pManager->GetScene(&pGame);			// ゲームシーンへのポインタ
-	CPlayer *pPlayer = nullptr;		// プレイヤーへのポインタ
-
-	if (pGame != nullptr)
-	{ // ゲームシーンであれば
-		// プレイヤーを取得
-		pPlayer = pGame->GetPlayer();
-
-		if (pPlayer->IsShocked() == true)
-		{ // 感電していれば
-			for (auto &pNumber : m_apNumber)
-			{ // タイマーが生成した数値オブジェクトを描画
-				if (pNumber != nullptr)
-				{ // NULLではなかった場合、描画処理
-					pNumber->SetColor(SHOCKED_COL);
-				}
-			}
-		}
-	}
 
 	// αテストを有効化
 	pDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
@@ -224,7 +204,7 @@ void CCombo::Draw(void)
 	{ // NULLではなかった場合、描画処理
 		m_pCombo->Draw();
 	}
-	
+
 	if (m_pGauge != nullptr)
 	{ // NULLではなかった場合、描画処理
 		m_pGauge->Draw();
@@ -235,20 +215,6 @@ void CCombo::Draw(void)
 	pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
 	pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_ALWAYS);
 	pDevice->SetRenderState(D3DRS_ALPHAREF, 0);
-
-	if (pGame != nullptr)
-	{ // ゲームシーンであれば
-		if (pPlayer->IsShocked() == true)
-		{ // 感電していれば
-			for (auto &pNumber : m_apNumber)
-			{ // タイマーが生成した数値オブジェクトを描画
-				if (pNumber != nullptr)
-				{ // NULLではなかった場合、描画処理
-					pNumber->SetColor(COLOR_ONE);
-				}
-			}
-		}
-	}
 }
 
 //==================================================================================
@@ -316,23 +282,15 @@ void CCombo::AddCombo(const int nValue)
 // --- コンボ確定処理 ---
 //==================================================================================
 void CCombo::Finish(void)
-{ // 現在までのコンボで確定させ、電気を流した後コンボをリセットする
-	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
-	CGame *pGame = pManager->GetScene(&pGame);			// ゲームシーンへのポインタ
-	CPlayer *pPlayer = pGame->GetPlayer();				// プレイヤーへのポインタ
-	CPowerPlant *pPlant = pPlayer->GetStartPlant();		// プレイヤーの乗っていた発電所へのポインタ
-	
+{ // 現在までのコンボで確定させ、電気を流した後コンボをリセットする	
 	// コンボが0以下の場合スキップ
 	if (m_nCombo <= 0) return;
-
-	// 電流を流し始める
-	pPlant->InvokeElectric();
 
 	// コンボをリセット
 	ResetCombo();
 
 	// 行動を確定
-	CMap::GetInstance()->ConfirmID();
+	CMapManager::GetInstance()->ConfirmID();
 }
 
 //==================================================================================
@@ -340,26 +298,11 @@ void CCombo::Finish(void)
 //==================================================================================
 void CCombo::Withdrawal(void)
 { // 現在までのコンボを取り消し、電気を流さずにコンボをリセットする
-	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
-	CGame *pGame = pManager->GetScene(&pGame);			// ゲームシーンへのポインタ
-	CPlayer *pPlayer = pGame->GetPlayer();				// プレイヤーへのポインタ
-	auto pCurrentObject = pPlayer->GetRidingObject();	// プレイヤーの乗っているオブジェクト
-
-	// 発電所に乗っている場合、スキップ
-	if (pCurrentObject->index() == CPlayer::CPOWERPLANT_PTR) return;
-
-	// 電柱へのポインタへキャスト
-	auto pPole = std::get_if<CUtilityPole*>(pCurrentObject);
-	if (pPole)
-	{ // 取得成功時、電線の破棄処理を呼び出し
-		(*pPole)->RemoveConnected();
-	}
-
 	// コンボをリセット
 	ResetCombo();
 
 	// 行動を取り消し
-	CMap::GetInstance()->WithdrawalID();
+	CMapManager::GetInstance()->WithdrawalID();
 }
 
 //==================================================================================
@@ -438,8 +381,6 @@ void CCombo::UpdateScale(void)
 		{ // 補間用変数が1.0fを超えた場合、1.0fに修正
 			m_fTimeGaugeLerp = 1.0f;
 
-			CGame *pGame = CManager::GetInstance()->GetScene(&pGame);		// ゲームシーンへのポインタ
-			CPlayer *pPlayer = (pGame) ? pGame->GetPlayer() : nullptr;		// プレイヤーへのポインタ
 			// 透明に変更
 			for (auto &pNumber : m_apNumber)
 			{ // 非表示化
@@ -452,16 +393,7 @@ void CCombo::UpdateScale(void)
 			m_pCombo->SetAlpha(1.0f);
 			m_pGauge->SetDisp(false);
 
-			if (pPlayer)
-			{ // プレイヤーがnullではなく、投げ縄を既に投げていなければ
-				if (pPlayer->IsShotLasso() != true) m_nCombo = 0;			// コンボ数リセット
-			}
-			else
-			{ // プレイヤーがnullの場合
-				m_nCombo = 0;			// コンボ数リセット
-			}
-
-			m_bContinuing = false;			// 描画フラグをおろす
+			m_bContinuing = false;		// 描画フラグをおろす
 		}
 	}
 }

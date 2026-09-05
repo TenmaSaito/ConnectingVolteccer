@@ -11,7 +11,7 @@
 #include "thunderCamera.h"
 #include "manager.h"
 #include "renderer.h"
-#include "game.h"
+#include "mapManager.h"
 #include "planet.h"
 #include "electricCurrent.h"
 #include "ray.h"
@@ -81,7 +81,7 @@ HRESULT CThunderCamera::Init(const float fLength)
 //==================================================================================
 void CThunderCamera::Uninit(void)
 { // カメラの終了
-	CCamera::Uninit();
+	CCamera::Release();
 }
 
 //==================================================================================
@@ -92,8 +92,8 @@ void CThunderCamera::Update(void)
 	if (m_pTarget == nullptr) return;
 	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pManager->GetRenderer()->GetDevice();		// デバイスへのポインタ
-	CGame *pGame = pManager->GetScene(&pGame);			// ゲームシーンへのポインタ
-	CPlanet *pPlanet = pGame->GetPlanet();			// 惑星へのポインタ
+	CMapManager *pMap = CMapManager::GetInstance();	// マップへのポインタ
+	CPlanet *pPlanet = pMap->GetPlanet();			// 惑星へのポインタ
 	Vector3 posPlanet = *pPlanet->GetPosition();	// 惑星の座標
 	Vector3 posV = VECTOR3_NULL;		// 視点
 	Vector3 posR = VECTOR3_NULL;		// 注視点

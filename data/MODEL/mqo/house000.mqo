@@ -4,8 +4,8 @@ Format Text Ver 1.0
 Scene {
 	pos 0.0000 0.0000 5960.4644
 	lookat 0.0000 0.0000 0.0000
-	head -35.2937
-	pich 0.2292
+	head -35.2837
+	pich 0.2492
 	bank 0.0000
 	ortho 0
 	zoom2 1.2582
@@ -95,7 +95,7 @@ Object "house000_door" {
 	}
 }
 Object "obj1" {
-	visible 0
+	visible 15
 	locking 0
 	shading 1
 	facet 59.5

@@ -12,7 +12,6 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "main.h"
-#include <array>
 
 //**********************************************************************************
 // *** Vector3計算関連名前空間 ***
@@ -28,6 +27,25 @@ namespace Vec3
 		Y,		// Y軸
 		Z,		// Z軸
 		MAX
+	};
+
+
+#include <compare>
+
+	struct Vector3Constexpr
+	{
+	public:
+		float x, y, z;
+
+		constexpr Vector3Constexpr() : x(0.0f), y(0.0f), z(0.0f) {}
+		constexpr Vector3Constexpr(const Vector3 &v) : x(v.x), y(v.y), z(v.z) {}
+		constexpr Vector3Constexpr(const D3DVECTOR &v) : x(v.x), y(v.y), z(v.z) {}
+		constexpr Vector3Constexpr(float x, float y, float z) : x(x), y(y), z(z) {}
+		constexpr ~Vector3Constexpr() = default;
+
+		auto operator<=>(const Vector3Constexpr &other) const = default;
+
+		operator Vector3() const { return Vector3(x, y, z); }
 	};
 
 	// 範囲チェック用

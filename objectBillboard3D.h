@@ -13,7 +13,6 @@
 //**********************************************************************************
 #include "object.h"
 #include <functional>
-#include <array>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -78,6 +77,7 @@ private:
 	float m_fLength;		// 対角線の長さ
 	float m_fAngle;			// 対角線の角度
 	int m_nLife;			// 体力
+	bool m_bInFocus;		// フォーカスしているカメラの視界にいるか
 	bool m_bDisp;			// 描画するか
 	bool m_bAlpha;			// αテストの有効化
 	bool m_bScaleDown;		// スケール減少を行うか

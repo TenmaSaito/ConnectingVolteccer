@@ -14,6 +14,7 @@
 #include "vec2math.h"
 #include "manager.h"
 #include "input.h"
+#include "sound.h"
 #include "joypad.h"
 #include "observer_pointer.h"
 #include "util.h"
@@ -29,7 +30,7 @@
 #define FIRST_ANGLE		((HALF_PI - QUARTER_PI * 0.5f) + (MENU_ANGLE * (CTitleMenu::TYPE_MAX / 2)))		// メニューの開始角度
 #define LOGO_POSITION	Vector3(400.0f, 150.0f, 0.0f)	// ロゴの位置
 #define LOGO_SIZE		Vector2(700.0f, 200.0f)			// ロゴのサイズ
-#define LOGO_FILEPATH	"data/TEXTURE/titlelogo.png"	// ロゴテクスチャへのパス
+#define LOGO_FILEPATH	"data/TEXTURE/title_ui/titlelogo.png"	// ロゴテクスチャへのパス
 
 //**********************************************************************************
 // *** 定数宣言 ***
@@ -38,9 +39,9 @@ namespace
 {
 	constexpr std::string_view c_asMenuPath[CTitleMenu::TYPE_MAX] =	// 各メニューのテクスチャパス
 	{
-		"data/TEXTURE/MENU/start.png",		// STARTボタン
-		"data/TEXTURE/MENU/.png",		// STARTボタン
-		"data/TEXTURE/MENU/.png",		// 終了ボタン
+		"data/TEXTURE/title_ui/start.png",		// STARTボタン
+		"data/TEXTURE/title_ui/edit.png",		// EDITボタン
+		"data/TEXTURE/title_ui/exit.png",		// 終了ボタン
 	};
 }
 
@@ -123,6 +124,33 @@ HRESULT CTitleMenu::Init(void)
 		m_apMenu.at(uCntPoly)->BindTexture(pTexture->Register(c_asMenuPath[uCntPoly]));
 	}
 
+	for (UINT uCntPoly = 0U; uCntPoly < TYPE_MAX; uCntPoly++)
+	{ // 各メニューのポリゴンを更新
+		float fAngle = FIRST_ANGLE - (MENU_ANGLE * uCntPoly)
+			+ (MENU_ANGLE * m_fTypeDest);		// 角度
+
+		// ポリゴンの位置を計算
+		Vector2 pos2 = Vec2::Arc(SCREEN_SIZE.y * 0.75f,
+			fAngle,
+			Vector2(0.0f, SCREEN_MIDDLE.y));
+
+		// ポリゴンの位置、角度を更新
+		m_apMenu.at(uCntPoly)->SetPosition(Vec2::ToVector3(pos2));
+		m_apMenu.at(uCntPoly)->SetRotation(Vector3(0.0f,
+			-(MENU_ANGLE * uCntPoly) + (MENU_ANGLE * m_fTypeDest),
+			0.0f));
+
+		// 色を設定
+		if (uCntPoly == 0U + m_currentType && m_lastType == m_currentType)
+		{ // 一番最初のメニューのみ不透明にする
+			m_apMenu.at(uCntPoly)->SetColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
+		}
+		else
+		{ // それ以外のメニューは半透明にする
+			m_apMenu.at(uCntPoly)->SetColor(Color(1.0f, 1.0f, 1.0f, 0.5f));
+		}
+	}
+
 	return S_OK;
 }
 
@@ -162,29 +190,39 @@ void CTitleMenu::Update(void)
 	own::ObserverPtr pManager(CManager::GetInstance());			// マネージャへのポインタ
 	own::ObserverPtr pKeyboard(pManager->GetInputKeyboard());	// キーボードへのポインタ
 	own::ObserverPtr pJoypad(pManager->GetJoypad());			// ジョイパッドへのポインタ
+	CSound *pSound = pManager->GetSound();			// サウンドへのポインタ
+
+	// 既に遷移を開始している場合、スキップ
+	if (pManager->GetState() != CSceneTransition::STATE_STAY) return;
 
 	if (m_lastType == m_currentType)
 	{ // タイプ補間が完了している場合
 		if (pKeyboard->GetTrigger(DIK_S)
 			|| pJoypad->GetRepeat(CJoypad::KEY_DOWN)
 			|| pJoypad->GetStick(CJoypad::STICK_LEFT_DOWN))
-		{ // S入力時
+		{ // S入力時、タイプを1進める
 			m_lastType = m_currentType;
 			m_currentType = Util::AddEnum(m_currentType, 1);
 			if (m_currentType >= TYPE_MAX) m_currentType = TYPE_START;
+
+			// セレクト音を流す
+			pSound->Play(CSound::LABEL_SE_SELECT);
 		}
 		else if (pKeyboard->GetTrigger(DIK_W)
 			|| pJoypad->GetRepeat(CJoypad::KEY_UP)
 			|| pJoypad->GetStick(CJoypad::STICK_LEFT_UP))
-		{ // W入力時
+		{ // W入力時、タイプを1戻す
 			m_lastType = m_currentType;
 			m_currentType = Util::AddEnum(m_currentType, -1);
 			if (m_currentType < TYPE_START) m_currentType = TYPE_EXIT;
+
+			// セレクト音を流す
+			pSound->Play(CSound::LABEL_SE_SELECT);
 		}
 		else if ((pKeyboard->GetTrigger(DIK_RETURN)
 			|| pJoypad->GetTrigger(CJoypad::KEY_A))
 			&& pManager->GetTransition()->GetState() == CSceneTransition::STATE_STAY)
-		{ // ENTER入力時
+		{ // ENTER入力時、現在のタイプの処理を実行
 			ActionType();
 		}
 	}
@@ -256,12 +294,12 @@ void CTitleMenu::ActionType(void)
 
 	switch (m_currentType)
 	{
-	case TYPE_START:		// ゲーム開始
-		pManager->SetTransition(CScene::MODE_GAME);
+	case TYPE_START:		// チュートリアル開始
+		pManager->SetTransition(CScene::MODE_TUTORIAL);
 		break;
 
-	case TYPE_UNKNOWN:		// 未設定
-
+	case TYPE_UNKNOWN:		// エディット開始
+		pManager->SetTransition(CScene::MODE_EDIT);
 		break;
 
 	case TYPE_EXIT:			// exe終了

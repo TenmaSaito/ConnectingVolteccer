@@ -73,6 +73,8 @@ CLasso *CLasso::Create(const Vector3 &pos,
 CLasso::CLasso()
 { // メンバ変数のクリア
 	m_pEnd = nullptr;
+	m_pPlayer = nullptr;
+	m_pCombo = nullptr;
 	m_fSlerpTime = 0.0f;
 }
 
@@ -150,6 +152,19 @@ void CLasso::UpdateTransform(void)
 { // 死んでいたら無効
 	if (IsDeath() == true) return;
 
+	if (m_pCombo != nullptr)
+	{ // コンボ表示へのポインタがnullではない場合
+		if (m_pCombo->GetContinuing() == false && m_pCombo->GetCombo() > 0)
+		{ // コンボが表示されておらず、コンボが途切れたなら
+			// 投げ縄が破棄されたことを通知
+			m_pPlayer->CutoutComboThrowing();
+
+			// 自身を破棄
+			Uninit();
+			return;
+		}
+	}
+
 	Quaternion *pQuaLasso = GetQuaternionPtr();		// 現在のクォータニオン
 	Vector3 posStartWorld = Vector3(0.0f, std::visit([](auto &x) { return x->GetVtxMax()->y; }, m_pStart), 0.0f);
 	Vector3 posEndWorld = Vector3(0.0f, m_pEnd->GetVtxMax()->y, 0.0f);
@@ -171,11 +186,8 @@ void CLasso::UpdateTransform(void)
 	{ // 一定時間進んだら死亡
 		std::visit([&](auto &x) { return x->Connect(m_pEnd); }, m_pStart);
 
-		CGame *pGame = CManager::GetInstance()->GetScene(&pGame);
-		CPlayer *pPlayer = pGame->GetPlayer();
-
 		// 次に乗るべき電柱を設定
-		pPlayer->ChangeRidingPole(m_pEnd);
+		m_pPlayer->ChangeRidingPole(m_pEnd);
 
 		// 投げ縄を破棄
 		Uninit();
@@ -288,11 +300,8 @@ void CLasso::CheckCollision(void)
 			continue;
 		}
 
-		CGame *pGame = CManager::GetInstance()->GetScene(&pGame);		// ゲームシーンへのポインタ
-		CPlayer *pPlayer = pGame->GetPlayer();		// プレイヤーへのポインタ
-
 		// プレイヤーに失敗を伝える
-		pPlayer->FailedShot();
+		m_pPlayer->FailedShot();
 
 		// 投げ縄を破棄
 		Uninit();

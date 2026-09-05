@@ -13,7 +13,7 @@
 //**********************************************************************************
 #include "main.h"
 #include "scene.h"
-#include <memory>
+#include "sceneTransition.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -34,6 +34,7 @@ class CDebugProc;
 class CSound;		
 class CLight;
 class CSceneTransition;
+class CPause;
 
 //**********************************************************************************
 // *** マネージャクラス ***
@@ -47,12 +48,10 @@ public:
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
-	void SetPause(const bool bPause) { m_bPause = bPause; }
-	bool GetPause(void) { return m_bPause; }
 	void SetFPS(const int nFPS) { m_nCountFPS = nFPS; }
 	int GetFPS(void) { return m_nCountFPS; }
-	void SetEnablePause(const bool bEnable) { m_bPause = bEnable; }
-	bool GetEnablePause(void) { return m_bPause; }
+	void SetEnablePause(const bool bEnable);
+	bool GetEnablePause(void);
 	CRenderer *GetRenderer(void) const { return m_pRenderer.get(); }
 	CWindowCapture *GetCapture(void) const { return m_pCapture.get(); }
 	CInputKeyboard *GetInputKeyboard(void) const { return m_pInputKeyboard.get(); }
@@ -62,9 +61,11 @@ public:
 	CSound *GetSound(void) const { return m_pSound.get(); }
 	CLight *GetLight(void) const { return m_pLight.get(); }
 	CSceneTransition *GetTransition(void) const { return m_pTransition.get(); }
+	CPause *GetPause(void) const { return m_pPause.get(); }
 	HRESULT SetMode(const CScene::MODE modeNext);
 	CScene::MODE GetMode(void) const { return m_pScene->GetMode(); }
 	void SetTransition(const CScene::MODE modeNext);
+	CSceneTransition::STATE GetState(void) const { return m_pTransition->GetState(); }
 	template<IsScene T> T *GetScene(T **ppOut = nullptr) const;
 	CScene *GetScene(void) const { return m_pScene.get(); }
 	HWND GetWindowHandle(void) const { return m_hWnd; }
@@ -91,10 +92,10 @@ private:
 	std::unique_ptr<CLight> m_pLight;					// ライトオブジェクトへのポインタ
 	std::unique_ptr<CScene> m_pScene;					// シーンへのポインタ
 	std::unique_ptr<CSceneTransition> m_pTransition;	// 遷移演出へのポインタ
+	std::unique_ptr<CPause> m_pPause;			// ポーズへのポインタ
 	HWND m_hWnd;			// ウィンドウハンドル
 	int m_nCountFPS;		// FPSカウント
 	int m_nCounterFrame;	// フレームカウンター
-	bool m_bPause;			// ポーズ状態
 };
 
 //==================================================================================

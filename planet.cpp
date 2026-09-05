@@ -77,11 +77,21 @@ CPlanet::~CPlanet()
 //==================================================================================
 HRESULT CPlanet::Init(void)
 {
+	Quaternion quaMove;					// 計算先
+
 	// モデル読み込み
 	m_nIdxModel = CXFile::GetInstance()->Resister(MODEL_PATH);
 
 	// 任意軸設定
 	m_vecQua = Vec3::Direction(VECTOR3_NULL, Vector3(1.0f, 0.0f, 0.0f));
+
+	// 少し奥にずれたクォータニオンを計算
+	D3DXQuaternionRotationAxis(&quaMove,
+		&m_vecQua,
+		-QUARTER_PI * 0.5f);
+
+	// クォータニオンを適用
+	m_qua = m_qua * quaMove;
 
 	// マトリックスを初期化
 	D3DXMatrixIdentity(&m_mtxWorld);
@@ -138,6 +148,20 @@ void CPlanet::Draw(void)
 
 	//  現在のマテリアルを保存
 	pDevice->GetMaterial(&matDef);
+
+	DWORD dwVal;
+	pDevice->GetRenderState(D3DRS_FOGENABLE, &dwVal);
+	pDevice->GetRenderState(D3DRS_FOGCOLOR, &dwVal);
+
+	Color col = dwVal;
+
+	pDevice->GetRenderState(D3DRS_FOGTABLEMODE, &dwVal);
+	pDevice->GetRenderState(D3DRS_FOGSTART, &dwVal);
+	float fVal = *(float *)(&dwVal);
+
+	pDevice->GetRenderState(D3DRS_FOGEND, &dwVal);
+
+	fVal = *(float *)(&dwVal);
 
 	if (pXFile->GetAddress(m_nIdxModel, &pXdata))
 	{ // モデルデータ取得成功時

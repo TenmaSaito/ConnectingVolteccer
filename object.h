@@ -25,8 +25,7 @@
 #define DEFAULT_UI_PRIORITY		(6)			// UIの基本優先順位
 #define ENABLE_OBJECT_LIST		TRUE		// リスト構造での管理の有効化
 #define DEBUG_ASSERT_TYPE_NONE				// オブジェクトにタイプが指定されていなかった場合、アサーション
-#define OBJTYPE_TO_BITFLAG(type)	(1 << (type))								// ビットフラグ化
-#define FIND_BITFLAG_BY_OBJTYPE(flag, type)		((flag) & (1i64 << (type)))		// ビットフラグの確認
+#define NOTIFY_WHEN_DEATH		"Death"		// 死んだ際に通知される文字列
 
 //**********************************************************************************
 // *** オブジェクトクラス ***
@@ -49,12 +48,15 @@ public:
 		TYPE_PLAYER,		// プレイヤー
 		TYPE_PLANET,		// 惑星
 		TYPE_SCORE,			// スコア
+		TYPE_PERCENT,		// パーセント表示
 		TYPE_TIMER,			// タイマー
 		TYPE_TITLEMENU,		// タイトルメニュー
+		TYPE_RESULTMENU,	// リザルトメニュー
 		TYPE_COMBO,			// コンボ表示
 		TYPE_SHOCK,			// 感電エフェクト
 		TYPE_EVALUATE,		// 評価表示
 		TYPE_EFFECT,		// エフェクト
+		TYPE_HAPPYNOTE,		// 喜び音符
 		TYPE_POLE,			// 電柱
 		TYPE_CABLE,			// 電線
 		TYPE_THUNDER,		// 雷エフェクト
@@ -77,10 +79,14 @@ public:
 	virtual void Uninit(void) {}
 	virtual void Update(void) {}
 	virtual void Draw(void) {}
+	virtual void Notified(CObject *pObject, std::string_view message) {}
 
+	void NotifyAll(std::string_view message);
 	void SetType(const TYPE type) { m_type = type; }
 	TYPE GetType(void) const { return m_type; }
 	bool IsDeath(void) const { return m_bDeath; }
+	void AddObserver(CObject *pObserve) { m_vpObserver.push_back(pObserve); }
+	void RemoveObserver(CObject *pObserve) { std::erase(m_vpObserver, pObserve); }
 	static CObject* GetTop(const int nPriority) { return m_apTop[nPriority]; }
 	CObject *GetNext(void) const { return m_pNext; }
 	static int GetNumAll(void) { return m_nNumAll; }
@@ -99,6 +105,7 @@ private:
 #if ENABLE_OBJECT_LIST
 	void AddList(void);
 	void RemoveList(void);
+	void NofifyAllWhenDeath(void);
 
 	static CObject *m_apTop[MAX_OBJPRIORITY];		// 先頭オブジェクトへのポインタ
 	static CObject *m_apCur[MAX_OBJPRIORITY];		// 最後尾オブジェクトへのポインタ
@@ -112,5 +119,6 @@ private:
 	int m_nPriority;	// 優先順位の位置
 	TYPE m_type;		// オブジェクトタイプ
 	bool m_bDeath;		// 死亡フラグ
+	std::vector<CObject*> m_vpObserver;	// 自身を管理しているオブジェクトへのポインタ
 };
 #endif

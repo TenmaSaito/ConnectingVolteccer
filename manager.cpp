@@ -13,6 +13,7 @@
 #include "windowCapture.h"
 #include "input.h"
 #include "joypad.h"
+#include "pause.h"
 #include "debugproc.h"
 #include "sound.h"
 #include "circleTransition.h"
@@ -31,12 +32,12 @@
 #include "electricCurrent.h"
 #include "effect.h"
 #include "meshField.h"
-#include "planet.h"
-#include "map.h"
 #include "util.h"
 #include "scene.h"
 #include "meshSphere.h"
 #include "motionLoader.h"
+#include "partsLoader.h"
+#include "mapManager.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -70,7 +71,6 @@ CManager::CManager()
 	m_pScene = nullptr;
 	m_nCountFPS = 0;
 	m_nCounterFrame = 0;
-	m_bPause = false;
 }
 
 //==================================================================================
@@ -230,15 +230,18 @@ HRESULT CManager::Init(const HINSTANCE hInstance, const HWND hWnd, const BOOL bW
 		}
 	}
 
+	// テクスチャの読み込み
+	CTexture::GetInstance()->Load();
+
+	// ポーズ画面の作成
+	m_pPause.reset(CPause::Create());
+
 	// ライトの生成
 	m_pLight = std::make_unique<CLight>();
 	m_pLight->Init();
 
 	// 遷移演出の作成
 	m_pTransition.reset(CSceneTransition::Create(CSceneTransition::TYPE_LINE_SCALE_UP));
-
-	// テクスチャの読み込み
-	CTexture::GetInstance()->Load();
 
 	// 新規シーンの作成
 	SetMode(CScene::MODE_TITLE);
@@ -267,75 +270,50 @@ void CManager::Uninit(void)
 	// モーション情報の破棄
 	CMotionLoader::GetInstance()->Unload();
 
+	// パーツ状態の破棄
+	CPartsLoader::GetInstance()->Unload();
+
+	auto uninit = [&](auto &x)
+	{ // 各スマートポインタのインスタンスの破棄処理
+		if (x != nullptr)
+		{
+			x->Uninit();
+			x.reset();
+		}
+	};
+
+	// ポーズオブジェクトの破棄
+	uninit(m_pPause);
+
 	// シーンオブジェクトの破棄
-	if (m_pScene != nullptr)
-	{ // NULLではなかった場合破棄
-		m_pScene->Uninit();
-		m_pScene.reset();
-	}
+	uninit(m_pScene);
 
 	// 遷移オブジェクトの破棄
-	if (m_pTransition != nullptr)
-	{ // NULLではなかった場合破棄
-		m_pTransition->Uninit();
-		m_pTransition.reset();
-	}
+	uninit(m_pTransition);
 
 	// ライトオブジェクトの破棄
-	if (m_pLight != nullptr)
-	{ // NULLではなかった場合破棄
-		m_pLight->Uninit();
-		m_pLight.reset();
-	}
+	uninit(m_pLight);
 
 	// サウンドオブジェクトの破棄
-	if (m_pSound != nullptr)
-	{ // NULLではなかった場合破棄
-		m_pSound->Uninit();
-		m_pSound.reset();
-	}
+	uninit(m_pSound);
 
 	// デバッグ表示オブジェクトの破棄
-	if (m_pDebugProc != nullptr)
-	{ // NULLではなかった場合破棄
-		m_pDebugProc->Uninit();
-		m_pDebugProc.reset();
-	}
-
+	uninit(m_pDebugProc);
+	
 	// ジョイパッドオブジェクトの破棄
-	if (m_pJoypad != nullptr)
-	{ // NULLではなかった場合破棄
-		m_pJoypad->Uninit();
-		m_pJoypad.reset();
-	}
+	uninit(m_pJoypad);
 
 	// マウスオブジェクトの破棄
-	if (m_pInputMouse != nullptr)
-	{ // NULLではなかった場合破棄
-		m_pInputMouse->Uninit();
-		m_pInputMouse.reset();
-	}
+	uninit(m_pInputMouse);
 
 	// キーボードオブジェクトの破棄
-	if (m_pInputKeyboard != nullptr)
-	{ // NULLではなかった場合破棄
-		m_pInputKeyboard->Uninit();
-		m_pInputKeyboard.reset();
-	}
+	uninit(m_pInputKeyboard);
 
 	// キャプチャオブジェクトの破棄
-	if (m_pCapture != nullptr)
-	{ // NULLではなかった場合破棄
-		m_pCapture->Uninit();
-		m_pCapture.reset();
-	}
+	uninit(m_pCapture);
 
 	// レンダラーオブジェクトの破棄
-	if (m_pRenderer != nullptr)
-	{ // NULLではなかった場合破棄
-		m_pRenderer->Uninit();
-		m_pRenderer.reset();
-	}
+	uninit(m_pRenderer);
 }
 
 //==================================================================================
@@ -373,9 +351,16 @@ void CManager::Update(void)
 	// トランジション更新
 	m_pTransition->Update();
 
-	if (m_bPause != true)
+	// ポーズの更新
+	m_pPause->Update();
+
+	if (m_pPause->GetDisp() != true)
 	{ // レンダラーの更新処理
 		m_pRenderer->Update();
+	}
+	else
+	{ // ポーズ中なら、デバッグ表示
+		m_pDebugProc->Print("[現在ポーズ中！]\n");
 	}
 
 	// フレームカウンターを増加
@@ -386,12 +371,24 @@ void CManager::Update(void)
 // --- 描画処理 ---
 //==================================================================================
 void CManager::Draw(void)
-{
-	// シーンの描画
-	m_pScene->Draw();
-
-	// レンダラーの描画
+{ // レンダラーの描画
 	m_pRenderer->Draw();
+}
+
+//==================================================================================
+// --- ポーズ状態設定処理 ---
+//==================================================================================
+void CManager::SetEnablePause(const bool bEnable)
+{
+	m_pPause->SetDisp(bEnable);
+}
+
+//==================================================================================
+// --- ポーズ状態取得処理 ---
+//==================================================================================
+bool CManager::GetEnablePause(void)
+{
+	return m_pPause->GetDisp();
 }
 
 //==================================================================================
@@ -413,6 +410,12 @@ HRESULT CManager::SetMode(const CScene::MODE modeNext)
 
 	// カメラの破棄
 	CCamera::ReleaseAll();
+
+	// マップの破棄
+	CMapManager::GetInstance()->Unload();
+
+	// ポーズの解除
+	m_pPause->SetDisp(false);
 
 	// シーンの生成
 	CScene::Create(modeNext, m_pScene);

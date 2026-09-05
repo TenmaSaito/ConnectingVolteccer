@@ -75,6 +75,7 @@ public:
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
+	void BindPlayer(CPlayer *pPlayer) { m_pPlayer = pPlayer; }
 	bool Connect(CUtilityPole *pPole);
 	bool Connected(CUtilityPole *pPole);
 	bool Connected(CPowerPlant *pPowerPlant);
@@ -91,6 +92,7 @@ public:
 private:
 	CUtilityPole *m_pConnect;						// 電線でつながっている電柱へのポインタ
 	std::variant<CPowerPlant*, CUtilityPole*> m_pConnected;		// 繋げてきたオブジェクトへのポインタ
+	CPlayer *m_pPlayer;			// プレイヤーへのポインタ
 	CElectricalCable *m_pCurrentCable;					// 繋げた電線へのポインタ
 	CObjectBillboard3D *m_apBillboard[ICON_MAX];		// ビルボードへのポインタ
 	int m_nNumConnect;			// 接続されている電柱の数

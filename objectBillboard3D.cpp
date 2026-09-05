@@ -14,6 +14,7 @@
 #include "texture.h"
 #include "matrix.h"
 #include "vec3math.h"
+#include "camera.h"
 
 //==================================================================================
 // --- 生成処理 ---
@@ -175,6 +176,24 @@ void CObjectBillboard3D::Uninit(void)
 //==================================================================================
 void CObjectBillboard3D::Update(void)
 {
+	CCamera *pFocusCam = CCamera::GetCamera(CCamera::GetFocus());		// フォーカスしているカメラへのポインタ
+	Vector3 pos = VECTOR3_NULL;				// 自身の絶対座標
+	Vector3 posV = *pFocusCam->GetPosV();	// カメラの視点
+	Vector3 posR = *pFocusCam->GetPosR();	// カメラの注視点
+	Vector3 vecToPos = VECTOR3_NULL;		// 視点から自身への方向ベクトル
+	Vector3 vecToR = pFocusCam->GetRay();	// 視点から注視点への方向ベクトル
+	float fDot = 0.0f;		// 内積結果
+
+	// 絶対座標を求める
+	D3DXVec3TransformCoord(&pos, &pos, &m_mtxWorld);
+
+	// 視点から自身への方向ベクトルを求める
+	vecToPos = Vec3::Direction(pos, posV);
+
+	// 内積を求める
+	fDot = Vec3::Dot(vecToPos, vecToR);
+	m_bInFocus = (fDot > 0);		// 内積結果でフラグを指定
+	
 	if (m_bScaleDown == true)
 	{ // 自動スケール減少ありの場合
 		SetSize(Vector2(m_size.x - m_decreaseScale.x, m_size.y - m_decreaseScale.y));
@@ -193,9 +212,7 @@ void CObjectBillboard3D::Update(void)
 // --- 描画処理 ---
 //==================================================================================
 void CObjectBillboard3D::Draw(void)
-{ // 描画フラグが立っていなければスキップ
-	if (m_bDisp == false) return;
-
+{ 
 	CManager *pManager = CManager::GetInstance();			// マネージャへのポインタ
 	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
@@ -248,6 +265,9 @@ void CObjectBillboard3D::Draw(void)
 		// マトリックスを掛け合わせる
 		D3DXMatrixMultiply(&m_mtxWorld, &m_mtxWorld, &mtxParentUnRotate);
 	}
+
+	// 描画フラグが立っていなければスキップ
+	if (m_bDisp == false || m_bInFocus == false) return;
 
 	// ワールドマトリックスの設定
 	pDevice->SetTransform(D3DTS_WORLD, &m_mtxWorld);

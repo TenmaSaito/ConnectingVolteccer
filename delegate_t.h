@@ -46,6 +46,7 @@ namespace hyp
 		template<class T, class Instance> void Add(T pFunc, Instance *pInst);
 		Return InvokeAll(Args... args);
 		void UnregisterAll(void);
+		operator bool(void) const { return m_apFunction.size() > 0; }
 
 	private:
 		template<class T> void *ConvertToVoid(T pFunc);
@@ -158,7 +159,10 @@ namespace hyp
 	{
 		for (auto &func : m_apFunction)
 		{
-			func.pFunc(args...);
+			if (func.pFunc)
+			{ // 呼び出し可能なら、関数呼び出し
+				func.pFunc(args...);
+			}
 		}
 	}
 
@@ -173,6 +177,53 @@ namespace hyp
 	// 別名設定
 	template<class... Args> using Action = Delegate<void(Args...)>;
 	template<class Return, class... Args> using Func = Delegate<Return(Args...)>;
+
+	template<class Return, class... Args>
+	class CCallBacker
+	{
+	public:
+		constexpr CCallBacker(Return(*pInvoke)(Args...)) : m_pInvoke(pInvoke) {}
+		Return Invoke(Args... args) { return (*m_pInvoke)(std::forward<Args>(args)...); }
+
+	private:
+		Return(*m_pInvoke)(Args...);
+	};
+
+	template<class Return, class... Args>
+	struct ICallback
+	{
+		virtual ~ICallback() = default;
+		virtual Return Invoke(Args... args) = 0;
+	};
+
+	template<class T, class Return, class... Args>
+	class CMemberCallBacker : public ICallback<Return, Args...>
+	{
+	public:
+		constexpr CMemberCallBacker(T *pInst, Return(T::*pInvoke)(Args...)) : m_pInstance(pInst), m_pInvoke(pInvoke) {}
+		constexpr Return Invoke(Args... args) { return (m_pInstance->*m_pInvoke)(std::forward<Args>(args)...); }
+
+	private:
+		T *m_pInstance;
+		Return(T::*m_pInvoke)(Args...);
+	};
+
+	template<class Return, class... Args>
+	class CMemberDelegete
+	{
+	public:
+		template<class T> void Add(T *pInst, Return(T::*pInvoke)(Args...)) { m_vpCallback.emplace_back(std::make_unique<CMemberCallBacker<T, Return, Args...>>(pInst, pInvoke)); }
+		Return InvokeAll(Args... args) 
+		{
+			for (auto &pCallback : m_vpCallback)
+			{
+				pCallback->Invoke(std::forward<Args>(args)...);
+			}
+		}
+
+	private:
+		std::vector<std::unique_ptr<ICallback<Return, Args...>>> m_vpCallback;
+	};
 }
 
 //**********************************************************************************

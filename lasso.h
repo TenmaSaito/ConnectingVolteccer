@@ -8,11 +8,6 @@
 #ifndef _LASSO_H_		// インクルードガード
 #define _LASSO_H_
 
-//
-// INFO : 生成時にプレイヤーから任意軸と角度を取得
-// 取得した任意軸を取得した角度に加算していった角度で回す
-// 当たり判定はマトリックスを適用
-//
 //**********************************************************************************
 // *** インクルードファイル ***
 //**********************************************************************************
@@ -24,6 +19,8 @@
 //**********************************************************************************
 class CUtilityPole;
 class CPowerPlant;
+class CPlayer;
+class CCombo;
 
 //**********************************************************************************
 // *** 投げ縄クラス ***
@@ -50,6 +47,8 @@ public:
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
+	void BindPlayer(CPlayer *pPlayer) { m_pPlayer = pPlayer; }
+	void BindCombo(CCombo *pCombo) { m_pCombo = pCombo; }
 
 private:
 	void UpdateTransform(void);
@@ -57,6 +56,8 @@ private:
 
 	std::variant<CPowerPlant*, CUtilityPole*> m_pStart;		// 開始位置のオブジェクト (発電所 or 電柱)
 	CUtilityPole *m_pEnd;	// 最終的に接続される電柱
+	CPlayer *m_pPlayer;		// プレイヤーへのポインタ
+	CCombo *m_pCombo;		// コンボ表示へのポインタ
 	Vector3 m_posOld;		// 前フレームのワールド座標
 	float m_fSlerpTime;		// 球面線形補間の値
 };

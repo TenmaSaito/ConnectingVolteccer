@@ -123,17 +123,11 @@ HRESULT CObjectXQuaternion::Init(const char *pXFileName,
 //==================================================================================
 void CObjectXQuaternion::Uninit(void)
 {
-	if (m_pMesh != nullptr)
-	{ // メッシュを解放
-		m_pMesh->Release();
-		m_pMesh = nullptr;
-	}
+	// メッシュを解放
+	SafeRelease(m_pMesh);
 
-	if (m_pBuffMat != nullptr)
-	{ // マテリアルを解放
-		m_pBuffMat->Release();
-		m_pBuffMat = nullptr;
-	}
+	// マテリアルを解放
+	SafeRelease(m_pBuffMat);
 
 	// インデックスをリセット
 	m_vIdx.clear();
@@ -236,7 +230,7 @@ Vector3 CObjectXQuaternion::GetWorldPosition(void)
 }
 
 //==================================================================================
-// --- クマトリックスの計算処理 ---
+// --- マトリックスの計算処理 ---
 //==================================================================================
 const Matrix *CObjectXQuaternion::CalcMatrix(void)
 { // マトリックスを即時計算する
@@ -253,6 +247,21 @@ const Matrix *CObjectXQuaternion::CalcMatrix(void)
 	}
 
 	return &m_mtxWorld;
+}
+
+//==================================================================================
+// --- マトリックスの計算処理 (本体のマトリックスは計算しない) ---
+//==================================================================================
+Matrix *CObjectXQuaternion::CalcMatrixUnaffect(Matrix *pOut) const
+{ // nullならスキップ
+	if (pOut == nullptr) return nullptr;
+
+	// 引数のポインタにマトリックスの計算結果を代入
+	return Mtx::CalcWorld(pOut,
+		m_pMtxParent,
+		m_scale,
+		m_pos,
+		m_qua);
 }
 
 //==================================================================================
@@ -286,8 +295,15 @@ bool CObjectXQuaternion::IsHitByRay(const Vector3 &start, const Vector3 &vec, co
 	FLOAT fLengthToStart;		// 衝突座標との距離
 	Matrix mtxInv;				// 逆行列
 
+	// プレイヤーカメラが存在しない場合、スキップ
+	if (pPlayerCam == nullptr) return false;
+
+	// スケーリングを無視する為、マトリックスを再計算
+	Mtx::Identity(&mtxInv);
+	Mtx::CalcWorld(&mtxInv, GetParent(), *GetPosition(), *GetQuaternion());
+
 	// ワールド座標系を自身のローカル座標系に逆変換するマトリックスを求める
-	D3DXMatrixInverse(&mtxInv, nullptr, GetMatrix());
+	Mtx::Inverse(&mtxInv, mtxInv);
 
 	// 逆変換マトリックスで座標をローカル座標へ変換
 	D3DXVec3TransformCoord(&posLocal, &start, &mtxInv);
@@ -310,7 +326,7 @@ bool CObjectXQuaternion::IsHitByRay(const Vector3 &start, const Vector3 &vec, co
 	}
 	else
 	{ // boolへ変換
-		return (bResult != FALSE);
+		return (bResult != FALSE && fLengthToStart < fLength);
 	}
 }
 
@@ -323,11 +339,12 @@ bool CObjectXQuaternion::IsHitByPlayerCamRay(void)
 
 	// nullの場合スキップ
 	if (pPlayerCam == nullptr) return false;
+
 	Vector3 posV = *pPlayerCam->GetPosV();		// 視点
-	Vector3 ray = pPlayerCam->GetRay();			// プレイヤーカメラのレイベクトル
+	Vector3 posR = *pPlayerCam->GetPosR();		// 注視点
 
 	// カメラのレイを用いて判定
-	return IsHitByRay(posV, ray, CRay(posV, ray).GetLength());
+	return IsHitByRay(posV, pPlayerCam->GetRay(), CRay(posV, posR).GetLength());
 }
 
 //==================================================================================

@@ -17,6 +17,7 @@
 #include "vec3math.h"
 #include "rand.h"
 #include "objectBillboard3D.h"
+#include "game.h"
 
 //==================================================================================
 // --- 生成処理 ---
@@ -76,14 +77,81 @@ void CParticleQuaternion::Uninit(void)
 void CParticleQuaternion::Update(void)
 {
 	CRand *pRand = CRand::GetInstance();		// 乱数生成インスタンス
+	int nNumEffectVariation = 0;		// 生成数のぶれ
+	
+	auto beforeAlpha = [](LPDIRECT3DDEVICE9 pDevice)		// 加算合成ありの描画前関数
+	{ // ライティングを無効に設定
+		pDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
 
-	for (int nCntEffect = 0; nCntEffect < m_setting.nNumEffectFrame; nCntEffect++)
+		// Zテストを無効にする
+		pDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+		pDevice->SetRenderState(D3DRS_ZFUNC, D3DCMP_LESS);
+
+		// 加算合成開始
+		pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+		pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+		pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
+	};
+
+	auto afterAlpha = [](LPDIRECT3DDEVICE9 pDevice)			// 加算合成ありの描画後関数
+	{ // 加算合成終了
+		pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+		pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+		pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+
+		// Zテストを無効にする
+		pDevice->SetRenderState(D3DRS_ZFUNC, D3DCMP_LESSEQUAL);
+		pDevice->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+
+		// ライティングを有効に設定
+		pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
+	};
+
+	auto before = [](LPDIRECT3DDEVICE9 pDevice)		// 加算合成なしの描画前関数
+	{ // ライティングを無効に設定
+		pDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
+
+		// Zテストを無効にする
+		pDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+		pDevice->SetRenderState(D3DRS_ZFUNC, D3DCMP_LESS);
+	};
+
+	auto after = [](LPDIRECT3DDEVICE9 pDevice)		// 加算合成なしの描画後関数
+	{ // Zテストを無効にする
+		pDevice->SetRenderState(D3DRS_ZFUNC, D3DCMP_LESSEQUAL);
+		pDevice->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+
+		// ライティングを有効に設定
+		pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
+	};
+
+	// 無効化されていればスキップ
+	if (m_bEnable == false) return;
+
+	if (m_setting.nNumEffectVariation != 0)
+	{ // 生成数のぶれを計算
+		nNumEffectVariation = pRand->Generate(-m_setting.nNumEffectVariation, m_setting.nNumEffectVariation);
+	}
+
+	for (int nCntEffect = 0; nCntEffect < m_setting.nNumEffectFrame + nNumEffectVariation; nCntEffect++)
 	{ // エフェクト生成
 		if (m_setting.nLife < 3) continue;
+		if (m_setting.nPercent != 0 && rand() % 100 >= m_setting.nPercent) continue;
+
+		// 体力の最大値を計算
+		int nLifeMax = (m_setting.nEffectLifeMax != 0) ? m_setting.nEffectLifeMax : m_setting.nLife - 1;
+		nLifeMax = (nLifeMax > m_setting.nLife) ? m_setting.nLife : nLifeMax;
+
+		Vector3 posVariation = Vec3::Random(-m_setting.posVariation * 0.5f, m_setting.posVariation * 0.5f);
+		Vector3 moveVariation = Vec3::Random(-m_setting.moveVariation * 0.5f, m_setting.moveVariation * 0.5f);
+		Vector2 scaleVariation = Vec2::Random(-m_setting.scaleVariation * 0.5f, m_setting.scaleVariation * 0.5f);
+		int nLife = pRand->Generate(1, nLifeMax);
+
+		// エフェクトを生成
 		CObjectBillboard3D *pBill = CObjectBillboard3D::Create(m_setting.pos + Vec3::Random(-m_setting.posVariation * 0.5f, m_setting.posVariation * 0.5f),
 			m_setting.move + Vec3::Random(-m_setting.moveVariation * 0.5f, m_setting.moveVariation * 0.5f),
 			m_setting.scale + Vec2::Random(-m_setting.scaleVariation * 0.5f, m_setting.scaleVariation * 0.5f),
-			pRand->Generate(1, m_setting.nLife - 1));
+			pRand->Generate(1, nLifeMax));
 
 		// 色を指定
 		pBill->SetColor(m_setting.color);
@@ -97,40 +165,23 @@ void CParticleQuaternion::Update(void)
 		// 自動スケール減少をオンに設定
 		pBill->SetEnableScaleDown(true);
 
-		// 描画前処理のラムダ式を登録
-		pBill->SetStateFunctionBeforeDraw([](LPDIRECT3DDEVICE9 pDevice) 
-			{ // ライティングを無効に設定
-				pDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
-
-				// Zテストを無効にする
-				pDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
-				pDevice->SetRenderState(D3DRS_ZFUNC, D3DCMP_LESS);
-
-				// 加算合成開始
-				pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
-				pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-				pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
-			});
-
-		// 描画後処理のラムダ式を登録
-		pBill->SetStateFunctionAfterDraw([](LPDIRECT3DDEVICE9 pDevice)
-			{ // 加算合成終了
-				pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
-				pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-				pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-
-				// Zテストを無効にする
-				pDevice->SetRenderState(D3DRS_ZFUNC, D3DCMP_LESSEQUAL);
-				pDevice->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
-
-				// ライティングを有効に設定
-				pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
-			});
+		if (m_setting.bEnableAlphaBlending == true)
+		{ // 加算合成有りの場合
+			// 描画前処理のラムダ式を登録
+			pBill->SetStateFunctionBeforeDraw(beforeAlpha);
+			pBill->SetStateFunctionAfterDraw(afterAlpha);
+		}
+		else
+		{ // 加算合成無しの場合
+			// 描画前処理のラムダ式を登録
+			pBill->SetStateFunctionBeforeDraw(before);
+			pBill->SetStateFunctionAfterDraw(after);
+		}
 	}
 
 	m_setting.nLife--;		// 寿命を減らす
 	if (m_setting.nLife <= 0)
-	{ // 寿命が尽きた場合、終了
+	{ // 寿命が尽きて、自身を参照するエフェクトがなくなった場合、終了
 		Uninit();
 	}
 }

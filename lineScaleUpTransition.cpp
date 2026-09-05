@@ -13,6 +13,7 @@
 #include "meshOrbit2D.h"
 #include "manager.h"
 #include "renderer.h"
+#include "sound.h"
 #include "texture.h"
 #include "color.h"
 #include "rand.h"
@@ -161,6 +162,11 @@ void CLineScaleUpTransition::StartTransition(const int nTransitionTime, const CS
 	// オービットを生成
 	m_pVoltOrbit2D = CMeshOrbit2D::Create(FIRST_POSITION, Vector3(0.0f, HALF_PI, 0.0f), 50, 0.1f);
 	m_pVoltOrbit2D->SetColor(Colors::GetColor(Colors::C_YELLOW));
+
+	CSound *pSound = CManager::GetInstance()->GetSound();		// サウンドへのポインタ7
+
+	// 通電音 (long ver)を流す
+	pSound->Play(CSound::LABEL_SE_ELECTRIC_LONG);
 }
 
 //==================================================================================

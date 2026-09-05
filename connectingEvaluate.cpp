@@ -12,7 +12,6 @@
 #include "polygon2D.h"
 #include "manager.h"
 #include "texture.h"
-#include <string_view>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -65,6 +64,7 @@ CConnectingEvaluate::CConnectingEvaluate() : CObject(DEFAULT_UI_PRIORITY)
 { // メンバ変数を初期化
 	m_pos = VECTOR3_NULL;
 	m_scale = VECTOR2_NULL;
+	m_nNumCurrentLightingHouse = 0;
 	m_vPolyInfo.reserve(DEFAULT_RESERVE);
 
 	// タイプを指定
@@ -132,15 +132,17 @@ void CConnectingEvaluate::Draw(void)
 }
 
 //==================================================================================
-// --- 評価追加処理 ---
+// --- 評価処理 ---
 //==================================================================================
-void CConnectingEvaluate::AddEvaluate(const int nNumLightingHouse)
-{ 
+void CConnectingEvaluate::Evaluate(void)
+{ // 0軒以下の場合スキップ
+	if (m_nNumCurrentLightingHouse <= 0) return;
+
 	EVALUATE eval = EVALUATE_NONE;		// 評価結果
 
 	for (int nCntEvaluate = 0; nCntEvaluate < EVALUATE_MAX; nCntEvaluate++)
 	{ // どれかの評価に当たるまで繰り返し
-		if (nNumLightingHouse >= c_aEvaluateLine[nCntEvaluate])
+		if (m_nNumCurrentLightingHouse >= c_aEvaluateLine[nCntEvaluate])
 		{ // 基準値以下だった場合、そのタイプを保存
 			eval = static_cast<EVALUATE>(nCntEvaluate);
 		}
@@ -151,6 +153,9 @@ void CConnectingEvaluate::AddEvaluate(const int nNumLightingHouse)
 
 	// 評価に合わせたポリゴンを生成
 	CreatePolygon(eval);
+
+	// 電気のついた家の数をリセット
+	m_nNumCurrentLightingHouse = 0;
 }
 
 //==================================================================================

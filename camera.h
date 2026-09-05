@@ -12,7 +12,6 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "main.h"
-#include <concepts>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -57,6 +56,8 @@ public:
 	void SetViewport(const D3DVIEWPORT9 &vp) { m_vp = vp; }
 	const D3DVIEWPORT9 *GetViewport(void) const { return &m_vp; }
 	void SetFocus(void) { m_focusType = m_type; }
+	void SetPixelFog(Color col, float fStart, float fEnd);
+	void SetEnablePixelFog(const bool bEnable) { m_bEnableFog = bEnable; }
 
 	static void ReleaseAll(void);
 	static void UpdateAll(void);
@@ -71,18 +72,21 @@ protected:
 	void Release(void);
 
 private:
-	inline static CCamera *m_apCamera[TYPE_MAX] = {};		// 現在登録されているカメラへのポインタ
-	inline static D3DVIEWPORT9 m_vpDef = DEFAULT_VP;		// デフォルトのビューポート
+	inline static CCamera *m_apCamera[TYPE_MAX] = {};			// 現在登録されているカメラへのポインタ
+	inline static D3DVIEWPORT9 m_vpDef = DEFAULT_VP;			// デフォルトのビューポート
 	inline static TYPE m_currentType = CCamera::TYPE_PLAYER;	// 現在設置されているカメラのタイプ
 	inline static TYPE m_focusType = CCamera::TYPE_MAX;			// フルスクリーンにフォーカスしているカメラのタイプ
 	Matrix m_mtxProjection;		// プロジェクションマトリックス
-	Matrix m_mtxView;	// ビューマトリックス
-	Vector3 m_posV;		// 視点	
-	Vector3 m_posR;		// 注視点
-	Vector3 m_vecU;		// 上方向ベクトル
-	Vector3 m_rot;		// 向き
+	Matrix m_mtxView;		// ビューマトリックス
+	Vector3 m_posV;			// 視点	
+	Vector3 m_posR;			// 注視点
+	Vector3 m_vecU;			// 上方向ベクトル
+	Vector3 m_rot;			// 向き
 	D3DVIEWPORT9 m_vp;		// ビューポート設定
+	Color m_colFog;			// ピクセルフォグの色
+	float m_fStart, m_fEnd;	// フォグの開始・終了位置
 	TYPE m_type;			// カメラの種類
 	bool m_bEnableOrtho;	// 正射影投影の有効化
+	bool m_bEnableFog;		// フォグの有効化
 };
 #endif

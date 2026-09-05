@@ -109,5 +109,4 @@ private:
 
 	XINPUT_INFO m_aJoypad[MAX_JOYPAD];			// ジョイパッドの情報
 };
-
 #endif

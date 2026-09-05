@@ -15,7 +15,7 @@
 #include <functional>
 
 //**********************************************************************************
-// *** ポリゴンクラス ***
+// *** ポリゴン2Dクラス ***
 //**********************************************************************************
 class CPolygon2D
 {
@@ -46,6 +46,7 @@ public:
 	bool GetDisp(void) const { return m_bDisp; }
 	void BindTexture(LPDIRECT3DTEXTURE9 pTexture);
 	void BindTexture(const int nIdxTexture);
+	bool Collision(const Vector3 &point);
 	void SetStateFunctionBeforeDraw(std::function<void(LPDIRECT3DDEVICE9)> before) { m_beforeDraw = before; }
 	void SetStateFunctionAfterDraw(std::function<void(LPDIRECT3DDEVICE9)> after) { m_afterDraw = after; }
 

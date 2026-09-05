@@ -13,6 +13,7 @@
 #include "objectBillboard3D.h"
 #include "sparkEffect.h"
 #include "manager.h"
+#include "sound.h"
 #include "texture.h"
 #include "matrix.h"
 #include "vec3math.h"
@@ -24,8 +25,8 @@
 //**********************************************************************************
 #define LIGHTNING_TIME		(CManager::SecToFrame(1.5f))	// 感電の持続時間
 #define PLAYER_EFFECT_SIZE	(Vector2(150.0f, 150.0f))		// プレイヤーのエフェクトのサイズ
-#define SCREEN_EFFECT_SIZE	(SCREEN_SIZE)					// スクリーンエフェクトのサイズ
-#define WARNING_EFFECT_SIZE	(Vector2(1000.0f, 256.0f))		// 警告エフェクトのサイズ
+#define SCREEN_EFFECT_SIZE	(SCREEN_SIZE * 1.1f)			// スクリーンエフェクトのサイズ
+#define WARNING_EFFECT_SIZE	(Vector2(800.0f, 204.8f))		// 警告エフェクトのサイズ
 #define WARNING_PATH		"data/TEXTURE/effect/shock.png"	// 警告用テクスチャのパス
 #define WARNING_BLINK_NUM	(3)			// 警告の点滅する回数
 
@@ -173,7 +174,7 @@ void CShock::Update(void)
 	int nPlayerCurrentIdx = m_nCounterFrame / nPlayerEffectChangeLine;		// テクスチャパスのインデックス
 	int nScreenCurrentIdx = m_nCounterFrame / nScreenEffectChangeLine;		// テクスチャパスのインデックス
 	float fAlpha = (cosf(fRadianIncrease * static_cast<float>(m_nCounterFrame)) * 0.5f) + 0.5f;		// α値
-	Color col = m_pWarningEffect->GetColor();		// 今の色
+	Color col = *m_pWarningEffect->GetColor();		// 今の色
 
 	// α値を変更
 	col.a = fAlpha;
@@ -189,6 +190,11 @@ void CShock::Update(void)
 		m_pWarningEffect->SetDisp(false);
 		m_pScreenEffect->SetDisp(false);
 		m_pPlayerEffect->SetDisp(false);
+
+		CSound *pSound = CManager::GetInstance()->GetSound();		// サウンドへのポインタ
+
+		// 感電音を止める
+		pSound->Stop(CSound::LABEL_SE_ELECTRIC_SHOCK);
 	}
 }
 
@@ -207,8 +213,13 @@ void CShock::Set(void)
 	m_nTime = LIGHTNING_TIME;		// 持続時間を設定
 	m_nCounterFrame = 0;			// フレームカウントリセット
 
+	CSound *pSound = CManager::GetInstance()->GetSound();		// サウンドへのポインタ
+
 	// 各ポリゴンを描画するようにする
 	m_pWarningEffect->SetDisp(true);
 	m_pScreenEffect->SetDisp(true);
 	m_pPlayerEffect->SetDisp(true);
+
+	// 感電音を流す
+	pSound->Play(CSound::LABEL_SE_ELECTRIC_SHOCK);
 }

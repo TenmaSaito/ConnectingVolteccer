@@ -33,7 +33,11 @@ public:
 	CParticleQuaternionBuilder &SetPositionVariation(const Vector3 &posVariation);
 	CParticleQuaternionBuilder &SetMoveVariation(const Vector3 &moveVariation);
 	CParticleQuaternionBuilder &SetScaleVariation(const Vector2 &scaleVariation);
-	CParticleQuaternion::Setting Build(void) const { return m_setting; }
+	CParticleQuaternionBuilder &SetNumEffectVariation(const int nNumEffectVariation);
+	CParticleQuaternionBuilder &SetPercent(const int nPercent);
+	CParticleQuaternionBuilder &SetEffectLifeMax(const int nEffectLifeMax);
+	CParticleQuaternionBuilder &SetEnableAlphaBlending(const bool bEnable);
+	CParticleQuaternion *Build(void) const { return CParticleQuaternion::Create(m_setting); }
 
 private:
 	CParticleQuaternion::Setting m_setting;		// パーティクル生成時の設定

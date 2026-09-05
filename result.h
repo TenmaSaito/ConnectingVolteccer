@@ -17,6 +17,7 @@
 // *** 前方宣言 ***
 //**********************************************************************************
 class CPlanet;
+class CResultMenu;
 
 //**********************************************************************************
 // *** タイトルクラス ***
@@ -32,7 +33,7 @@ public:
 	void Update(void) override;
 	void Draw(void) override;
 
-	constexpr CPlanet *GetPlanet(void) const { return m_pPlanet; }
+	CPlanet *GetPlanet(void) const { return m_pPlanet; }
 
 	static constexpr MODE GetMyMode(void) { return MODE_RESULT; }
 
@@ -40,6 +41,6 @@ private:
 	void Start(void);
 
 	CPlanet *m_pPlanet;		// 惑星へのポインタ
-	float m_fPercent;		// 電気のついた家の割合
+	CResultMenu *m_pMenu;	// リザルト用メニューへのポインタ
 };
 #endif

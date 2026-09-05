@@ -73,7 +73,9 @@ void CLightingPillar::Uninit(void)
 // --- 更新処理 ---
 //==================================================================================
 void CLightingPillar::Update(void)
-{ 
+{ // 既に死んでいる場合、スキップ
+	if (IsDeath() == true) return;
+
 	if (m_fCurrentHeight < m_fEndHeight && m_bStartScaleUp == true)
 	{ // 縦幅を増加
 		m_fCurrentHeight += HEIGHT_VALUE;

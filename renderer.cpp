@@ -13,6 +13,7 @@
 #include "debugproc.h"
 #include "object.h"
 #include "camera.h"
+#include "pause.h"
 #include "sceneTransition.h"
 
 //**********************************************************************************
@@ -319,6 +320,7 @@ void CRenderer::Update(void)
 void CRenderer::Draw(void)
 {
 	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
+	CScene *pScene = pManager->GetScene();				// シーンへのポインタ
 	CDebugProc *pDebugProc = pManager->GetDebugProc();	// デバッグ表示へのポインタ
 
 	// 画面クリア(バックバッファとZバッファのクリア)
@@ -329,7 +331,7 @@ void CRenderer::Draw(void)
 	// 描画開始
 	if (SUCCEEDED(m_pD3DDevice->BeginScene()))
 	{// 描画開始が成功した場合
-			// カメラの設置
+		// カメラの設置
 		CCamera *pCurrentCamera = CCamera::Begin(CCamera::GetFocus());
 		if (pCurrentCamera != nullptr)
 		{ // カメラが生成済みならビューポート変更
@@ -347,6 +349,9 @@ void CRenderer::Draw(void)
 
 		// 全てのオブジェクトを描画
 		CObject::DrawAll();
+		
+		// シーンの描画
+		pScene->Draw();
 
 		// カメラの設置終了
 		CCamera::End();
@@ -362,6 +367,9 @@ void CRenderer::Draw(void)
 
 		// スクリーン用ポリゴンの描画
 		DrawScreen();
+
+		// ポーズ画面の描画
+		pManager->GetPause()->Draw();
 
 		// 遷移用トランジション描画
 		pManager->GetTransition()->Draw();

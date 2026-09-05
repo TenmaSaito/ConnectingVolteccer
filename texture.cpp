@@ -11,7 +11,6 @@
 #include "texture.h"
 #include "manager.h"
 #include "renderer.h"
-#include <string_view>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -27,7 +26,9 @@ namespace
 	{
 		"data/TEXTURE/base/triangle.png",	// 三角形
 		"data/TEXTURE/base/circle.png",		// 円形
+		"data/TEXTURE/base/doughnut.png",	// ドーナツ形
 		"data/TEXTURE/base/star.png",		// 星型
+		"data/TEXTURE/base/note.png",		// 音符型
 	};
 }
 

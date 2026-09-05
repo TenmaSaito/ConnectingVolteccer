@@ -36,8 +36,12 @@ CCamera::CCamera(const TYPE type)
 	m_posR = VECTOR3_NULL;
 	m_vecU = VECTOR3_NULL;
 	m_rot = VECTOR3_NULL;
+	m_colFog = COLOR_NULL;
+	m_fStart = 0.0f;
+	m_fEnd = 0.0f;
 	m_vp = {};
 	m_bEnableOrtho = false;
+	m_bEnableFog = false;
 
 	// タイプを保存
 	m_type = type;
@@ -137,6 +141,20 @@ void CCamera::SetCamera(void)
 		// マトリックスの設定
 		pDevice->SetTransform(D3DTS_VIEW, &m_mtxView);
 	}
+
+	if (m_bEnableFog == true)
+	{ // フォグを設定
+		// フォグブレンディングを有効化
+		pDevice->SetRenderState(D3DRS_FOGENABLE, TRUE);
+
+		// フォグカラ―を設定
+		pDevice->SetRenderState(D3DRS_FOGCOLOR, m_colFog);
+
+		// フォグパラメータを設定
+		pDevice->SetRenderState(D3DRS_FOGTABLEMODE, D3DFOG_LINEAR);
+		pDevice->SetRenderState(D3DRS_FOGSTART, *(reinterpret_cast<DWORD*>(&m_fStart)));
+		pDevice->SetRenderState(D3DRS_FOGEND, *(reinterpret_cast<DWORD*>(&m_fEnd)));
+	}
 }
 
 //==================================================================================
@@ -164,6 +182,16 @@ bool CCamera::IsVisible(const Vector3 &pos)
 Vector3 CCamera::GetRay(void) const
 {
 	return Vec3::Direction(m_posR, m_posV);
+}
+
+//==================================================================================
+// --- カメラのフォグ設定処理 ---
+//==================================================================================
+void CCamera::SetPixelFog(Color col, float fStart, float fEnd)
+{ // 各値を保存
+	m_colFog = col;
+	m_fStart = fStart;
+	m_fEnd = fEnd;
 }
 
 //==================================================================================
@@ -285,6 +313,12 @@ void CCamera::End(void)
 
 	// ビューポートを元に戻す
 	pDevice->SetViewport(&m_vpDef);
+
+	if (m_apCamera[m_currentType]->m_bEnableFog == true)
+	{ // フォグを解除
+		// フォグブレンディングを無効化
+		pDevice->SetRenderState(D3DRS_FOGENABLE, FALSE);
+	}
 }
 
 //==================================================================================
