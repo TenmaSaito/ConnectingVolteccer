@@ -75,4 +75,20 @@ private:
 	bool m_bHitByPlayerCamRay;	// プレイヤーカメラとプレイヤの間にいるか
 	bool m_bDisp;				// 描画フラグ
 };
+
+class CBuildingScorable : public CBuilding
+{
+public:
+};
+
+class CBuildingHighScorable : public CBuilding
+{
+public:
+};
+
+class CBuildingUnScorable : public CBuilding
+{
+public:
+};
+
 #endif

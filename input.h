@@ -16,7 +16,9 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define NUM_KEY_MAX			(256)			// キーボードのキー数
+#define NUM_KEY_MAX					(256)	// キーボードのキー数
+#define INPUT_DEFAULT_WAIT_PRESS	(60)	// リピートの連続入力までの待機時間
+#define INPUT_DEFAULT_INTERVAL		(30)	// リピートの連続入力の間隔
 
 //**********************************************************************************
 // *** 入力クラス ***
@@ -51,7 +53,9 @@ public:
 	bool GetPress(const int nKey);
 	bool GetTrigger(const int nKey);
 	bool GetRelease(const int nKey);
-	bool GetRepeat(const int nKey, const int nWaitPress, const int nInterval);
+	bool GetRepeat(const int nKey,
+		const int nWaitPress = INPUT_DEFAULT_WAIT_PRESS, 
+		const int nInterval = INPUT_DEFAULT_INTERVAL);
 
 private:
 	BYTE m_aKeyState[NUM_KEY_MAX];				// キーボードのプレス情報

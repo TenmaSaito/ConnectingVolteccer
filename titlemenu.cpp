@@ -13,12 +13,15 @@
 #include "texture.h"
 #include "vec2math.h"
 #include "manager.h"
+#include "renderer.h"
 #include "input.h"
 #include "sound.h"
 #include "joypad.h"
 #include "observer_pointer.h"
 #include "util.h"
 #include "sceneTransition.h"
+#include "mapManager.h"
+#include "planet.h"
 #include <string_view>
 
 //**********************************************************************************
@@ -87,7 +90,7 @@ HRESULT CTitleMenu::Init(void)
 		Vector2(SCREEN_SIZE.y, SCREEN_SIZE.y)));
 
 	// 色を設定
-	m_pCircle->SetColor(Color(1.0f, 1.0f, 1.0f, 0.5f));
+	m_pCircle->SetColor(Color(1.0f, 1.0f, 1.0f, 0.3f));
 
 	// 円形テクスチャを登録
 	m_pCircle->BindTexture(CTexture::TYPE_CIRCLE);
@@ -197,7 +200,7 @@ void CTitleMenu::Update(void)
 
 	if (m_lastType == m_currentType)
 	{ // タイプ補間が完了している場合
-		if (pKeyboard->GetTrigger(DIK_S)
+		if (pKeyboard->GetRepeat(DIK_S)
 			|| pJoypad->GetRepeat(CJoypad::KEY_DOWN)
 			|| pJoypad->GetStick(CJoypad::STICK_LEFT_DOWN))
 		{ // S入力時、タイプを1進める
@@ -208,7 +211,7 @@ void CTitleMenu::Update(void)
 			// セレクト音を流す
 			pSound->Play(CSound::LABEL_SE_SELECT);
 		}
-		else if (pKeyboard->GetTrigger(DIK_W)
+		else if (pKeyboard->GetRepeat(DIK_W)
 			|| pJoypad->GetRepeat(CJoypad::KEY_UP)
 			|| pJoypad->GetStick(CJoypad::STICK_LEFT_UP))
 		{ // W入力時、タイプを1戻す
@@ -265,6 +268,19 @@ void CTitleMenu::Update(void)
 			m_lastType = m_currentType;		// 直前のタイプを現在のタイプに変更
 			m_fTime = 0.0f;			// 線形補間用変数をリセット
 		}
+
+		// 惑星を回転
+		Vector3 vecQua = Vector3(0.0f, 0.0f, 1.0f);		// 軸
+		float fAngle = 0.01f * (m_currentType - m_lastType);	// 回転度数
+		Quaternion qua;			// かけ合わせるクォータニオン
+
+		// クォータニオンを計算
+		D3DXQuaternionIdentity(&qua);
+		D3DXQuaternionRotationAxis(&qua,
+			&vecQua,
+			fAngle);
+
+		CMapManager::GetInstance()->GetPlanet()->MultiplyQuaternion(qua);
 	}
 }
 
@@ -273,8 +289,16 @@ void CTitleMenu::Update(void)
 //==================================================================================
 void CTitleMenu::Draw(void)
 { 
-	// 円形ポリゴンの描画
-	m_pCircle->Draw();
+	CManager *pManager = CManager::GetInstance();			// マネージャーへのポインタ
+	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
+	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
+
+	// αテストを有効にする + Zバッファへの書き込みを無効にする
+	pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
+	pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
+	pDevice->SetRenderState(D3DRS_ALPHAREF, 30);
+
+	//m_pCircle->Draw();
 
 	for (auto &pPoly : m_apMenu)
 	{ // 各メニューの描画
@@ -283,6 +307,11 @@ void CTitleMenu::Draw(void)
 
 	// ロゴの描画
 	m_pLogo->Draw();
+
+	// αテストを無効にする + Zバッファへの書き込みを有効にする
+	pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+	pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_ALWAYS);
+	pDevice->SetRenderState(D3DRS_ALPHAREF, 0);
 }
 
 //==================================================================================

@@ -1,6 +1,6 @@
 //==================================================================================
 // 
-// リザルトカメラクラスのソースファイル [resultCamera.cpp]
+// タイトルカメラクラスのソースファイル [titleCamera.cpp]
 // Author : TENMA SAITO
 // Date   : 2026/6/1
 // 
@@ -8,7 +8,7 @@
 //**********************************************************************************
 // *** インクルードファイル ***
 //**********************************************************************************
-#include "resultCamera.h"
+#include "titleCamera.h"
 #include "manager.h"
 #include "input.h"
 #include "joypad.h"
@@ -27,15 +27,15 @@
 //==================================================================================
 // --- カメラの生成 ---
 //==================================================================================
-CResultCamera *CResultCamera::Create(const Vector3 &posV, const Vector3 &posR)
+CTitleCamera *CTitleCamera::Create(const Vector3 &posV, const Vector3 &posR)
 {
-	CResultCamera *pResultCamera = nullptr;		// 生成したカメラへのポインタ
+	CTitleCamera *pResultCamera = nullptr;		// 生成したカメラへのポインタ
 
 	// 自身のタイプのカメラが既に存在しているか確認
-	pResultCamera = static_cast<CResultCamera*>(CCamera::GetCamera(TYPE_RESULT));
+	pResultCamera = static_cast<CTitleCamera*>(CCamera::GetCamera(TYPE_TITLE));
 	if (pResultCamera == nullptr)
 	{ // 存在していなかった場合は、新規作成
-		pResultCamera = new CResultCamera;
+		pResultCamera = new CTitleCamera;
 	}
 
 	// 初期化処理
@@ -46,21 +46,21 @@ CResultCamera *CResultCamera::Create(const Vector3 &posV, const Vector3 &posR)
 //==================================================================================
 // --- コンストラクタ ---
 //==================================================================================
-CResultCamera::CResultCamera() : CCamera(TYPE_RESULT)
+CTitleCamera::CTitleCamera() : CCamera(TYPE_TITLE)
 {
 }
 
 //==================================================================================
 // --- デストラクタ ---
 //==================================================================================
-CResultCamera::~CResultCamera()
+CTitleCamera::~CTitleCamera()
 {
 }
 
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-void CResultCamera::Init(const Vector3 &posV, const Vector3 &posR)
+void CTitleCamera::Init(const Vector3 &posV, const Vector3 &posR)
 { // 親クラスの初期化
 	CCamera::Init(posV, posR);
 }
@@ -68,7 +68,7 @@ void CResultCamera::Init(const Vector3 &posV, const Vector3 &posR)
 //==================================================================================
 // --- 終了処理 ---
 //==================================================================================
-void CResultCamera::Uninit(void)
+void CTitleCamera::Uninit(void)
 { // カメラの解放
 	CCamera::Release();
 }
@@ -76,7 +76,7 @@ void CResultCamera::Uninit(void)
 //==================================================================================
 // --- 更新処理 ---
 //==================================================================================
-void CResultCamera::Update(void)
+void CTitleCamera::Update(void)
 {
 	CManager *pManager = CManager::GetInstance();	// マネージャへのポインタ
 	auto pKeyboard = pManager->GetInputKeyboard();	// キーボードへのポインタ
@@ -95,7 +95,7 @@ void CResultCamera::Update(void)
 //==================================================================================
 // --- カメラの設置処理 ---
 //==================================================================================
-void CResultCamera::SetCamera(void)
+void CTitleCamera::SetCamera(void)
 { // カメラを設置
 	CCamera::SetCamera();
 }

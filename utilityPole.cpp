@@ -27,6 +27,7 @@
 #include "vec3math.h"
 #include "color.h"
 #include "mapManager.h"
+#include "building.h"
 #include <algorithm>
 #include <ranges>
 #include <string_view>
@@ -41,6 +42,7 @@
 #define CONNECT_HEIGHT		(150.0f)	// 繋げられる電柱との高さの差分の最大値
 #define CONNECT_HEIGHT_EX	(30.0f)		// 発電所の場合の追加差分
 #define AIMING_ROTATE_SPD	(0.04f)		// エイムアイコンの回転速度
+//#define ENABLE_BUILDING_RAY_DECISION		// 建物をまたがないかの判定
 
 //**********************************************************************************
 // *** 定数宣言 ***
@@ -413,6 +415,7 @@ bool CUtilityPole::CanFocus(const CPlayer *pPlayer)
 	Vector3 posPlayerWorld = VECTOR3_NULL;		// プレイヤーの絶対座標
 	Vector3 rayCam = VECTOR3_NULL;				// カメラの視線ベクトル
 	Vector3 rayPlayerToPole = VECTOR3_NULL;		// プレイヤーと電柱を繋いだベクトル
+	Vector3 rayPlayerToPoleInXZ = VECTOR3_NULL;	// プレイヤーと電柱を繋いだXZ平面のベクトル
 	float fDot = 0.0f;			// 視線ベクトルとプレイヤーと電柱を繋いだベクトルの内積結果
 	float fRadian = 0.0f;		// 二つのベクトル間の角度
 
@@ -432,13 +435,32 @@ bool CUtilityPole::CanFocus(const CPlayer *pPlayer)
 
 	// プレイヤーと電柱を繋いだベクトルを求める
 	rayPlayerToPole = Vec3::Direction(posWorld, posPlayerWorld);
-	rayPlayerToPole.y = 0.0f;
+
+	// XZ平面のベクトルに変換
+	rayPlayerToPoleInXZ = rayPlayerToPole;
+	rayPlayerToPoleInXZ.y = 0.0f;
 
 	// ベクトルの長さが0だった場合、失敗
-	if (Vec3::Length(rayPlayerToPole) == 0.0f) return false;
+	if (Vec3::Length(rayPlayerToPoleInXZ) == 0.0f) return false;
 
+#ifdef ENABLE_BUILDING_RAY_DECISION
+	auto vpbuilding = CMapManager::GetInstance()->GetBuilding();			// 各建物へのポインタ
+	bool bHit = false;		// 建物との衝突判定
+
+	// どの建物にもあたっていないか確認
+	std::ranges::for_each(vpbuilding, [&](auto &x)
+		{ // 既に当たっていたら、スキップ
+			if (bHit == true) return;
+
+			// 無限長のレイと当たったか判定
+			bHit = x->IsHitByRay(posPlayerWorld, rayPlayerToPole, 10000.0f);
+		});
+
+	// 一つの建物にでも当たっていたら失敗
+	if (bHit == true) return false;
+#endif
 	// 二つのベクトルから内積を求める
-	fDot = Vec3::Dot(rayCam, rayPlayerToPole);
+	fDot = Vec3::Dot(rayCam, rayPlayerToPoleInXZ);
 
 	// -1.0f～1.0fの間にクランプ
 	fDot = std::clamp(fDot, -1.0f, 1.0f);

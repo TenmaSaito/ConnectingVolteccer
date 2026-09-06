@@ -18,9 +18,10 @@
 #include "joypad.h"
 #include "texture.h"
 #include "object2D.h"
-#include "camera.h"
+#include "titleCamera.h"
 #include "titlemenu.h"
-#include "observer_pointer.h"
+#include "mapManager.h"
+#include "planet.h"
 
 //==================================================================================
 // --- コンストラクタ ---
@@ -58,7 +59,23 @@ void CTitle::Uninit(void)
 // --- 更新処理 ---
 //==================================================================================
 void CTitle::Update(void)
-{ // 全カメラの更新処理
+{
+	// 惑星を回転
+	CMapManager *pMap = CMapManager::GetInstance();		// マップマネージャへのポインタ
+	Vector3 vecQua = Vector3(0.0f, D3DX_PI, 0.0f);		// 軸
+	float fAngle = 0.005f;	// 回転度数
+	Quaternion qua;			// かけ合わせるクォータニオン
+
+	// クォータニオンを計算
+	D3DXQuaternionIdentity(&qua);
+	D3DXQuaternionRotationAxis(&qua,
+		&vecQua,
+		fAngle);
+
+	// 惑星に掛ける
+	pMap->GetPlanet()->MultiplyQuaternion(qua);
+
+	// 全カメラの更新処理
 	CCamera::UpdateAll();
 }
 
@@ -76,12 +93,25 @@ void CTitle::Start(void)
 {
 	// 仮置きでカメラを生成 (自動解放)
 	// TODO : ここのカメラはタイトル用のカメラを作って置き換える事！
-	CCamera *pCamera = new CCamera(CCamera::TYPE_TITLE);
-	pCamera->Init(Vector3(0.0f, 0.0f, -100.0f), VECTOR3_NULL);
+	float x = 2100.0f;
+	float y = 0.0f;
+	CTitleCamera *pCamera = CTitleCamera::Create(Vector3(x, y, -2800.0f), Vector3(x, y, 0.0f));
 	pCamera->SetFocus();
 
 	// タイトル画面のメニューを生成
 	m_pMenu = CTitleMenu::Create();
+
+	CMapManager *pMap = CMapManager::GetInstance();		// マップマネージャへのポインタ
+	CPlanet *pPlanet = nullptr;		// 惑星へのポインタ
+
+	// マップを読み込み
+	pMap->LoadLatest();
+
+	Quaternion quaInv;				// 反転したクォータニオン
+
+	// 惑星へのポインタを取得して、逆向きのクォータニオンをかけ合わせる
+	pPlanet = pMap->GetPlanet();
+	pPlanet->MultiplyQuaternion(*D3DXQuaternionInverse(&quaInv, pPlanet->GetQuaternion()));
 
 	CSound *pSound = CManager::GetInstance()->GetSound();		// サウンドへのポインタ
 
