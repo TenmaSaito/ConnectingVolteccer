@@ -336,10 +336,7 @@ void CRenderer::Draw(void)
 		if (pCurrentCamera != nullptr)
 		{ // カメラが生成済みならビューポート変更
 			// レンダリングターゲット変更
-			ChangeTarget(*pCurrentCamera->GetPosV(),
-				*pCurrentCamera->GetPosR(),
-				*pCurrentCamera->GetVecU(),
-				pCurrentCamera->GetViewport());
+			ChangeTarget(pCurrentCamera);
 		}
 
 		// 画面クリア(バックバッファとZバッファのクリア)
@@ -448,6 +445,55 @@ void CRenderer::ChangeTarget(const Vector3 &posV,
 		&posV,		
 		&posR,		
 		&vecU);		
+
+	// ビューマトリックスの設定
+	m_pD3DDevice->GetTransform(D3DTS_VIEW, &m_mtxViewDef);
+	m_pD3DDevice->SetTransform(D3DTS_VIEW, &mtxView);
+}
+
+//==================================================================================
+// --- レンダリングターゲット変更処理 (カメラの値を使用) ---
+//==================================================================================
+void CRenderer::ChangeTarget(const CCamera *pFocus)
+{
+	Matrix mtxProj, mtxView;	// ビュー・プロジェクションマトリックス
+	const D3DVIEWPORT9 *pViewportMT = &m_viewportMT;		// 設定するビューポートへのポインタ
+	float fAspect;					// アスペクト比
+
+	// ビューポートを変更
+	pViewportMT = pFocus->GetViewport();
+
+	// レンダリングターゲットを切り替え
+	if (FAILED(m_pD3DDevice->SetRenderTarget(0, m_apRenderMT[0]))
+		&& FAILED(m_pD3DDevice->SetDepthStencilSurface(m_pZBuffMT)))
+	{ // 切り替え失敗
+		return;
+	}
+
+	// ビューポート設定
+	m_pD3DDevice->SetViewport(pViewportMT);
+
+	// マトリックスの初期化
+	D3DXMatrixIdentity(&mtxProj);
+	D3DXMatrixIdentity(&mtxView);
+
+	// プロジェクションマトリックスの作成
+	fAspect = static_cast<float>(pViewportMT->Width) / static_cast<float>(pViewportMT->Height);
+	D3DXMatrixPerspectiveFovLH(&mtxProj,
+		D3DXToRadian(pFocus->GetFovy()),
+		fAspect,
+		pFocus->GetNear(),
+		pFocus->GetFar());
+
+	// プロジェクションマトリックスの設定
+	m_pD3DDevice->GetTransform(D3DTS_PROJECTION, &m_mtxProjDef);
+	m_pD3DDevice->SetTransform(D3DTS_PROJECTION, &mtxProj);
+
+	// ビューマトリックスの作成
+	D3DXMatrixLookAtLH(&mtxView,
+		pFocus->GetPosV(),
+		pFocus->GetPosR(),
+		pFocus->GetVecU());
 
 	// ビューマトリックスの設定
 	m_pD3DDevice->GetTransform(D3DTS_VIEW, &m_mtxViewDef);

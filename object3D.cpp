@@ -50,6 +50,7 @@ CObject3D::CObject3D(const int nPriority) : CObject(nPriority)
 	m_rot = VECTOR3_NULL;
 	m_size = VECTOR2_NULL;
 	ZeroMemory(m_aVtx, sizeof(m_aVtx));
+	m_pMtxParent = nullptr;
 	m_bDirty = false;
 	m_bXYPlane = false;
 
@@ -216,7 +217,6 @@ void CObject3D::Uninit(void)
 //==================================================================================
 void CObject3D::Update(void)
 {
-
 }
 
 //==================================================================================
@@ -229,17 +229,11 @@ void CObject3D::Draw(void)
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
 	CTexture *pTexture = CTexture::GetInstance();		// テクスチャへのポインタ
 
-	if (m_bDirty == true)
-	{ // 位置や角度の変更によりマトリックスの再計算が必要な場合
-		// ワールドマトリックスの初期化
-		D3DXMatrixIdentity(&m_mtxWorld);
+	// ワールドマトリックスの初期化
+	D3DXMatrixIdentity(&m_mtxWorld);
 
-		// ワールドマトリックスの計算
-		Mtx::CalcWorld(&m_mtxWorld, m_pos, m_rot);
-
-		// フラグをおろす
-		m_bDirty = false;
-	}
+	// ワールドマトリックスの計算
+	Mtx::CalcWorld(&m_mtxWorld, m_pMtxParent, m_pos, m_rot);
 
 	// ワールドマトリックスの設定
 	pDevice->SetTransform(D3DTS_WORLD, &m_mtxWorld);
@@ -261,6 +255,11 @@ void CObject3D::Draw(void)
 	pDevice->SetRenderState(D3DRS_ZFUNC, D3DCMP_LESS);
 	pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
 
+	// 減算合成を有効にする
+	pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_REVSUBTRACT);
+	pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+	pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
+
 	// ポリゴンの描画
 	pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP,
 		0,
@@ -268,6 +267,11 @@ void CObject3D::Draw(void)
 
 	// ライティングを有効に設定
 	pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
+
+	// 減算合成を無効にする
+	pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+	pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+	pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
 
 	// Zテストを無効にする
 	pDevice->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
@@ -340,6 +344,26 @@ void CObject3D::SetSize(const Vector2& size)
 	m_pVtxBuff->Unlock();
 
 	m_bDirty = true;
+}
+
+//==================================================================================
+// --- 色変更処理 ---
+//==================================================================================
+void CObject3D::SetColor(const Color &col)
+{
+	VERTEX_3D *pVtx = nullptr;		// 頂点情報へのポインタ
+
+	// 頂点バッファをロック
+	m_pVtxBuff->Lock(0, 0, (void **)&pVtx, 0);
+
+	// 頂点座標設定
+	pVtx[0].col = col;
+	pVtx[1].col = col;
+	pVtx[2].col = col;
+	pVtx[3].col = col;
+
+	// 頂点バッファをアンロック
+	m_pVtxBuff->Unlock();
 }
 
 //==================================================================================

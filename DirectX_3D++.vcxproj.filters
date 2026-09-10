@@ -387,6 +387,18 @@
     <ClCompile Include="titleCamera.cpp">
       <Filter>ソース ファイル\manager\camera</Filter>
     </ClCompile>
+    <ClCompile Include="ranking.cpp">
+      <Filter>ソース ファイル\manager\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="rankingManager.cpp">
+      <Filter>ソース ファイル\object</Filter>
+    </ClCompile>
+    <ClCompile Include="rankingDrawer.cpp">
+      <Filter>ソース ファイル\object</Filter>
+    </ClCompile>
+    <ClCompile Include="rankingCamera.cpp">
+      <Filter>ソース ファイル\manager\camera</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="model.h">
@@ -679,6 +691,18 @@
     </ClInclude>
     <ClInclude Include="pause.h">
       <Filter>ヘッダー ファイル\manager</Filter>
+    </ClInclude>
+    <ClInclude Include="ranking.h">
+      <Filter>ヘッダー ファイル\manager\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="rankingManager.h">
+      <Filter>ヘッダー ファイル\object</Filter>
+    </ClInclude>
+    <ClInclude Include="rankingDrawer.h">
+      <Filter>ヘッダー ファイル\object</Filter>
+    </ClInclude>
+    <ClInclude Include="rankingCamera.h">
+      <Filter>ヘッダー ファイル\manager\camera</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

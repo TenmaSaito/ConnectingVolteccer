@@ -24,7 +24,7 @@
 // *** マクロ定義 ***
 //**********************************************************************************
 #define LIGHTNING_TIME		(CManager::SecToFrame(1.5f))	// 感電の持続時間
-#define PLAYER_EFFECT_SIZE	(Vector2(150.0f, 150.0f))		// プレイヤーのエフェクトのサイズ
+#define PLAYER_EFFECT_SIZE	(Vector2(250.0f, 250.0f))		// プレイヤーのエフェクトのサイズ
 #define SCREEN_EFFECT_SIZE	(SCREEN_SIZE * 1.1f)			// スクリーンエフェクトのサイズ
 #define WARNING_EFFECT_SIZE	(Vector2(800.0f, 204.8f))		// 警告エフェクトのサイズ
 #define WARNING_PATH		"data/TEXTURE/effect/shock.png"	// 警告用テクスチャのパス

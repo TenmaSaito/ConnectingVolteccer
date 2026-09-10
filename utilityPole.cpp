@@ -42,7 +42,7 @@
 #define CONNECT_HEIGHT		(150.0f)	// 繋げられる電柱との高さの差分の最大値
 #define CONNECT_HEIGHT_EX	(30.0f)		// 発電所の場合の追加差分
 #define AIMING_ROTATE_SPD	(0.04f)		// エイムアイコンの回転速度
-//#define ENABLE_BUILDING_RAY_DECISION		// 建物をまたがないかの判定
+//#define ENABLE_BUILDING_RAY_DECISION	// 建物をまたがないかの判定
 
 //**********************************************************************************
 // *** 定数宣言 ***
@@ -195,9 +195,9 @@ void CUtilityPole::Update(void)
 		// 絶対座標同士で距離を測る
 		if (posPlayer.y - posPole.y <= CONNECT_HEIGHT + (CONNECT_HEIGHT_EX * (1 - nIndexVariant)))
 		{ // プレイヤーと電柱の距離が一定以下の場合
-			if (std::holds_alternative<CPowerPlant *>(*pObj))
+			if (std::holds_alternative<CPowerPlant*>(*pObj))
 			{ // プレイヤーの乗っているオブジェクトが発電所の場合
-				auto pPowerPlant = std::get<CPowerPlant *>(*pObj);		// 発電所のポインタを取得
+				auto pPowerPlant = std::get<CPowerPlant*>(*pObj);		// 発電所のポインタを取得
 				auto vpPole = pPowerPlant->GetConnectPole();			// 発電所とつながっている電柱のポインタ
 
 				// 電柱のポインタから自身を検索

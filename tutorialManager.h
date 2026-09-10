@@ -17,6 +17,7 @@
 // *** 前方宣言 ***
 //**********************************************************************************
 class CPolygon2D;
+class CObject2D;
 
 //**********************************************************************************
 // *** チュートリアル進行管理クラス ***
@@ -62,5 +63,6 @@ private:
 	std::unique_ptr<CPolygon2D> m_pEffect;		// フェーズが進むたびに表示する褒めたたえポリゴンへのポインタ
 	std::unique_ptr<CPolygon2D> m_pCommentBase;	// コメントの土台へのポインタ
 	std::unique_ptr<CPolygon2D> m_pComment;		// コメントへのポインタ
+	std::unique_ptr<CPolygon2D> m_pNextInfo;	// 次へボタン用ポリゴンへのポインタ
 };
 #endif

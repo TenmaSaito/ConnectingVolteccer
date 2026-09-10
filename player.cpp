@@ -52,8 +52,10 @@
 #define POLE_MOVE_SPEED		(0.0175f)	// 電柱を乗り移る際の角度
 #define PLAYERCAM_DEFROT	Vector3(0.0f, 0.0f, -0.4f)		// デフォルトのカメラ角度
 #define PLAYERCAM_RIDINGROT	Vector3(0.0f, 0.0f, -1.16f)		// 電柱に乗っているときのカメラ角度
+#define SHOCK_OFFSET		Vector3(0.0f, 50.0f, 0.0f)		// 感電時のエフェクトのオフセット
 #define PLAYERCAM_LEN			(1000.0f)		// プレイヤーのカメラの距離
 #define PLAYERCAM_RIDING_LEN	(250.0f)		// 電柱に乗っているときのカメラの距離
+#define RIDING_FOVY				(65.0f)			// 電線に乗っている際の視野角
 //#define ENABLE_RAY_PLAYER_TO_POLE				// プレイヤーから投げ縄を投げられる電柱へのレイの表示
 //#define ENABLE_CAN_FOCUS_POLE_VECTOR			// プレイヤーがフォーカス可能な電柱へのポインタの配列の一時保持
 
@@ -114,7 +116,7 @@ HRESULT CPlayer::Init(const char *pFileName, const Vector3 &pos, const Vector3 &
 	m_rot = rot;
 
 	// 感電エフェクト用インスタンスを生成
-	m_pShock = CShock::Create(&m_mtxWorld, Vector3(0.0f, 25.0f, 0.0f));
+	m_pShock = CShock::Create(&m_mtxWorld, SHOCK_OFFSET);
 
 	// モーションを生成
 	CMotionLoader *pMotionLoader = CMotionLoader::GetInstance();
@@ -255,6 +257,9 @@ void CPlayer::FailedShot(void)
 
 	// 投げ縄フラグを下ろす
 	m_bShotLasso = false;
+
+	// 感電モーションを再生
+	m_pMotion->Set(MOTIONTYPE_SHOCK);
 }
 
 //==================================================================================
@@ -348,6 +353,9 @@ void CPlayer::InputAction(void)
 			return;
 		}
 	}
+
+	// 感電中ならスキップ
+	if (m_bShocked == true) return;
 
 	// 移動関連の入力
 	InputMoving();
@@ -862,6 +870,7 @@ void CPlayer::MoveToNextPole(void)
 	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
 	CMapManager *pMap = CMapManager::GetInstance();			// マップへのポインタ
 	CPlanet *pPlanet = pMap->GetPlanet();					// 惑星の取得
+	CCamera *pCamera = CCamera::GetCamera(CCamera::TYPE_PLAYER);		// プレイヤーのカメラへのポインタ
 
 	if (m_pPoleNext != nullptr && pPlanet != nullptr)
 	{ // 次に移動するべき電柱がある場合
@@ -870,6 +879,9 @@ void CPlayer::MoveToNextPole(void)
 
 		// フィードバックエフェクトを有効化
 		pRenderer->SetEnableFeedBack(true);
+
+		// 視野角を広げる
+		pCamera->SetFovy(RIDING_FOVY);
 
 		// 残りの角度をオーバーしないか確認
 		if (m_fAngleRest - fVolume < 0.0f)
@@ -899,6 +911,9 @@ void CPlayer::MoveToNextPole(void)
 			// 投げ縄を投げたフラグを下し、乗り移る電柱へのポインタも破棄
 			m_bShotLasso = false;
 			m_pPoleNext = nullptr;
+
+			// 視野角を元に戻す
+			pCamera->SetFovy(DEFAULT_FOVY);
 		}
 
 		m_fAngleRest -= fVolume;

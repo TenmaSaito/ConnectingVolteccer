@@ -10,6 +10,7 @@
 //**********************************************************************************
 #include "building.h"
 #include "manager.h"
+#include "input.h"
 #include "renderer.h"
 #include "mapManager.h"
 #include "game.h"
@@ -17,6 +18,7 @@
 #include "player.h"
 #include "utilityPole.h"
 #include "billboard3D.h"
+#include "object3D.h"
 #include "lightingPillar.h"
 #include "polygon3D.h"
 #include "vec3math.h"
@@ -38,7 +40,8 @@
 #define HIT_ALPHA		(0.2f)				// プレイヤーカメラのレイと当たった時に設定するα値
 #define PARTICLE_PATH	"data/TEXTURE/effect000.jpg"	// エフェクトのテクスチャパス
 #define PILLAR_PATH		"data/TEXTURE/gradation202.jpg"	// 光の柱のテクスチャパス
-#define PILLAR_SIZE		Vector2(25.0f, 1000.0f)		// 光の柱の長さ
+#define PILLAR_SIZE				Vector2(25.0f, 1000.0f)		// 光の柱のサイズ
+#define SPECIAL_PILLAR_SIZE		Vector2(75.0f, 1000.0f)		// 特殊な建物の光の柱のサイズ
 #define PILLAR_POS		Vector3(0.0f, PILLAR_SIZE.y * 0.5f, 0.0f)		// 光の柱の座標
 #define FIRST_HEIGHT	(3000.0f)			// 最初の高さのオフセット
 #define LERP_VALUE		(CManager::SecToRatio(0.3f))		// 高さと透明度が元に戻るまでの時間
@@ -55,6 +58,24 @@ namespace
 		"data/MODEL/house001.x",		// 建物1
 		"data/MODEL/house002.x",		// 建物2
 		"data/MODEL/house003.x",		// 建物3
+		"data/MODEL/tower.x",			// スカイツリー
+		"data/MODEL/clockTower.x",		// 時計台
+		"data/MODEL/myaon.x",			// ショッピングモール
+		"data/MODEL/school.x",			// 学校
+		"data/MODEL/circusTent.x",		// サーカステント
+	};
+
+	const Color c_aPillerColor[CBuilding::TYPE_MAX] =	// 建物から伸びる光の柱の色
+	{
+		COLOR_ONE,		// 建物0
+		COLOR_ONE,		// 建物1
+		COLOR_ONE,		// 建物2
+		COLOR_ONE,		// 建物3
+		Colors::GetColor(Colors::C_CYAN),		// スカイツリー
+		Colors::GetColor(Colors::C_ORANGE),		// 時計台
+		Colors::GetColor(Colors::C_MAGENTA),	// ショッピングモール
+		Colors::GetColor(Colors::C_GREEN),		// 学校
+		Colors::GetColor(Colors::C_RED),		// サーカステント
 	};
 }
 
@@ -160,17 +181,17 @@ HRESULT CBuilding::Init(const Vector3 &position,
 
 	// 光の柱用のビルボードを生成
 	m_pPillar = CLightingPillar::Create(PILLAR_POS,
-		PILLAR_SIZE,
-		COLOR_ONE);
+		(IsLandmark(m_buildingType)) ? SPECIAL_PILLAR_SIZE : PILLAR_SIZE,
+		c_aPillerColor[m_buildingType]);
 	m_pPillar->BindTexture(CTexture::GetInstance()->Register(PILLAR_PATH));
 
 	// 加算合成の前後処理を登録
 	m_pPillar->SetStateFunctionBeforeDraw([](LPDIRECT3DDEVICE9 pDevice)
 		{ // 加算合成開始
-		pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
-		pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-		pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
-		pDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+			pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+			pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+			pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
+			pDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
 		});
 	m_pPillar->SetStateFunctionAfterDraw([](LPDIRECT3DDEVICE9 pDevice)
 		{ // 加算合成終了
@@ -185,6 +206,16 @@ HRESULT CBuilding::Init(const Vector3 &position,
 
 	// Y軸の回転を無効化
 	m_pPillar->SetEnableYBill(true);
+
+	// 影を追加
+	// TODO : ここは影用のクラスに置き換える事 + 円形の建物には円のテクスチャを使用すること
+	CObject3D *pObj3D = CObject3D::Create(false,
+		Vector3(0.0f, 0.1f, 0.0f),
+		Vec3::Zero,
+		Vector2(GetVtxMax()->x * 2.75f, GetVtxMax()->z * 2.75f));
+	pObj3D->SetParent(GetMatrix());
+	pObj3D->SetColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
+	pObj3D->BindTexture(CTexture::GetInstance()->Register("data/TEXTURE/effect001.jpg"));
 
 	return hr;
 }
@@ -309,12 +340,21 @@ void CBuilding::Update(void)
 					GetAngle(),
 					this);
 
+				CManager *pManager = CManager::GetInstance();	// マネージャへのポインタ
+				CScene::MODE mode = pManager->GetMode();		// 現在のモード
+
 				if (m_pEvaluate != nullptr)
 				{ // 今がゲームシーンなら、電気のついた家の数を増加
 					m_pEvaluate->AddLightingHouse(1);
+					if (mode == CScene::MODE_GAME && IsLandmark(m_buildingType))
+					{ // ゲームシーンで且つランドマークの場合、
+						CGame *pGame = pManager->GetScene(&pGame);
+
+						// 電気のついたランドマークの総数を増加
+						pGame->AddLandmark();
+					}
 				}
 
-				CScene::MODE mode = CManager::GetInstance()->GetMode();		// 現在のモード
 				if (mode == CScene::MODE_TUTORIAL || mode == CScene::MODE_GAME)
 				{ // チュートリアルかゲームシーンなら、光の柱のスケール上昇開始
 					m_pPillar->StartScaleUp();
@@ -359,6 +399,17 @@ void CBuilding::Update(void)
 	{ // 内積が0より小さく映る可能性が低い且つゲームモード場合、無効化
 		m_bDisp = false;
 	}
+
+	CManager *pManager = CManager::GetInstance();					// マネージャへのポインタ
+	CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();		// キーボードへのポインタ
+
+	if (pManager->GetMode() == CScene::MODE_EDIT && m_bHitByPlayerCamRay)
+	{ // エディタモードで、プレイヤーに当たっている場合
+		if (pKeyboard->GetTrigger(DIK_DELETE))
+		{ // DELETEキーを押されたとき、自身を削除
+			Uninit();
+		}
+	}
 }
 
 //==================================================================================
@@ -395,6 +446,14 @@ void CBuilding::Draw(void)
 		// α値を戻す
 		SetAlpha(DEFAULT_ALPHA);
 	}
+}
+
+//==================================================================================
+// --- ランドマークの判定処理 ---
+//==================================================================================
+bool CBuilding::IsLandmark(const TYPE type)
+{
+	return type >= TYPE_TOWER && type < TYPE_MAX;
 }
 
 //==================================================================================

@@ -29,6 +29,7 @@
 #include "thunderCamera.h"
 #include "meshCylinder.h"
 #include "filestream.h"
+#include "rankingManager.h"
 #include <string>
 
 //**********************************************************************************
@@ -41,7 +42,6 @@
 #define EVALUATE_SCALE		Vector2(328.0f, 64.0f)				// 評価表示のサイズ
 #define PLAYER_MOTION_PATH	"data/SCRIPT/motion_player.txt"	// プレイヤーのモーションパス
 #define THUNDER_CAM_LENGTH	(1000.0f)		// 電流とカメラの距離
-#define CURRENT_SCORE_PATH	"data/SCORE/current.bin"		// ゲームシーン終了時のスコアを書き出すファイルパス
 
 //==================================================================================
 // --- コンストラクタ ---
@@ -58,6 +58,7 @@ CGame::CGame()
 	m_bCreateConnectEffect = false;
 	m_nCounterFrame = 0;
 	m_nNumLightingHouse = 0;
+	m_nNumLightingLandmark = 0;
 	m_nCurrentConnectLighting = 0;
 	m_nNumEffect = 0;
 }
@@ -159,12 +160,18 @@ void CGame::Update(void)
 	if (m_pTimer->GetTimer() <= 0 && pManager->GetTransition()->GetState() == CSceneTransition::STATE_STAY)
 	{ // 0以下になった場合リザルトへ移行
 		std::unique_ptr pFile = std::make_unique<CFileStream>();		// ファイルストリームへのポインタ
+		CMapManager *pMap = CMapManager::GetInstance();		// マップマネージャへのポインタ
 
 		// 今回の結果をファイルに書き出し
 		if (pFile->CreateFile(CURRENT_SCORE_PATH, true, CFileStream::FLAG_OVERWRITE))
 		{ // ファイル生成成功時
-			float fPercent = static_cast<float>(m_nNumLightingHouse)	// 電気のついた家の割合
-				/ static_cast<float>(CMapManager::GetInstance()->GetNumBuilding());
+			float fPercent = static_cast<float>(m_nNumLightingHouse)	// 電気のついた家の割合を加算
+				/ static_cast<float>(pMap->GetNumBuilding());
+
+			fPercent *= 0.5f; // 割合を半分にする
+
+			fPercent += static_cast<float>(m_nNumLightingLandmark)
+				/ static_cast<float>(pMap->GetNumLandmark());			// 電気のついたランドマークの割合を加算
 
 			// 割合を書き出し
 			pFile->Write(fPercent);
@@ -174,7 +181,7 @@ void CGame::Update(void)
 		}
 
 		// 今回の接続インデックスを保存
-		CMapManager::GetInstance()->SaveConnectID();
+		pMap->SaveConnectID();
 
 		// シーンを遷移
 		pManager->SetTransition(MODE_RESULT);

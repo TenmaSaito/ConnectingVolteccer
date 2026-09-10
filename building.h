@@ -35,6 +35,11 @@ public:
 		TYPE_1,			// 建物1
 		TYPE_2,			// 建物2
 		TYPE_3,			// 建物3
+		TYPE_TOWER,			// スカイツリー
+		TYPE_CLOCKTOWER,	// 時計台
+		TYPE_SHOPPINGMALL,	// ショッピングモール
+		TYPE_SCHOOL,		// 学校
+		TYPE_CIRCUSTENT,	// サーカステント
 		TYPE_MAX
 	} TYPE;
 
@@ -60,6 +65,8 @@ public:
 	TYPE GetType(void) const { return m_buildingType; }
 	bool IsDisp(void) const { return m_bDisp; }
 
+	static bool IsLandmark(const TYPE type);
+
 private:
 	void FindUtilityPole(void);
 
@@ -75,20 +82,4 @@ private:
 	bool m_bHitByPlayerCamRay;	// プレイヤーカメラとプレイヤの間にいるか
 	bool m_bDisp;				// 描画フラグ
 };
-
-class CBuildingScorable : public CBuilding
-{
-public:
-};
-
-class CBuildingHighScorable : public CBuilding
-{
-public:
-};
-
-class CBuildingUnScorable : public CBuilding
-{
-public:
-};
-
 #endif

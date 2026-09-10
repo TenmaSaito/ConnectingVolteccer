@@ -17,6 +17,7 @@
 // *** マクロ定義 ***
 //**********************************************************************************
 #define DEFAULT_VP			D3DVIEWPORT9{0,0,SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 1.0f}	// デフォルトのビューポート
+#define DEFAULT_FOVY		(45.0f)		// 視野角
 
 //**********************************************************************************
 // *** カメラクラス ***
@@ -32,6 +33,7 @@ public:
 		TYPE_TITLE,				// タイトル画面のカメラ
 		TYPE_GAME,				// ゲーム画面のカメラ(自由移動用)
 		TYPE_RESULT,			// リザルト画面のカメラ
+		TYPE_RANKING,			// ランキング画面のカメラ
 		TYPE_MAX
 	} TYPE;
 
@@ -51,6 +53,12 @@ public:
 	const Vector3 *GetVecU(void) const { return &m_vecU; }
 	void SetRotate(const Vector3 &rotate) { m_rot = rotate; }
 	const Vector3 *GetRotate(void) const { return &m_rot; }
+	void SetFovy(const float fFovy) { m_fFovy = fFovy; }
+	float GetFovy(void) const {	return m_fFovy; }
+	void SetNear(const float fNear) { m_fNear = fNear; }
+	float GetNear(void) const { return m_fNear; }
+	void SetFar(const float fFar) { m_fFar = fFar; }
+	float GetFar(void) const { return m_fFar; }
 	Vector3 GetRay(void) const;
 	Vector3 GetRayToScreen(const Vector2 &screenPos);
 	void SetViewport(const D3DVIEWPORT9 &vp) { m_vp = vp; }
@@ -85,6 +93,8 @@ private:
 	D3DVIEWPORT9 m_vp;		// ビューポート設定
 	Color m_colFog;			// ピクセルフォグの色
 	float m_fStart, m_fEnd;	// フォグの開始・終了位置
+	float m_fFovy;			// 視野角
+	float m_fNear, m_fFar;	// カメラの描画最小・最長距離
 	TYPE m_type;			// カメラの種類
 	bool m_bEnableOrtho;	// 正射影投影の有効化
 	bool m_bEnableFog;		// フォグの有効化

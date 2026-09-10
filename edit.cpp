@@ -19,6 +19,7 @@
 #include "building.h"
 #include "filestream.h"
 #include "camera.h"
+#include "objectXQuaternion.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -136,7 +137,7 @@ void CEdit::Start(void)
 	pMap->BindPlayer(m_pPlayer);
 
 	// マップ読み込み + 惑星へのポインタを取得
-	pMap->Load("");
+	pMap->LoadLatest();
 }
 
 //==================================================================================
@@ -150,6 +151,7 @@ void CEdit::Print(void)
 	// 操作方法を表示
 	pProc->Print("[操作方法 : 配置]\n");
 	pProc->Print("  1～4 : 各建物の配置\n");
+	pProc->Print("  Shitf + 1～5 : 各ランドマークの配置\n");
 	pProc->Print("  5 : 電柱の配置\n");
 	pProc->Print("  6 : 発電所の配置\n\n");
 
@@ -175,27 +177,54 @@ void CEdit::MapEdit(void)
 	CPlanet *pPlanet = pMap->GetPlanet();				// 惑星へのポインタ
 	Vector3 pos = Vector3(0.0f, pPlanet->GetVtxMax().y, 0.0f);	// 設置位置
 
-	if (pKeyboard->GetTrigger(DIK_1))
-	{ // 建物0生成
-		pMap->AddBulding(CBuilding::TYPE_0, pos);
+	if (pKeyboard->GetPress(DIK_LSHIFT))
+	{ // ランドマーク生成
+		if (pKeyboard->GetTrigger(DIK_1))
+		{ // スカイツリー生成
+			pMap->AddBulding(CBuilding::TYPE_TOWER, pos);
+		}
+		else if (pKeyboard->GetTrigger(DIK_2))
+		{ // 時計台生成
+			pMap->AddBulding(CBuilding::TYPE_CLOCKTOWER, pos);
+		}
+		else if (pKeyboard->GetTrigger(DIK_3))
+		{ // ショッピングモール生成
+			pMap->AddBulding(CBuilding::TYPE_SHOPPINGMALL, pos);
+		}
+		else if (pKeyboard->GetTrigger(DIK_4))
+		{ // 学校生成
+			pMap->AddBulding(CBuilding::TYPE_SCHOOL, pos);
+		}
+		else if (pKeyboard->GetTrigger(DIK_5))
+		{ // サーカステント生成
+			pMap->AddBulding(CBuilding::TYPE_CIRCUSTENT, pos);
+		}
 	}
-	else if (pKeyboard->GetTrigger(DIK_2))
-	{ // 建物1生成
-		pMap->AddBulding(CBuilding::TYPE_1, pos);
+	else
+	{ // 通常の建物生成
+		if (pKeyboard->GetTrigger(DIK_1))
+		{ // 建物0生成
+			pMap->AddBulding(CBuilding::TYPE_0, pos);
+		}
+		else if (pKeyboard->GetTrigger(DIK_2))
+		{ // 建物1生成
+			pMap->AddBulding(CBuilding::TYPE_1, pos);
+		}
+		else if (pKeyboard->GetTrigger(DIK_3))
+		{ // 建物2生成
+			pMap->AddBulding(CBuilding::TYPE_2, pos);
+		}
+		else if (pKeyboard->GetTrigger(DIK_4))
+		{ // 建物3生成
+			pMap->AddBulding(CBuilding::TYPE_3, pos);
+		}
 	}
-	else if (pKeyboard->GetTrigger(DIK_3))
-	{ // 建物2生成
-		pMap->AddBulding(CBuilding::TYPE_2, pos);
-	}
-	else if (pKeyboard->GetTrigger(DIK_4))
-	{ // 建物3生成
-		pMap->AddBulding(CBuilding::TYPE_3, pos);
-	}
-	else if (pKeyboard->GetTrigger(DIK_5))
+	
+	if (pKeyboard->GetTrigger(DIK_6))
 	{ // 電柱生成
 		pMap->AddUtilityPole(pos);
 	}
-	else if (pKeyboard->GetTrigger(DIK_6))
+	else if (pKeyboard->GetTrigger(DIK_7))
 	{ // 発電所生成
 		pMap->AddPowerPlant(pos);
 	}

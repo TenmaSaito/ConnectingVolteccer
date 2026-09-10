@@ -35,8 +35,6 @@ public:
 
 	CPlanet *GetPlanet(void) const { return m_pPlanet; }
 
-	static constexpr MODE GetMyMode(void) { return MODE_RESULT; }
-
 private:
 	void Start(void);
 

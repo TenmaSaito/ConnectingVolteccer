@@ -57,7 +57,7 @@ private:
 	void CreatePolygon(const EVALUATE eval);
 	void PolygonsUpdate(void);
 
-	std::vector<PolyInfo> m_vPolyInfo;		// 各演出用ポリゴンの情報
+	std::vector<PolyInfo> m_vPolyInfo;	// 各演出用ポリゴンの情報
 	Vector3 m_pos;		// 発生座標
 	Vector2 m_scale;	// 発生サイズ
 	int m_nNumCurrentLightingHouse;		// 現在評価する家の数

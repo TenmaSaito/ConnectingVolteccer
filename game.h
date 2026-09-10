@@ -38,13 +38,12 @@ public:
 	void Update(void) override;
 	void Draw(void) override;
 	void AddEffect(const int nValue) { m_nNumEffect += nValue; }
+	void AddLandmark(void) { m_nNumLightingLandmark++; }
 	void SetEnablePause(const bool bEnable) { m_bPause = bEnable; }
 	bool GetEnableEdit(void) { return m_bEdit; }
 	CTimer *GetTimer(void) const { return m_pTimer; }
 	CCombo *GetCombo(void) const { return m_pCombo; }
 	CConnectingEvaluate *GetConnectingEvaluate(void) const { return m_pEvaluate; }
-
-	static constexpr MODE GetMyMode(void) { return CScene::MODE_GAME; }
 
 private:
 	void Start(void);
@@ -60,6 +59,7 @@ private:
 	bool m_bEdit;			// エディットモードフラグ
 	bool m_bPause;			// ポーズ状態
 	int m_nNumLightingHouse;			// 電線の接続で電気のついた家の総数
+	int m_nNumLightingLandmark;			// 電線の接続で電気のついたランドマークの総数
 	int m_nCurrentConnectLighting;		// 今回の電線の接続で電気のついた家の数
 	bool m_bCreateConnectEffect;		// 電気のついた家の数で表示が変わる演出を既に生成したか
 	int m_nCounterFrame;	// フレームカウント

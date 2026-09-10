@@ -73,6 +73,7 @@ CMapManager *CMapManager::GetInstance(void)
 CMapManager::CMapManager()
 { // メンバ変数をクリア
 	m_nNumBuilding = 0;
+	m_nNumLandmark = 0;
 	m_nNumPole = 0;
 	m_nNumPowerPlant = 0;
 	m_nNumID = 0;
@@ -401,8 +402,19 @@ void CMapManager::Load(std::string_view sMapFile)
 			// タイプ別でオブジェクトを配置
 			CObject::TYPE type = static_cast<CObject::TYPE>(in.type);
 			if (type == fileTypeInfo.nBuildingType)
-			{ // 建物配置
-				CBuilding *pBuilding = CBuilding::Create(static_cast<CBuilding::TYPE>(in.nIdxModel),
+			{ 
+				CBuilding::TYPE buildingType = static_cast<CBuilding::TYPE>(in.nIdxModel);		// 建物の種類
+				if (CBuilding::IsLandmark(buildingType))
+				{ // ランドマークの場合、ランドマークの総数を増加
+					m_nNumLandmark++;
+				}
+				else
+				{ // ランドマークではない場合、通常の建物の総数を増加
+					m_nNumBuilding++;
+				}
+
+				// 建物配置
+				CBuilding *pBuilding = CBuilding::Create(buildingType,
 					in.pos,
 					in.vecQua,
 					in.fAngle);
@@ -411,9 +423,8 @@ void CMapManager::Load(std::string_view sMapFile)
 				pBuilding->SetParent(pMatrix);
 				pBuilding->BindConnectingEvaluate(m_pEvaluate);
 
-				// ポインタを保存 + 総数増加
+				// ポインタを保存
 				m_vpBuilding.push_back(pBuilding);
-				m_nNumBuilding++;
 			}
 			else if (type == fileTypeInfo.nPoleType)
 			{ // 電柱配置

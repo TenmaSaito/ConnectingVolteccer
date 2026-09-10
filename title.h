@@ -34,8 +34,6 @@ public:
 	void Draw(void) override;
 	CTitleMenu *GetMenu(void) const { return m_pMenu; }
 
-	static constexpr MODE GetMyMode(void) { return CScene::MODE_TITLE; }
-
 private:
 	void Start(void);
 

@@ -48,6 +48,7 @@ public:
 		MOTIONTYPE_THROW,			// 投擲モーション
 		MOTIONTYPE_RIDING,			// 電柱に乗っている間の待機モーション
 		MOTIONTYPE_SLIDING,			// スライドモーション
+		MOTIONTYPE_SHOCK,			// 感電モーション
 		MOTIONTYPE_MAX
 	} MOTIONTYPE;
 

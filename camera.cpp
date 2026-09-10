@@ -39,6 +39,9 @@ CCamera::CCamera(const TYPE type)
 	m_colFog = COLOR_NULL;
 	m_fStart = 0.0f;
 	m_fEnd = 0.0f;
+	m_fFovy = 0.0f;
+	m_fNear = 0.0f;
+	m_fFar = 0.0f;
 	m_vp = {};
 	m_bEnableOrtho = false;
 	m_bEnableFog = false;
@@ -68,11 +71,14 @@ void CCamera::Init(const Vector3 &posV, const Vector3 &posR)
 		m_rot = VECTOR3_NULL;
 	}
 
-	{ // 視点・注視点・上方向ベクトル・ビューポートを設定
+	{ // 描画に用いる各値を設定
 		m_posV = posV;
 		m_posR = posR;
 		m_vecU = Vector3(0.0f, 1.0f, 0.0f);
 		m_vp = DEFAULT_VP;
+		m_fFovy = DEFAULT_FOVY;
+		m_fNear = DEFAULT_ZN;
+		m_fFar = DEFAULT_ZF;
 	}
 }
 
@@ -111,18 +117,18 @@ void CCamera::SetCamera(void)
 		D3DXMatrixOrthoLH(&m_mtxProjection,					// 書き出し先
 			static_cast<float>(m_vp.Width),					// スクリーンの幅
 			static_cast<float>(m_vp.Height),				// スクリーンの高さ
-			DEFAULT_ZN,					// カメラの描画最小範囲
-			DEFAULT_ZF);				// カメラの描画最大範囲
+			m_fNear,				// カメラの描画最小範囲
+			m_fFar);				// カメラの描画最大範囲
 	}
 	else
 	{ // 透視投影によるプロジェクションマトリックスの設定
 		// マトリックスの作成
 		D3DXMatrixPerspectiveFovLH(&m_mtxProjection,		// 書き出し先
-			D3DXToRadian(DEFAULT_FOVY),						// 視野角
+			D3DXToRadian(m_fFovy),							// 視野角
 			static_cast<float>(m_vp.Width)
 			/ static_cast<float>(m_vp.Height),				// スクリーンのアスペクト比
-			DEFAULT_ZN,					// カメラの描画最小範囲
-			DEFAULT_ZF);				// カメラの描画最大範囲
+			m_fNear,				// カメラの描画最小範囲
+			m_fFar);				// カメラの描画最大範囲
 	}
 
 	// マトリックスの設定

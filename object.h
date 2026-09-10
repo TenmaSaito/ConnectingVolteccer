@@ -69,6 +69,7 @@ public:
 		TYPE_MESHSPHERE,	// メッシュスフィア
 		TYPE_BUILDING,		// 建物
 		TYPE_POWERPLANT,	// 発電所
+		TYPE_RANKING_MANAGER,		// ランキングマネージャ
 		TYPE_MAX
 	} TYPE;
 

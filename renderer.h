@@ -21,6 +21,11 @@
 #define FEEDBACK_TEX_NUM		(2)			// フィードバックエフェクト用バッファの配列数
 
 //**********************************************************************************
+// *** 前方宣言 ***
+//**********************************************************************************
+class CCamera;
+
+//**********************************************************************************
 // *** レンダラークラス ***
 //**********************************************************************************
 class CRenderer
@@ -40,6 +45,7 @@ public:
 		const Vector3 &posR, 
 		const Vector3 &vecU,
 		const D3DVIEWPORT9 *pViewport = nullptr);
+	void ChangeTarget(const CCamera *pFocus);
 #ifdef ENABLE_FEEDBACK_EFFECT
 	LPDIRECT3DTEXTURE9 GetTextureMT(void) { return m_apTextureMT[0]; }
 	void SetEnableFeedBack(const bool bEnable) { m_bEnableFeedBack = bEnable; }

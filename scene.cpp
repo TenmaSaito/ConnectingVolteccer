@@ -13,6 +13,7 @@
 #include "tutorial.h"
 #include "game.h"
 #include "result.h"
+#include "ranking.h"
 #include "edit.h"
 
 //==================================================================================
@@ -39,6 +40,10 @@ CScene *CScene::Create(const MODE mode)
 
 	case MODE_RESULT:		// リザルトシーンを生成
 		pScene = new CResult;
+		break;
+
+	case MODE_RANKING:		// ランキングシーンを生成
+		pScene = new CRanking;
 		break;
 
 	case MODE_EDIT:			// エディットシーンを生成
@@ -78,6 +83,10 @@ CScene *CScene::Create(const MODE mode, std::unique_ptr<CScene> &rpOut)
 
 	case MODE_RESULT:		// リザルトシーンを生成
 		pScene = new CResult;
+		break;
+
+	case MODE_RANKING:		// ランキングシーンを生成
+		pScene = new CRanking;
 		break;
 
 	case MODE_EDIT:			// エディットシーンを生成

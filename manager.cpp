@@ -69,6 +69,7 @@ CManager::CManager()
 	m_pLight = nullptr;
 	m_pTransition = nullptr;
 	m_pScene = nullptr;
+	m_modeOld = CScene::MODE_NONE;
 	m_nCountFPS = 0;
 	m_nCounterFrame = 0;
 }
@@ -400,7 +401,10 @@ HRESULT CManager::SetMode(const CScene::MODE modeNext)
 	m_pSound->Stop();
 
 	if (m_pScene != nullptr)
-	{ // シーンが生成されていれば、終了処理
+	{ // シーンが生成されていれば
+		m_modeOld = m_pScene->GetMode();		// 前回のモードとして保存
+
+		// 終了処理
 		m_pScene->Uninit();
 		m_pScene.reset();
 	}

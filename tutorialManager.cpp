@@ -11,6 +11,7 @@
 #include "tutorialManager.h"
 #include "mapManager.h"
 #include "polygon2D.h"
+#include "object2D.h"
 #include "electricalCable.h"
 #include "util.h"
 #include "tutorial.h"
@@ -26,13 +27,16 @@
 // *** マクロ定義 ***
 //**********************************************************************************
 #define COMMENTBASE_POS		(Vector3(SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT - 125.0f, 0.0f))		// コメント土台ポリゴンの位置
-#define COMMENTBASE_SIZE	(Vector2(SCREEN_WIDTH * 0.9f, 200.0f))							// コメント土台ポリゴンのサイズ
+#define COMMENTBASE_SIZE	(Vector2(SCREEN_WIDTH * 0.9f, 200.0f))								// コメント土台ポリゴンのサイズ
 #define COMMENT_POS			(Vector3(SCREEN_WIDTH * 0.56f, SCREEN_HEIGHT - 130.0f, 0.0f))		// コメントポリゴンの位置
 #define COMMENT_SIZE		(Vector2(900.0f, 150.0f))					// コメントポリゴンのサイズ
+#define NEXT_BUTTON_POS		(Vector3(1000.0f, 685.0f, 0.0f))			// 次へボタンの位置
+#define NEXT_BUTTON_SIZE	(Vector2(475.0f, 75.0f))					// 次へボタンのサイズ
 #define TUTORIAL_MAP_PATH	"data/MAPS/tutorial_map.bin"				// チュートリアルのマップへのパス
 #define COMMENT_BASE_PATH	"data/TEXTURE/tutorial_ui/commentBase.png"	// コメントの土台ポリゴンのテクスチャパス
+#define NEXT_BUTTON_PATH	"data/TEXTURE/tutorial_ui/next.png"			// 次へボタンのテクスチャパス
 #define FOG_COLOR			(Colors::GetColor(Colors::C_BLACK))			// フォグの色
-#define FOG_START			(300.0f)		// フォグの開始位置
+#define FOG_START			(400.0f)		// フォグの開始位置
 #define FOG_END				(1800.0f)		// フォグの終了位置
 #define PITCH_START			(0.4f)			// 始めのピッチ速度
 #define PITCH_END			(1.0f)			// 終わりのピッチ速度
@@ -115,6 +119,12 @@ HRESULT CTutorialManager::Init(void)
 		COMMENT_SIZE));
 	m_pComment->BindTexture(pTexture->Register(c_asPhaseCommentPath[m_phase]));
 
+	// 次へボタンを生成
+	m_pNextInfo.reset(CPolygon2D::Create(NEXT_BUTTON_POS,
+		VECTOR3_NULL,
+		NEXT_BUTTON_SIZE));
+	m_pNextInfo->BindTexture(pTexture->Register(NEXT_BUTTON_PATH));
+
 	m_bInputFocus = true;	// フォーカスを設定
 
 	CCamera *pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);		// プレイヤーカメラへのポインタ
@@ -149,9 +159,10 @@ void CTutorialManager::Uninit(void)
 	};
 
 	// 各ポリゴンを破棄
-	uninit(m_pEffect);
-	uninit(m_pCommentBase);
+	uninit(m_pNextInfo);
 	uninit(m_pComment);
+	uninit(m_pCommentBase);
+	uninit(m_pEffect);
 }
 
 //==================================================================================
@@ -199,6 +210,7 @@ void CTutorialManager::Draw(void)
 	if (m_pEffect != nullptr) m_pEffect->Draw();
 	if (m_pCommentBase != nullptr) m_pCommentBase->Draw();
 	if (m_pComment != nullptr) m_pComment->Draw();
+	if (m_pNextInfo != nullptr && m_bInputFocus == true) m_pNextInfo->Draw();
 }
 
 //==================================================================================

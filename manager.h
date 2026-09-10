@@ -64,6 +64,7 @@ public:
 	CPause *GetPause(void) const { return m_pPause.get(); }
 	HRESULT SetMode(const CScene::MODE modeNext);
 	CScene::MODE GetMode(void) const { return m_pScene->GetMode(); }
+	CScene::MODE GetModeOld(void) const { return m_modeOld; }
 	void SetTransition(const CScene::MODE modeNext);
 	CSceneTransition::STATE GetState(void) const { return m_pTransition->GetState(); }
 	template<IsScene T> T *GetScene(T **ppOut = nullptr) const;
@@ -94,6 +95,7 @@ private:
 	std::unique_ptr<CSceneTransition> m_pTransition;	// 遷移演出へのポインタ
 	std::unique_ptr<CPause> m_pPause;			// ポーズへのポインタ
 	HWND m_hWnd;			// ウィンドウハンドル
+	CScene::MODE m_modeOld;	// 前回のモード
 	int m_nCountFPS;		// FPSカウント
 	int m_nCounterFrame;	// フレームカウンター
 };

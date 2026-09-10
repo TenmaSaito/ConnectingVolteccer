@@ -54,6 +54,7 @@ public:
 	void AddPowerPlant(const Vector3 &pos);
 	void LoadLatest(void);
 	int GetNumBuilding(void) const { return m_nNumBuilding; }
+	int GetNumLandmark(void) const { return m_nNumLandmark; }
 	int GetNumPole(void) const { return m_nNumPole; }
 	int GetNumPowerPlant(void) const { return m_nNumPowerPlant; }
 	constexpr CPlanet *GetPlanet(void) const { return m_pPlanet; }
@@ -69,6 +70,7 @@ private:
 	void ConnectByConnectID(void);
 
 	int m_nNumBuilding;		// 建物の総数
+	int m_nNumLandmark;		// ランドマークの総数
 	int m_nNumPole;			// 電柱の総数
 	int m_nNumPowerPlant;	// 発電所の総数
 	int m_nNumID;			// 各マップオブジェクトのIDの総数

@@ -56,6 +56,9 @@ HRESULT CLightingPillar::Init(const Vector3 &pos, const Vector2 &scale, const Co
 { // 親クラスの初期化
 	CObjectBillboard3D::Init(pos, VECTOR3_NULL, Vector2(scale.x, 0.0f), INT_MAX);
 
+	// 色を適用
+	SetColor(color);
+
 	// 最終的な高さ
 	m_fEndHeight = scale.y;
 	return S_OK;

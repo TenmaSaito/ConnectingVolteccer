@@ -46,13 +46,16 @@ public:
 	const Vector3 *SetRotation(void) const { return &m_rot; }
 	void SetSize(const Vector2 &size);
 	const Vector2 *GetSize(void) const { return &m_size; }
+	void SetColor(const Color &col);
 	bool GetDirty(void) const { return m_bDirty; }
 	float GetHeight(const Vector3 &pos);
+	void SetParent(const Matrix *pMtxParent) { m_pMtxParent = pMtxParent; }
 
 private:
 	LPDIRECT3DVERTEXBUFFER9 m_pVtxBuff;	// 頂点バッファへのポインタ
 	int m_nIdxTexture;		// テクスチャのインデックス
 	Matrix m_mtxWorld;		// ワールドマトリックス
+	const Matrix *m_pMtxParent;		// 親マトリックスへのポインタ
 	Vector3 m_pos;			// 位置
 	Vector3 m_rot;			// 角度
 	Vector2 m_size;			// サイズ
