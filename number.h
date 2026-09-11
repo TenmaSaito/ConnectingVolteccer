@@ -26,6 +26,7 @@ public:
 		TYPE_VOLTNUM_001,		// 黒文字に黄色のインライン
 		TYPE_VOLTNUM_002,		// 黒文字に黄色のインライン (非立体)
 		TYPE_VOLTNUM_003,		// 黒文字に黄色のインライン + 白のアウトライン
+		TYPE_VOLTNUM_004,		// ドット風
 		TYPE_MAX
 	} TYPE;
 

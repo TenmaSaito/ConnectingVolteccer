@@ -388,8 +388,10 @@ void CBuilding::Update(void)
 
 	// カメラの指定位置と自身の位置を計算して、見えない場所であればパーティクル生成をストップ
 	fDot = Vec3::Dot(vecToPos, vecToCam);
-	if (fDot > 0 || CManager::GetInstance()->GetMode() == CScene::MODE_RESULT)
-	{ // 内積が0より大きく映る可能性がある場合、もしくは結果画面なら有効化
+	if (fDot > 0 
+		|| CManager::GetInstance()->GetMode() == CScene::MODE_RESULT
+		|| CCamera::GetFocus() != CCamera::TYPE_PLAYER)
+	{ // 内積が0より大きく映る可能性がある場合、結果画面の場合、プレイヤーカメラではない場合有効化
 		m_bDisp = true;
 
 		// カメラに映っている場合のみ、判定

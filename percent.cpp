@@ -39,6 +39,7 @@ CPercent *CPercent::Create(const Setting &setting)
 CPercent::CPercent() : CObject(DEFAULT_UI_PRIORITY)
 { // メンバ変数をクリア
 	m_setting = {};
+	m_fAlpha = 0.0f;
 
 	// タイプを指定
 	SetType(TYPE_PERCENT);
@@ -62,8 +63,10 @@ HRESULT CPercent::Init(const Setting &setting)
 	const Vector2 &numScale = m_setting.numScale;		// 数値のサイズ
 	const Vector2 &dotScale = m_setting.dotScale;		// 小数点のサイズ
 	const Vector2 &percentScale = m_setting.percentScale;		// パーセントのサイズ
+	const float &fMargin = m_setting.fMargin;			// 各桁の余裕
 	const int &nNumberType = m_setting.nNumberType;		// 数値のテクスチャタイプ
 	const int &nValue = static_cast<int>(m_setting.fValue * 10000.0f);		// int用パーセント
+	m_fAlpha = 1.0f;
 
 	// 桁数分だけメモリを確保
 	vNumValue.reserve(MAX_PERCENT_NUM);
@@ -79,7 +82,7 @@ HRESULT CPercent::Init(const Setting &setting)
 		Vector3 posNumber;		// 数値オブジェクトの中心座標
 
 		// 中心座標を計算
-		posNumber.x = pos.x + (numScale.x * nCntNumber);
+		posNumber.x = pos.x + ((numScale.x + fMargin) * nCntNumber);
 		posNumber.y = pos.y;
 		posNumber.z = 0.0f;
 
@@ -93,7 +96,7 @@ HRESULT CPercent::Init(const Setting &setting)
 	Vector3 posDot;
 
 	// 中心座標を計算
-	posDot.x = pos.x + (numScale.x * UPPER_NUM);
+	posDot.x = pos.x + ((numScale.x + fMargin) * UPPER_NUM);
 	posDot.y = pos.y;
 	posDot.z = 0.0f;
 
@@ -107,7 +110,7 @@ HRESULT CPercent::Init(const Setting &setting)
 		Vector3 posNumber;		// 数値オブジェクトの中心座標
 
 		// 中心座標を計算
-		posNumber.x = pos.x + (numScale.x * (nCntNumber + UPPER_NUM)) + dotScale.x;
+		posNumber.x = pos.x + ((numScale.x + fMargin) * (nCntNumber + UPPER_NUM)) + dotScale.x;
 		posNumber.y = pos.y;
 		posNumber.z = 0.0f;
 
@@ -121,7 +124,7 @@ HRESULT CPercent::Init(const Setting &setting)
 	Vector3 posPercent;
 
 	// 中心座標を計算
-	posPercent.x = pos.x + (numScale.x * (UPPER_NUM + LOWER_NUM)) + dotScale.x;
+	posPercent.x = pos.x + ((numScale.x + fMargin) * (UPPER_NUM + LOWER_NUM)) + dotScale.x;
 	posPercent.y = pos.y;
 	posPercent.z = 0.0f;
 
@@ -206,4 +209,22 @@ void CPercent::SetValue(const float fValue)
 		// 値を設定
 		m_apNumber[nCntNumber]->SetNumber(nNumber);
 	}
+}
+
+//==================================================================================
+// --- α値の設定処理 ---
+//==================================================================================
+void CPercent::SetAlpha(const float fAlpha)
+{ // 引数を保存
+	m_fAlpha = fAlpha;
+
+	for (auto &pNumber : m_apNumber)
+	{ // 各数値オブジェクトにα値を適用
+		if (pNumber == nullptr) continue;
+		pNumber->SetAlpha(fAlpha);
+	}
+
+	// α値を適用
+	m_pDot->SetAlpha(fAlpha);
+	m_pPercent->SetAlpha(fAlpha);
 }

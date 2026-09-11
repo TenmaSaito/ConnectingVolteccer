@@ -41,6 +41,7 @@ public:
 		int nNumberType;			// 数字のテクスチャタイプ
 		UINT nIdxDotTexture;		// 小数点のテクスチャインデックス
 		UINT nIdxPercentTexture;	// パーセントのテクスチャインデックス
+		float fMargin;				// 各桁の余裕
 	};
 
 	CPercent();
@@ -54,11 +55,13 @@ public:
 	void Draw(void);
 	void SetValue(const float fValue);
 	float GetValue(void) const { return m_setting.fValue; }
+	void SetAlpha(const float fAlpha);
 
 private:
 	std::array<std::unique_ptr<CNumber>, MAX_PERCENT_NUM> m_apNumber;		// 各数字へのポインタ
 	std::unique_ptr<CPolygon2D> m_pDot;		// 小数点へのポインタ
 	std::unique_ptr<CPolygon2D> m_pPercent;	// パーセントへのポインタ
 	Setting m_setting;		// 各種設定
+	float m_fAlpha;			// α値
 };
 #endif

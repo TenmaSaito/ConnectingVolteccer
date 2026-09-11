@@ -40,7 +40,8 @@
 #include "connectingEvaluate.h"
 #include "shock.h"
 #include "color.h"
-#include <algorithm>
+#include "filestream.h"
+#include "texture.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -58,6 +59,34 @@
 #define RIDING_FOVY				(65.0f)			// 電線に乗っている際の視野角
 //#define ENABLE_RAY_PLAYER_TO_POLE				// プレイヤーから投げ縄を投げられる電柱へのレイの表示
 //#define ENABLE_CAN_FOCUS_POLE_VECTOR			// プレイヤーがフォーカス可能な電柱へのポインタの配列の一時保持
+
+//**********************************************************************************
+// *** 定数宣言 ***
+//**********************************************************************************
+namespace
+{
+	constexpr std::string_view c_asNumberPath[10] =
+	{
+		"data/TEXTURE/number/0.png",
+		"data/TEXTURE/number/1.png",
+		"data/TEXTURE/number/2.png",
+		"data/TEXTURE/number/3.png",
+		"data/TEXTURE/number/4.png",
+		"data/TEXTURE/number/5.png",
+		"data/TEXTURE/number/6.png",
+		"data/TEXTURE/number/7.png",
+		"data/TEXTURE/number/8.png",
+		"data/TEXTURE/number/9.png",
+	};
+
+	constexpr std::string_view c_sNumberNullPath = "data/TEXTURE/number/null.png";
+
+	constexpr std::string_view c_asComboPath[2] =
+	{
+		"data/TEXTURE/number/combo.png",
+		"data/TEXTURE/number/combo_null.png",
+	};
+}
 
 //==================================================================================
 // --- 生成処理 ---
@@ -94,6 +123,12 @@ CPlayer::CPlayer(const int nPriority) : CObject(nPriority)
 	m_bShocked = false;
 	m_bDismountPowerPlant = false;
 	m_fAngleRest = 0.0f;
+	m_nLightBeginIdx = -1;
+	m_nLightEndIdx = -1;
+	m_nNumberBeginIdx = -1;
+	m_nNumberEndIdx = -1;
+	m_nIdxCombo = -1;
+	m_nCounterFrame = 0;
 
 	// タイプ設定
 	SetType(TYPE_PLAYER);
@@ -132,6 +167,9 @@ HRESULT CPlayer::Init(const char *pFileName, const Vector3 &pos, const Vector3 &
 	// モーションの設定
 	m_pMotion->SetModel(m_vpModel);
 	m_pMotion->Set(0);
+
+	// インデックスを読み込み
+	LoadIndices(pFileName);
 
 	// プレイヤー用カメラの生成
 	CPlayerCamera *pPlayerCam = CPlayerCamera::Create(PLAYERCAM_DEFROT, 
@@ -216,18 +254,34 @@ void CPlayer::Draw(void)
 	CManager *pManager = CManager::GetInstance();			// マネージャーへのポインタ
 	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
+	CTexture *pTexture = CTexture::GetInstance();			// テクスチャへのポインタ
 
 	// ワールドマトリックスの初期化
 	D3DXMatrixIdentity(&m_mtxWorld);
 
 	// ワールドマトリックスの設定
 	const Matrix *pMtxParent = (GetRidingObjectX() == nullptr) ? nullptr : GetRidingObjectX()->GetMatrix();
-	Mtx::CalcWorld(&m_mtxWorld, pMtxParent, m_pos, m_rot);
+	Matrix mtxParentUnRotate;	// 回転を考慮しない親マトリックス
+
+	// マトリックスを初期化
+	Mtx::Identity(&mtxParentUnRotate);
+
+	if (pMtxParent != nullptr)
+	{ // 親マトリックスがnullでなければ
+		// 移動要素のみ取り出す
+		mtxParentUnRotate._41 = pMtxParent->_41;
+		mtxParentUnRotate._42 = pMtxParent->_42;
+		mtxParentUnRotate._43 = pMtxParent->_43;
+	}
+
+	Mtx::CalcWorld(&m_mtxWorld, &mtxParentUnRotate, m_pos, m_rot);
 
 	//  ワールドマトリックスの設定
 	pDevice->SetTransform(D3DTS_WORLD, &m_mtxWorld);
 
-	for (auto &model : m_vpModel)
+	std::array aNumber = m_pCombo->GetComboNumber();
+
+	for (int nIdxModel = 0; auto &model : m_vpModel)
 	{ // 各モデルの描画
 		if (m_bShocked)
 		{ // 感電中は黒色に指定
@@ -240,7 +294,55 @@ void CPlayer::Draw(void)
 			model->SetCustomMat();
 		}
 
+		if (nIdxModel >= m_nLightBeginIdx && nIdxModel <= m_nLightEndIdx)
+		{ // インデックスがライトの範囲の場合
+			if ((CManager::FrameToSec(m_pCombo->GetCount()) - 20) + (nIdxModel - m_nLightBeginIdx) >= 0)
+			{ // 今のライトがついていてもいいなら、デフォのマテリアルを使用
+				if (m_nCounterFrame % 7 != 0)
+				{ // フレームカウントが7で割り切れない時、デフォのマテリアルを使用
+					model->SetCustomMat();
+				}
+				else
+				{ // フレームカウントが7で割り切れる時、マテリアルを薄暗くする
+					D3DMATERIAL9 matBlack = {};
+					matBlack.Diffuse = Color(0.5f, 0.5f, 0.0f, 1.0f);
+					model->SetCustomMat(matBlack);
+				}
+			}
+			else
+			{ // ライトが消えているべきなら、薄暗いカスタムマテリアルを使用
+				D3DMATERIAL9 matBlack = {};
+				matBlack.Diffuse = Color(0.5f, 0.5f, 0.0f, 1.0f);
+				model->SetCustomMat(matBlack);
+			}
+		}
+
+		if (nIdxModel >= m_nNumberBeginIdx && nIdxModel <= m_nNumberEndIdx)
+		{ 
+			if (m_pCombo->GetCombo() > 0)
+			{ // コンボ数が0より大きく、電線を繋げ初めている場合、バックパックのテクスチャを変更
+				model->BindTexture(pTexture->Register(c_asNumberPath[aNumber[nIdxModel - m_nNumberBeginIdx]]));
+			}
+			else
+			{ // それ以外の場合、暗くする
+				model->BindTexture(pTexture->Register(c_sNumberNullPath));
+			}
+		}
+
+		if (nIdxModel == m_nIdxCombo)
+		{ 
+			if (m_pCombo->GetCombo() <= 0)
+			{ // コンボ数が0以下の場合、表示しない
+				model->BindTexture(pTexture->Register(c_asComboPath[1]));
+			}
+			else
+			{ // コンボがある場合、表示
+				model->BindTexture(pTexture->Register(c_asComboPath[0]));
+			}
+		}
+
 		model->Draw();
+		nIdxModel++;		// 描画したモデル数増加
 	}
 }
 
@@ -324,6 +426,52 @@ void CPlayer::ChangeRidingPole(CUtilityPole *pNext)
 
 	// スライドモーションへの移行
 	m_pMotion->Set(MOTIONTYPE_SLIDING, 5);
+}
+
+//==================================================================================
+// --- モーションファイルから各インデックスを取得する処理 ---
+//==================================================================================
+void CPlayer::LoadIndices(std::string_view path)
+{
+	std::unique_ptr pFile = std::make_unique<CFileStream>();		// ファイルストリームへのポインタ
+	std::string line;		// 読み込んだ一列
+	size_t pos;
+
+	// ファイルオープン失敗時、スキップ
+	if (pFile->OpenFile(path, false) == false) return;
+
+	while (1)
+	{ // インデックスを取得し終えるまでループ
+		pFile->ReadString(line);
+		if (pFile->FindString(line, "END_SCRIPT"))
+		{ // スクリプト終了時、ループ終了
+			break;
+		}
+
+		if (pFile->FindString(line, "LIGHT_BEGIN = ", &pos, true))
+		{ // ライトの開始インデックスを読み込み
+			m_nLightBeginIdx = pFile->ToInt(&line[pos]);
+		}
+		else if (pFile->FindString(line, "LIGHT_END = ", &pos, true))
+		{ // ライトの終了インデックスを読み込み
+			m_nLightEndIdx = pFile->ToInt(&line[pos]);
+		}
+		else if (pFile->FindString(line, "NUMBER_BEGIN = ", &pos, true))
+		{ // 数値の終了インデックスを読み込み
+			m_nNumberBeginIdx = pFile->ToInt(&line[pos]);
+		}
+		else if (pFile->FindString(line, "NUMBER_END = ", &pos, true))
+		{ // 数値の終了インデックスを読み込み
+			m_nNumberEndIdx = pFile->ToInt(&line[pos]);
+		}
+		else if (pFile->FindString(line, "COMBO_IDX = ", &pos, true))
+		{ // コンボのインデックスを読み込み
+			m_nIdxCombo = pFile->ToInt(&line[pos]);
+		}
+	}
+
+	// ファイルを閉じる
+	pFile->CloseFile();
 }
 
 //==================================================================================
@@ -905,6 +1053,9 @@ void CPlayer::MoveToNextPole(void)
 		{ // その電柱に乗り移る
 			m_pRidingObject = m_pPoleNext;
 
+			// クォータニオンを修正
+			FixedQuaternion(m_pPoleNext);
+
 			// オフセットを電柱に設定し、マトリックスを設定
 			m_pos.y = GetRidingObjectX()->GetVtxMax()->y;
 
@@ -1129,6 +1280,9 @@ void CPlayer::OtherUpdate(void)
 
 	// モーションの更新
 	m_pMotion->Update();
+
+	// フレームカウント増加
+	m_nCounterFrame++;
 }
 
 //==================================================================================

@@ -32,6 +32,7 @@ namespace
 		"data/TEXTURE/Anim/voltNumber001.png",		// 黒文字に黄色のインライン
 		"data/TEXTURE/Anim/voltNumber002.png",		// 黒文字に黄色のインライン (非立体)
 		"data/TEXTURE/Anim/voltNumber003.png",		// 黒文字に黄色のインライン + 白のアウトライン
+		"data/TEXTURE/Anim/voltNumber004.png",		// ドット風
 	};
 }
 

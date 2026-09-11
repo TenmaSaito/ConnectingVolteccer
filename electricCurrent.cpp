@@ -17,6 +17,7 @@
 #include "vec3math.h"
 #include "vec2math.h"
 #include "matrix.h"
+#include "joypad.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -104,6 +105,11 @@ HRESULT CElectricCurrent::Init(CObjectXQuaternion *pStart,
 	// 雷エフェクトを生成
 	m_pThunder = CThunderEffect::Create(THUNDER_MIN, THUNDER_MAX, &m_mtxWorld);
 
+	CJoypad *pJoypad = CManager::GetInstance()->GetJoypad();		// ジョイパッドへのポインタ
+
+	// バイブレーション発生
+	pJoypad->SetVibration(15000, 20000, m_fTotalTime - 5);
+
 	return S_OK;
 }
 
@@ -148,9 +154,9 @@ void CElectricCurrent::Update(void)
 	}
 
 	if ((m_pThunder->IsEndAnim(5.0f) 
-		|| CManager::GetInstance()->GetMode() == CScene::MODE_RESULT)
+		|| CManager::GetInstance()->GetMode() != CScene::MODE_GAME)
 		&& m_bGenerate == true)
-	{ // 電流がある程度短くなったもしくはリザルトシーンで、既に次の電線に電気を流したなら終了
+	{ // 電流がある程度短くなったもしくはゲームシーン以外で、既に次の電線に電気を流したなら終了
 		Uninit();
 	}
 }

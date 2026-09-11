@@ -23,6 +23,7 @@
 // *** 前方宣言 ***
 //**********************************************************************************
 class CRankingDrawer;
+class CObject2D;
 
 //**********************************************************************************
 // *** ランキング管理クラス ***
@@ -44,6 +45,7 @@ public:
 	int GetCurrentRank(void) const { return m_nCurrentRank; }
 
 private:
+	CObject2D *m_pRankingPolygon;						// ランキングの文字表示用ポリゴンへのポインタ
 	std::array<float, MAX_RANKING_NUM> m_aScore;		// 各順位のスコア
 	std::array<std::unique_ptr<CRankingDrawer>, MAX_RANKING_NUM> m_apRankingDrawer;		// 順位表示クラスへのポインタ
 	int m_nCurrentRank;				// 今回の順位

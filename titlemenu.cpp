@@ -202,7 +202,7 @@ void CTitleMenu::Update(void)
 	{ // タイプ補間が完了している場合
 		if (pKeyboard->GetRepeat(DIK_S)
 			|| pJoypad->GetRepeat(CJoypad::KEY_DOWN)
-			|| pJoypad->GetStick(CJoypad::STICK_LEFT_DOWN))
+			|| pJoypad->GetStickRepeat(CJoypad::STICK_LEFT_DOWN))
 		{ // S入力時、タイプを1進める
 			m_lastType = m_currentType;
 			m_currentType = Util::AddEnum(m_currentType, 1);
@@ -213,7 +213,7 @@ void CTitleMenu::Update(void)
 		}
 		else if (pKeyboard->GetRepeat(DIK_W)
 			|| pJoypad->GetRepeat(CJoypad::KEY_UP)
-			|| pJoypad->GetStick(CJoypad::STICK_LEFT_UP))
+			|| pJoypad->GetStickRepeat(CJoypad::STICK_LEFT_UP))
 		{ // W入力時、タイプを1戻す
 			m_lastType = m_currentType;
 			m_currentType = Util::AddEnum(m_currentType, -1);

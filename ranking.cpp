@@ -60,6 +60,26 @@ void CRanking::Uninit(void)
 //==================================================================================
 void CRanking::Update(void)
 {
+	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
+	CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();		// キーボードへのポインタ
+	CJoypad *pJoypad = pManager->GetJoypad();			// ジョイパッドへのポインタ
+	CMapManager *pMap = CMapManager::GetInstance();		// マップへのポインタ
+
+	// 惑星を回転
+	Vector3 vecQua = Vector3(0.0f, D3DX_PI, 0.0f);		// 軸
+	float fAngle = 0.005f;	// 回転度数
+	Quaternion qua;			// かけ合わせるクォータニオン
+
+	// クォータニオンを計算
+	D3DXQuaternionIdentity(&qua);
+	D3DXQuaternionRotationAxis(&qua,
+		&vecQua,
+		fAngle);
+
+	// 惑星に掛ける
+	pMap->GetPlanet()->MultiplyQuaternion(qua);
+
+	// 全カメラの更新処理
 	CCamera::UpdateAll();
 }
 
@@ -87,6 +107,11 @@ void CRanking::Start(void)
 		m_pRankingManager = CRankingManager::Create(false);
 	}
 
+	CMapManager *pMap = CMapManager::GetInstance();		// マップへのポインタ
+
+	// 今回の接続インデックスを読み込み
+	pMap->LoadConnectID();
+
 	// ランキング画面のカメラを生成して、フォーカスを変更
-	CRankingCamera::Create(Vector3(1500.0f, 0.0f, -3800.0f), Vector3(1500.0f, 0.0f, 0.0f))->SetFocus();
+	CRankingCamera::Create(Vector3(1500.0f, 250.0f, -5000.0f), Vector3(1500.0f, 250.0f, 0.0f))->SetFocus();
 }

@@ -46,6 +46,8 @@ public:
 private:
 	std::unique_ptr<CPolygon2D> m_pRank;	// 順位
 	CPercent *m_pScore;						// スコア
-	int m_nCountFrame;						// フレームカウント
+	float m_fRadian;	// 角度
+	float m_fAlpha;		// α値
+	bool m_bBlink;		// 点滅フラグ
 };
 #endif

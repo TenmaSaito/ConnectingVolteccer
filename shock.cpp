@@ -17,6 +17,7 @@
 #include "texture.h"
 #include "matrix.h"
 #include "vec3math.h"
+#include "joypad.h"
 #include <string_view>
 #include <span>
 
@@ -213,7 +214,9 @@ void CShock::Set(void)
 	m_nTime = LIGHTNING_TIME;		// 持続時間を設定
 	m_nCounterFrame = 0;			// フレームカウントリセット
 
-	CSound *pSound = CManager::GetInstance()->GetSound();		// サウンドへのポインタ
+	CManager *pManager = CManager::GetInstance();	// マネージャへのポインタ
+	CSound *pSound = pManager->GetSound();		// サウンドへのポインタ
+	CJoypad *pJoypad = pManager->GetJoypad();	// ジョイパッドへのポインタ
 
 	// 各ポリゴンを描画するようにする
 	m_pWarningEffect->SetDisp(true);
@@ -222,4 +225,7 @@ void CShock::Set(void)
 
 	// 感電音を流す
 	pSound->Play(CSound::LABEL_SE_ELECTRIC_SHOCK);
+
+	// バイブレーションを発生させる
+	pJoypad->SetVibration(40000, 35000, LIGHTNING_TIME);
 }

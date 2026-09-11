@@ -46,8 +46,10 @@ public:
 	void ResetCombo(void);
 	void SetEnablePause(const bool bEnable) { m_bPause = bEnable; }
 	int GetCombo(void) const { return m_nCombo; }
+	int GetCount(void) const;
 	bool GetDisp(void) const { return m_bDisp; }
 	bool GetContinuing(void) const { return m_bContinuing; }
+	std::array<int, MAX_COMBO_NUM> GetComboNumber(void) const;
 
 private:
 	void UpdateAlpha(void);

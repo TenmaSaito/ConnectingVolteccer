@@ -179,7 +179,9 @@ void CCombo::Update(void)
 // --- 描画処理 ---
 //==================================================================================
 void CCombo::Draw(void)
-{ // 描画フラグが立っていない場合スキップ
+{ 
+	return;
+	// 描画フラグが立っていない場合スキップ
 	if (m_bDisp != true) return;
 
 	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
@@ -291,6 +293,8 @@ void CCombo::Finish(void)
 
 	// 行動を確定
 	CMapManager::GetInstance()->ConfirmID();
+
+	m_nCombo = 0;
 }
 
 //==================================================================================
@@ -303,6 +307,8 @@ void CCombo::Withdrawal(void)
 
 	// 行動を取り消し
 	CMapManager::GetInstance()->WithdrawalID();
+
+	m_nCombo = 0;
 }
 
 //==================================================================================
@@ -324,6 +330,29 @@ void CCombo::ResetCombo(void)
 	m_fTimeGaugeLerp = 0.0f;	// 補間用変数をリセット
 	m_nCombo = 0;			// コンボ数リセット
 	m_bContinuing = false;	// コンボ持続フラグをおろす
+}
+
+//==================================================================================
+// --- コンボの残り時間の割合取得処理 ---
+//==================================================================================
+int CCombo::GetCount(void) const
+{
+	return m_nDispLife;
+}
+
+//==================================================================================
+// --- コンボの各桁取得処理 ---
+//==================================================================================
+std::array<int, MAX_COMBO_NUM> CCombo::GetComboNumber(void) const
+{
+	std::array<int, MAX_COMBO_NUM> aNumValue;		// 各桁の値
+
+	for (int nCntNumber = 0; nCntNumber < MAX_COMBO_NUM; nCntNumber++)
+	{ // 各桁の数値を求める
+		aNumValue.at(nCntNumber) = m_nCombo % (int)powf(10.0f, (float)(MAX_COMBO_NUM - nCntNumber)) / (int)powf(10.0f, (float)(MAX_COMBO_NUM - nCntNumber) - 1.0f);
+	}
+
+	return aNumValue;
 }
 
 //==================================================================================

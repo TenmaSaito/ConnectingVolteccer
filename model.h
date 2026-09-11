@@ -50,6 +50,7 @@ public:
 	const Vector3 *GetRotationLocal(void) const { return &m_rotLocal; }
 	const char *GetFileName(void) const { return m_sFileName.c_str(); }
 	void SetCustomMat(const D3DMATERIAL9 &customMat = INVALID_MAT) { m_customMat = customMat; }
+	void BindTexture(const int nIdxTexture) { m_nIdxTexture = nIdxTexture; }
 	CModel *CreateCopy(void) const;
 
 private:
@@ -65,5 +66,6 @@ private:
 	Matrix m_mtxWorld;		// ワールドマトリックス
 	CModel *m_pParent;		// 親モデルへのポインタ
 	D3DMATERIAL9 m_customMat;	// カスタムマテリアル
+	int m_nIdxTexture;		// 指定したテクスチャインデックス
 };
 #endif

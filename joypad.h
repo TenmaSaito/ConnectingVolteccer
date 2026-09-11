@@ -17,9 +17,10 @@
 // *** マクロ定義 ***
 //**********************************************************************************
 #define MAX_JOYPAD			(2)			// ジョイパッドの最大数
+#define JOYTHUMB_REPEAT_NUM	(2)			// ジョイパッドでリピート対応しているスティックの数
 #define STICK_DEADZONE		(0.05f)		// 動いたと感知するデッドゾーン
-#define JOYPAD_DEFAULT_WAIT_PRESS	(60)		// リピートの連続入力までの待機時間
-#define JOYPAD_DEFAULT_INTERVAL		(30)		// リピートの連続入力の間隔
+#define JOYPAD_DEFAULT_WAIT_PRESS	(15)		// リピートの連続入力までの待機時間
+#define JOYPAD_DEFAULT_INTERVAL		(15)		// リピートの連続入力の間隔
 #define JOYPAD_DEFAULT_STICK_RANGE	(0.5f)		// スティックを倒したと判定する範囲
 
 //**********************************************************************************
@@ -93,18 +94,30 @@ public:
 		Vector3 *pOut, 
 		const int nPadID = 0);
 
+	bool GetStickRepeat(const STICK stick, 
+		const float fRange = JOYPAD_DEFAULT_STICK_RANGE,
+		const int nWaitPress = JOYPAD_DEFAULT_WAIT_PRESS,
+		const int nInterval = JOYPAD_DEFAULT_INTERVAL,
+		const int nPadID = 0);
+
+	void SetVibration(const int nLPower,
+		const int nRPower,
+		const int nTime,
+		const int nPadID = 0);
+
 private:
 	//******************************************************************************
 	// *** ジョイパッドの情報構造体 ***
 	//******************************************************************************
 	typedef struct
 	{
-		XINPUT_STATE joykeyState;				// ジョイパッドのプレス情報
-		XINPUT_STATE joykeyStateTrigger;		// ジョイパッドのトリガー情報
-		XINPUT_STATE joykeyStateRelease;		// ジョイパッドのリリース情報
-		int	nJoykeyStateRepeat[KEY_MAX];		// ジョイパッドのリピート情報
-		XINPUT_VIBRATION vibration;				// バイブレーションの情報
-		int nCounterVibration;					// バイブレーションの時間
+		XINPUT_STATE joykeyState;					// ジョイパッドのプレス情報
+		XINPUT_STATE joykeyStateTrigger;			// ジョイパッドのトリガー情報
+		XINPUT_STATE joykeyStateRelease;			// ジョイパッドのリリース情報
+		int	nJoykeyStateRepeat[KEY_MAX];			// ジョイパッドのリピート情報
+		int nJoythumbRepeat[STICK_MAX];				// ジョイスティックのリピート情報
+		XINPUT_VIBRATION vibration;					// バイブレーションの情報
+		int nCounterVibration;						// バイブレーションの時間
 	} XINPUT_INFO;
 
 	XINPUT_INFO m_aJoypad[MAX_JOYPAD];			// ジョイパッドの情報

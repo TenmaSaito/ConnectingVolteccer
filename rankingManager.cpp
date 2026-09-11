@@ -11,11 +11,14 @@
 #include "rankingManager.h"
 #include "rankingDrawer.h"
 #include "filestream.h"
+#include "object2D.h"
+#include "texture.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
 #define RANKING_PATH	"data/SCORE/ranking.bin"		// ランキングデータ書き出し先
+#define RANKING_STRING_PATH		"data/TEXTURE/number/ranking.png"		// ランキングの文字のテクスチャパス
 
 //==================================================================================
 // --- 生成処理 ---
@@ -36,6 +39,7 @@ CRankingManager *CRankingManager::Create(const bool bAddCurrent)
 //==================================================================================
 CRankingManager::CRankingManager()
 { // メンバ変数のクリア
+	m_pRankingPolygon = nullptr;
 	m_aScore = {};
 	m_apRankingDrawer = {};
 	m_nCurrentRank = -1;
@@ -57,7 +61,7 @@ CRankingManager::~CRankingManager()
 HRESULT CRankingManager::Init(const bool bAddCurrent)
 { // ランキングを読み込み
 	std::unique_ptr pFile = std::make_unique<CFileStream>();		// ファイルストリームへのポインタ
-	float fScore = 0.0f;		// 今回のスコア
+	float fScore = -1000.0f;		// 今回のスコア
 
 	// ファイル読み込み失敗時、処理スキップ
 	if (pFile->OpenFile(RANKING_PATH, true) == false) return E_FAIL;
@@ -100,11 +104,26 @@ HRESULT CRankingManager::Init(const bool bAddCurrent)
 		std::ranges::copy_n(aSort.begin(), MAX_RANKING_NUM, m_aScore.begin());
 	}
 
-	m_apRankingDrawer[0].reset(CRankingDrawer::Create(SCREEN_MIDDLE,
-		Vector2(300.0f, 185.0f),
-		0,
-		m_aScore[0],
-		false));
+	// ランキングの文字を作成
+	m_pRankingPolygon = CObject2D::Create(Vector3(SCREEN_MIDDLE.x, 60.0f, 0.0f),
+		Vector2(600.0f, 90.0f));
+
+	// テクスチャ割り当て
+	m_pRankingPolygon->BindTexture(CTexture::GetInstance()->Register(RANKING_STRING_PATH));
+
+	for (int nCntRanking = 0; nCntRanking < MAX_RANKING_NUM; nCntRanking++)
+	{ // ランキング生成
+		bool bBlink = (m_aScore[nCntRanking] == fScore);		// 今回読み込んだスコアとランキングのスコアが一致しているか
+		Vector3 pos = Vector3(750.0f, 120.0f * (nCntRanking + 1), 0.0f);		// ランキングの位置
+		pos.y += 50.0f;
+
+		// ランキングを生成
+		m_apRankingDrawer[nCntRanking].reset(CRankingDrawer::Create(pos,
+			Vector2(75.0f, 90.0f),
+			nCntRanking,
+			m_aScore[nCntRanking],
+			bBlink));
+	}
 
 	return S_OK;
 }
@@ -132,6 +151,13 @@ void CRankingManager::Uninit(void)
 //==================================================================================
 void CRankingManager::Update(void)
 { 
+	for (auto &drawer : m_apRankingDrawer)
+	{ // nullの場合はスキップ
+		if (drawer == nullptr) continue;
+
+		// 更新
+		drawer->Update();
+	}
 }
 
 //==================================================================================

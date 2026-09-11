@@ -90,6 +90,7 @@ public:
 	void CutoutComboThrowing(void);
 
 private:
+	void LoadIndices(std::string_view path);
 	void InputAction(void);
 	void InputMoving(void);
 	void InputPole(void);
@@ -122,10 +123,16 @@ private:
 	std::unique_ptr<CMotion> m_pMotion;					// モーションへのポインタ
 	char m_aModelPath[MAX_PLAYER_MODEL_PATH][MAX_PATH];	// 各モデルのパス
 	int m_nNumModel;		// モデルの総数
+	int m_nLightBeginIdx;	// ライトの開始モデルインデックス
+	int m_nLightEndIdx;		// ライトの終了モデルインデックス
+	int m_nNumberBeginIdx;	// 数値の開始インデックス
+	int m_nNumberEndIdx;	// 数値の終了インデックス
+	int m_nIdxCombo;		// コンボ表示インデックス
 	bool m_bShotLasso;		// 投げ縄を投げたか
 	bool m_bDismountPowerPlant;		// 発電所から降りたか
 	Vector3 m_vecQua;		// 回転の任意軸
 	float m_fAngleRest;		// 次の電柱への残りの角度
 	bool m_bShocked;		// 感電したか
+	int m_nCounterFrame;	// フレームカウント
 };
 #endif

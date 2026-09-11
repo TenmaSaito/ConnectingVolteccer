@@ -194,7 +194,7 @@ void CPause::UpdateInput(void)
 
 	if (pKeyboard->GetTrigger(DIK_D)
 		|| pJoypad->GetTrigger(CJoypad::KEY_RIGHT)
-		|| pJoypad->GetStick(CJoypad::STICK_LEFT_LEFT))
+		|| pJoypad->GetStickRepeat(CJoypad::STICK_LEFT_RIGHT))
 	{ // ユーザーが右入力をした際、タイプを進める
 		m_type = Util::AddEnum(m_type, 1);
 		if (m_type >= TYPE_MAX) m_type = TYPE_CONTINUE;
@@ -204,7 +204,7 @@ void CPause::UpdateInput(void)
 	}
 	else if (pKeyboard->GetTrigger(DIK_A)
 		|| pJoypad->GetTrigger(CJoypad::KEY_LEFT)
-		|| pJoypad->GetStick(CJoypad::STICK_LEFT_RIGHT))
+		|| pJoypad->GetStickRepeat(CJoypad::STICK_LEFT_LEFT))
 	{ // ユーザーが左入力をした際、タイプを戻す
 		m_type = Util::AddEnum(m_type, -1);
 		if (m_type < TYPE_CONTINUE) m_type = TYPE_EXIT;

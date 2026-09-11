@@ -47,6 +47,8 @@ CModel::CModel()
 	m_pos = VECTOR3_NULL;
 	m_rot = VECTOR3_NULL;
 	m_pParent = nullptr;
+	m_customMat = INVALID_MAT;
+	m_nIdxTexture = INVALID_TEX_ID;
 	D3DXMatrixIdentity(&m_mtxWorld);
 }
 
@@ -181,8 +183,8 @@ void CModel::Draw(void)
 		// マテリアルの設定
 		pDevice->SetMaterial(&matD3D);
 
-		// テクスチャの設定
-		pDevice->SetTexture(0, pTexture->GetAddress(m_vIdx.at(nCntMat)));
+		// テクスチャの設定 (指定テクスチャインデックスが無効出なければそちらを優先)
+		pDevice->SetTexture(0, pTexture->GetAddress((m_nIdxTexture != INVALID_TEX_ID) ? m_nIdxTexture : m_vIdx.at(nCntMat)));
 
 		// モデル(パーツ)の描画
 		m_pMesh->DrawSubset(nCntMat);
@@ -200,4 +202,38 @@ CModel *CModel::CreateCopy(void) const
 	return CModel::Create(m_sFileName.c_str(),
 		m_pos,
 		m_rot);
+}
+
+struct __declspec(novtable) IInterface
+{
+	virtual ~IInterface() = default;
+};
+
+template<class T> struct __declspec(novtable) ICloneable : public virtual IInterface
+{
+	virtual T *Clone(void) const = 0;
+};
+
+template<class T> struct __declspec(novtable) IEqualable : public virtual IInterface
+{
+	virtual bool Equal(const T&) const = 0;
+};
+
+#define ADD_ABLE(class)		public class
+#define ADD_ABLE_TEMPLATE(this, class)		public class<this>
+
+class A : public ICloneable<A>, public IEqualable<A>
+{
+public:
+	A *Clone(void) const { return new A(*this); }
+	bool Equal(const A &other) const { return &other == this; }
+};
+
+void a()
+{
+	A *pA = new A;
+	ICloneable<A> *pClone = pA;
+
+	delete pClone->Clone();
+	delete pA;
 }

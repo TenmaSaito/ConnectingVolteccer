@@ -79,6 +79,7 @@ namespace
 		CNumber::TYPE_VOLTNUM_003,			// 数値テクスチャの種類 
 		INVALID_TEX_ID,						// テクスチャインデックス (静的に読み込めないため無効値)
 		INVALID_TEX_ID,						// テクスチャインデックス (静的に読み込めないため無効値)
+		0.0f								// 桁間の幅
 	};
 }
 
@@ -263,7 +264,7 @@ void CResultMenu::UpdateInput(void)
 
 	if (pKeyboard->GetTrigger(DIK_D)
 		|| pJoypad->GetTrigger(CJoypad::KEY_RIGHT)
-		|| pJoypad->GetStick(CJoypad::STICK_LEFT_LEFT))
+		|| pJoypad->GetStickRepeat(CJoypad::STICK_LEFT_LEFT))
 	{ // ユーザーが右入力をした際、タイプを進める
 		m_currentType = Util::AddEnum(m_currentType, 1);
 		if (m_currentType >= TYPE_MAX) m_currentType = TYPE_REPLAY;
@@ -273,7 +274,7 @@ void CResultMenu::UpdateInput(void)
 	}
 	else if (pKeyboard->GetTrigger(DIK_A)
 		|| pJoypad->GetTrigger(CJoypad::KEY_LEFT)
-		|| pJoypad->GetStick(CJoypad::STICK_LEFT_RIGHT))
+		|| pJoypad->GetStickRepeat(CJoypad::STICK_LEFT_RIGHT))
 	{ // ユーザーが左入力をした際、タイプを戻す
 		m_currentType = Util::AddEnum(m_currentType, -1);
 		if (m_currentType < TYPE_REPLAY) m_currentType = TYPE_EXIT;
@@ -316,7 +317,7 @@ void CResultMenu::ActionType(void)
 		break;
 
 	case TYPE_EXIT:			// タイトルへ戻る
-		pManager->SetTransition(CScene::MODE_TITLE);
+		pManager->SetTransition(CScene::MODE_RANKING);
 		break;
 
 	default:

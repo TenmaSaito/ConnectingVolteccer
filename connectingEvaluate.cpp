@@ -151,9 +151,10 @@ void CConnectingEvaluate::Evaluate(void)
 	// 評価無し(もしくは、範囲外)だった場合、処理スキップ
 	if (eval == EVALUATE_NONE || eval == EVALUATE_MAX) return;
 
+#if 0
 	// 評価に合わせたポリゴンを生成
 	CreatePolygon(eval);
-
+#endif
 	// 電気のついた家の数をリセット
 	m_nNumCurrentLightingHouse = 0;
 }
