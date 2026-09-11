@@ -301,7 +301,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\wood_wall.jpg";
+    "data\\TEXTURE\\xfile\\myaon\\wood_wall.jpg";
    }
   }
   Material {
@@ -310,7 +310,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\wood_wall.jpg";
+    "data\\TEXTURE\\xfile\\myaon\\wood_wall.jpg";
    }
   }
   Material {
@@ -319,7 +319,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\frame.png";
+    "data\\TEXTURE\\xfile\\myaon\\frame.png";
    }
   }
   Material {
@@ -328,7 +328,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\MYAON_2.png";
+    "data\\TEXTURE\\xfile\\myaon\\myaon_2.png";
    }
   }
   Material {
@@ -343,7 +343,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\MYAON_LOGO.png";
+    "data\\TEXTURE\\xfile\\myaon\\myaon_logo.png";
    }
   }
   Material {
@@ -352,7 +352,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\autoDoor.png";
+    "data\\TEXTURE\\xfile\\myaon\\autoDoor.png";
    }
   }
   Material {
@@ -361,7 +361,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\MYAON_LOGO_PURPLE.png";
+    "data\\TEXTURE\\xfile\\myaon\\myaon_logo_purple.png";
    }
   }
  }

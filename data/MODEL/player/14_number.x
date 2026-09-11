@@ -193,7 +193,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    1.000000;1.000000;1.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\‘fŞ\\‰æ‘œ\\dotNumbers\\1.png";
+    "data\\TEXTURE\\number\\1.png";
    }
   }
   Material {
@@ -202,7 +202,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    1.000000;1.000000;1.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\‘fŞ\\‰æ‘œ\\dotNumbers\\5.png";
+    "data\\TEXTURE\\number\\5.png";
    }
   }
   Material {
@@ -211,7 +211,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    1.000000;1.000000;1.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\‘fŞ\\‰æ‘œ\\dotNumbers\\combo.png";
+    "data\\TEXTURE\\number\\combo.png";
    }
   }
   Material {

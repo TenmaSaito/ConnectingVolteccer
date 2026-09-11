@@ -13,6 +13,7 @@
 #include "sound.h"
 #include "input.h"
 #include "joypad.h"
+#include "texture.h"
 #include "debugproc.h"
 #include "combo.h"
 #include "connectingEvaluate.h"
@@ -24,6 +25,7 @@
 #include "tutorialManager.h"
 #include "planet.h"
 #include "player.h"
+#include "object2D.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -33,6 +35,7 @@
 #define EVALUATE_SCALE		Vector2(328.0f, 64.0f)				// 評価表示のサイズ
 #define PLAYER_MOTION_PATH	"data/SCRIPT/motion_player.txt"	// プレイヤーのモーションパス
 #define THUNDER_CAM_LENGTH	(1000.0f)		// 電流とカメラの距離
+#define FRAME_PATH			"data/TEXTURE/frame.png"		// 画面フレームのパス
 
 //==================================================================================
 // --- コンストラクタ ---
@@ -170,6 +173,10 @@ void CTutorial::Start(void)
 {
 	CMapManager *pMap = CMapManager::GetInstance();		// マップへのポインタ
 	CPlanet *pPlanet = nullptr;		// 惑星へのポインタ
+
+	// フレームを生成
+	CObject2D *pFrame = CObject2D::Create(SCREEN_MIDDLE, SCREEN_SIZE);
+	pFrame->BindTexture(CTexture::GetInstance()->Register(FRAME_PATH));
 
 	// コンボ表示生成
 	m_pCombo = CCombo::Create(COMBO_POS, VECTOR3_NULL);

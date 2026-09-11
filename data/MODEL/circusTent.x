@@ -638,7 +638,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\‘fŞ\\‰æ‘œ\\Shape-flag-fill-27.png";
+    "data\\TEXTURE\\xfile\\circustent\\flag.png";
    }
   }
   Material {

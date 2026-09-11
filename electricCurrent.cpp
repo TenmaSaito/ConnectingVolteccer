@@ -105,10 +105,14 @@ HRESULT CElectricCurrent::Init(CObjectXQuaternion *pStart,
 	// 雷エフェクトを生成
 	m_pThunder = CThunderEffect::Create(THUNDER_MIN, THUNDER_MAX, &m_mtxWorld);
 
-	CJoypad *pJoypad = CManager::GetInstance()->GetJoypad();		// ジョイパッドへのポインタ
+	CManager *pManager = CManager::GetInstance();	// マネージャへのポインタ
+	CJoypad *pJoypad = pManager->GetJoypad();		// ジョイパッドへのポインタ
 
-	// バイブレーション発生
-	pJoypad->SetVibration(15000, 20000, m_fTotalTime - 5);
+	if (pManager->GetMode() == CScene::MODE_GAME
+		|| pManager->GetMode() == CScene::MODE_TUTORIAL)
+	{// ゲームもしくはチュートリアルシーンならば、バイブレーション発生
+		pJoypad->SetVibration(15000, 20000, m_fTotalTime - 5);
+	}
 
 	return S_OK;
 }

@@ -10,6 +10,9 @@
 //**********************************************************************************
 #include "ranking.h"
 #include "manager.h"
+#include "input.h"
+#include "joypad.h"
+#include "sound.h"
 #include "mapManager.h"
 #include "planet.h"
 #include "rankingManager.h"
@@ -79,6 +82,14 @@ void CRanking::Update(void)
 	// 惑星に掛ける
 	pMap->GetPlanet()->MultiplyQuaternion(qua);
 
+	if ((pKeyboard->GetTrigger(DIK_RETURN)
+		|| pJoypad->GetTrigger(CJoypad::KEY_A)
+		|| pJoypad->GetTrigger(CJoypad::KEY_START))
+		&& pManager->GetState() == CSceneTransition::STATE_STAY)
+	{ // タイトル画面へ戻る
+		pManager->SetTransition(CScene::MODE_TITLE);
+	}
+
 	// 全カメラの更新処理
 	CCamera::UpdateAll();
 }
@@ -114,4 +125,9 @@ void CRanking::Start(void)
 
 	// ランキング画面のカメラを生成して、フォーカスを変更
 	CRankingCamera::Create(Vector3(1500.0f, 250.0f, -5000.0f), Vector3(1500.0f, 250.0f, 0.0f))->SetFocus();
+
+	CSound *pSound = pManager->GetSound();		// サウンドへのポインタ
+
+	// タイトル画面のBGMを流す
+	pSound->Play(CSound::LABEL_BGM_RESULT);
 }

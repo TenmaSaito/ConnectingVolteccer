@@ -719,9 +719,18 @@ void CPlayer::InputPole(void)
 	CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera*>(CCamera::GetCamera(CCamera::TYPE_PLAYER));
 	CTutorial *pTutorial = pManager->GetScene<CTutorial>();		// チュートリアルシーンへのポインタ
 	CSound *pSound = pManager->GetSound();						// サウンドへのポインタ
+	bool bCanDismount = true;		// 降りられるか
+
+	if (pTutorial != nullptr)
+	{ // 現在のモードがチュートリアルなら
+		// 降りてもいいか判定
+		bCanDismount = (pTutorial->GetTutorialManager()->GetPhase() == CTutorialManager::PHASE_INVOKE_ELECTRIC);
+	}
 
 	// プレイヤーの行動
-	if ((pKeyboard->GetTrigger(DIK_SPACE) || pJoypad->GetTrigger(CJoypad::KEY_A)) && !m_bShotLasso)
+	if ((pKeyboard->GetTrigger(DIK_SPACE) || pJoypad->GetTrigger(CJoypad::KEY_A))
+		&& !m_bShotLasso
+		&& bCanDismount == true)
 	{ // 押された場合
 		if (GetRidingObjectX() != nullptr)
 		{ // 既に乗っている場合

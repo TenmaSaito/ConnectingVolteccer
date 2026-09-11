@@ -18,7 +18,7 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define ENABLE_WINDOW		(TRUE)			// ウィンドウフラグ
+#define ENABLE_WINDOW		(FALSE)			// ウィンドウフラグ
 #define ENABLE_NULLPOINTER_ASSERT			// NULL時のアサートの有効化マクロ
 #ifdef ENABLE_NULLPOINTER_ASSERT
 #define NULLPOINTER_ASSERT(pointer)		assert(pointer != nullptr)		// NULLアサート

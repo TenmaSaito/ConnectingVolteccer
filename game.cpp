@@ -13,6 +13,7 @@
 #include "sound.h"
 #include "input.h"
 #include "joypad.h"
+#include "texture.h"
 #include "debugproc.h"
 #include "player.h"
 #include "planet.h"
@@ -30,18 +31,20 @@
 #include "meshCylinder.h"
 #include "filestream.h"
 #include "rankingManager.h"
+#include "object2D.h"
 #include <string>
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define TIMER_POS			Vector3(SCREEN_MIDDLE.x - 75.0f, 35.0f, 0.0f)		// タイマーの座標
+#define TIMER_POS			Vector3(SCREEN_MIDDLE.x - 85.0f, SCREEN_HEIGHT - 100.0f, 0.0f)		// タイマーの座標
 #define TIMER_SIZE			Vector2(150.0f, 85.0f)				// タイマーのサイズ
 #define COMBO_POS			Vector3(1000.0f, 200.0f, 0.0f)		// コンボ表示の座標
 #define EVALUATE_POS		Vector3(1000.0f, 350.0f, 0.0f)		// 評価表示の座標
 #define EVALUATE_SCALE		Vector2(328.0f, 64.0f)				// 評価表示のサイズ
 #define PLAYER_MOTION_PATH	"data/SCRIPT/motion_player.txt"	// プレイヤーのモーションパス
-#define THUNDER_CAM_LENGTH	(1000.0f)		// 電流とカメラの距離
+#define THUNDER_CAM_LENGTH	(1000.0f)						// 電流とカメラの距離
+#define FRAME_PATH			"data/TEXTURE/frame.png"		// 画面フレームのパス
 
 //==================================================================================
 // --- コンストラクタ ---
@@ -165,13 +168,10 @@ void CGame::Update(void)
 		// 今回の結果をファイルに書き出し
 		if (pFile->CreateFile(CURRENT_SCORE_PATH, true, CFileStream::FLAG_OVERWRITE))
 		{ // ファイル生成成功時
-			float fPercent = static_cast<float>(m_nNumLightingHouse)	// 電気のついた家の割合を加算
+			float fPercent = static_cast<float>(m_nNumLightingHouse - m_nNumLightingLandmark)	// 電気のついた家の割合を加算
 				/ static_cast<float>(pMap->GetNumBuilding());
 
-			fPercent *= 0.5f; // 割合を半分にする
-
-			fPercent += static_cast<float>(m_nNumLightingLandmark)
-				/ static_cast<float>(pMap->GetNumLandmark());			// 電気のついたランドマークの割合を加算
+			fPercent += static_cast<float>(m_nNumLightingLandmark) * 0.1f;			// 電気のついたランドマークの割合を加算
 
 			// 割合を書き出し
 			pFile->Write(fPercent);
@@ -203,6 +203,10 @@ void CGame::Draw(void)
 void CGame::Start(void)
 {
 	CMapManager *pMap = CMapManager::GetInstance();		// マップへのポインタ
+
+	// フレームを生成
+	CObject2D *pFrame = CObject2D::Create(SCREEN_MIDDLE, SCREEN_SIZE);
+	pFrame->BindTexture(CTexture::GetInstance()->Register(FRAME_PATH));
 
 	// タイマー生成
 	m_pTimer = CTimer::Create(TIMER_POS, TIMER_SIZE, 3, 120);

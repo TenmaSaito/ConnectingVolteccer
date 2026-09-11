@@ -658,7 +658,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\clock.png";
+    "data\\TEXTURE\\xfile\\school\\clock.png";
    }
   }
   Material {
@@ -673,7 +673,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\fence.png";
+    "data\\TEXTURE\\xfile\\school\\fence.png";
    }
   }
   Material {
@@ -682,7 +682,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\23578540.png";
+    "data\\TEXTURE\\xfile\\school\\wood-door.png";
    }
   }
   Material {
@@ -691,7 +691,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\glass-door.png";
+    "data\\TEXTURE\\xfile\\school\\glass-door.png";
    }
   }
   Material {
@@ -700,7 +700,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\glass-window.png";
+    "data\\TEXTURE\\xfile\\school\\glass-window.png";
    }
   }
   Material {
@@ -709,7 +709,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\glass-window001.png";
+    "data\\TEXTURE\\xfile\\school\\glass-window001.png";
    }
   }
   Material {

@@ -13,6 +13,8 @@
 #include "manager.h"
 #include "renderer.h"
 #include "observer_pointer.h"
+#include "object2D.h"
+#include "texture.h"
 #include <vector>
 
 //**********************************************************************************
@@ -22,7 +24,9 @@
 #define INIT_SIZE		Vector2(50, 65)		// 初期サイズ
 #define INIT_TIME		(0)					// 初期タイマー
 #define INIT_NUM		(MAX_TIMERNUM)		// 初期数値数
-#define TIMER_TEXTYPE	(CNumber::TYPE_VOLTNUM_000)		// タイマーの数字のテクスチャの種類
+#define TIMER_TEXTYPE	(CNumber::TYPE_VOLTNUM_004)		// タイマーの数字のテクスチャの種類
+#define FRAME_PATH		"data/TEXTURE/frame.png"		// 画面フレームのパス
+#define NUMBER_MARGIN	(6.5f)				// 各桁の余裕
 
 //==================================================================================
 // --- 生成処理 ---
@@ -101,7 +105,7 @@ HRESULT CTimer::Init(void)
 		Vector3 posCreate = pos;			// 生成位置
 
 		// 生成位置(X座標)を修正
-		posCreate.x = pos.x + (numSize.x * uCntNumber);
+		posCreate.x = pos.x + ((numSize.x + NUMBER_MARGIN) * uCntNumber);
 
 		pNumber = CNumber::Create(TIMER_TEXTYPE, posCreate, numSize, 0);
 		if (pNumber != NULL)
@@ -142,7 +146,7 @@ HRESULT CTimer::Init(const Vector3 &pos, const Vector2 &size, const int nNumNumb
 		Vector3 posCreate;			// 生成位置
 
 		// 生成位置を計算
-		posCreate.x = pos.x + (numSize.x * nCntNumber) + (numSize.x * 0.5f);
+		posCreate.x = pos.x + ((numSize.x + NUMBER_MARGIN) * nCntNumber) + (numSize.x * 0.5f);
 		posCreate.y = pos.y + (numSize.y * 0.5f);
 
 		// 数値オブジェクトを生成
@@ -199,7 +203,7 @@ HRESULT CTimer::Init(const Vector3 &pos, const Vector2 &size, const int nNumNumb
 		Vector3 posCreate;				// 生成位置
 
 		// 生成位置(X座標)を修正
-		posCreate.x = pos.x + (numSize.x * nCntNumber) + (numSize.x * 0.5f);
+		posCreate.x = pos.x + ((numSize.x + NUMBER_MARGIN) * nCntNumber) + (numSize.x * 0.5f);
 		posCreate.y = pos.y + (numSize.y * 0.5f);
 
 		// 数値オブジェクトを生成

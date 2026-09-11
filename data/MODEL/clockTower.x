@@ -807,7 +807,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\wood_wall.jpg";
+    "data\\TEXTURE\\xfile\\clocktower\\wood_wall.jpg";
    }
   }
   Material {
@@ -816,7 +816,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\brick.png";
+    "data\\TEXTURE\\xfile\\clocktower\\brick.png";
    }
   }
   Material {
@@ -825,7 +825,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\wood-window.png";
+    "data\\TEXTURE\\xfile\\clocktower\\wood-window.png";
    }
   }
   Material {
@@ -834,7 +834,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\wood-door.png";
+    "data\\TEXTURE\\xfile\\clocktower\\wood-door.png";
    }
   }
   Material {
@@ -843,7 +843,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\clock.png";
+    "data\\TEXTURE\\xfile\\clocktower\\clock.png";
    }
   }
   Material {

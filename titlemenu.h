@@ -28,7 +28,7 @@ public:
 	typedef enum
 	{
 		TYPE_START = 0,		// STARTボタン
-		TYPE_UNKNOWN,		// 未設定
+		TYPE_RANKING,		// ランキングボタン
 		TYPE_EXIT,			// 終了ボタン
 		TYPE_MAX
 	} TYPE;

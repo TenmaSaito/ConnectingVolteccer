@@ -43,7 +43,7 @@ namespace
 	constexpr std::string_view c_asMenuPath[CTitleMenu::TYPE_MAX] =	// 各メニューのテクスチャパス
 	{
 		"data/TEXTURE/title_ui/start.png",		// STARTボタン
-		"data/TEXTURE/title_ui/edit.png",		// EDITボタン
+		"data/TEXTURE/title_ui/ranking.png",	// RANKINGボタン
 		"data/TEXTURE/title_ui/exit.png",		// 終了ボタン
 	};
 }
@@ -327,8 +327,8 @@ void CTitleMenu::ActionType(void)
 		pManager->SetTransition(CScene::MODE_TUTORIAL);
 		break;
 
-	case TYPE_UNKNOWN:		// エディット開始
-		pManager->SetTransition(CScene::MODE_EDIT);
+	case TYPE_RANKING:		// ランキング表示
+		pManager->SetTransition(CScene::MODE_RANKING);
 		break;
 
 	case TYPE_EXIT:			// exe終了
