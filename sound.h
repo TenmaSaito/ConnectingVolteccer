@@ -44,6 +44,7 @@ public:
 		LABEL_SE_ELECTRIC_SHOCK,	// 感電音
 		LABEL_SE_WALK,				// 歩行音
 		LABEL_SE_PERCENT_UP,		// パーセント上昇音
+		LABEL_SE_SKIP,				// スキップボタン長押し音
 		LABEL_MAX
 	} LABEL;
 
@@ -64,9 +65,9 @@ public:
 	void Play(const LABEL label);
 	void Stop(const LABEL label);
 	void Stop(void);
-	void Pause(const LABEL label);
-	void Pause(void);
-	void SetPitch(const LABEL label, const float fPitch);
+	void Pause(const bool bPause, const LABEL label);
+	void Pause(const bool bPause);
+	void SetPitch(const LABEL label, const float fPitch = 1.0f);
 	bool GetPlay(const LABEL label) const;
 	HRESULT GetError(const LABEL label) const;
 

@@ -389,20 +389,20 @@ void CMapManager::Load(std::string_view sMapFile)
 			IODATA in = { 0 };		// 出力データ
 
 			// データ読み込み
-			pFile->Read(in.type);
-			pFile->Read(in.nIdxModel);
-			pFile->Read(in.pos.x);
-			pFile->Read(in.pos.y);
-			pFile->Read(in.pos.z);
-			pFile->Read(in.vecQua.x);
-			pFile->Read(in.vecQua.y);
-			pFile->Read(in.vecQua.z);
-			pFile->Read(in.fAngle);
+			pFile->Read(in.type);			// オブジェクトの種類
+			pFile->Read(in.nIdxModel);		// モデルのインデックス (Buildingのみ使用)
+			pFile->Read(in.pos.x);			// X座標
+			pFile->Read(in.pos.y);			// Y座標
+			pFile->Read(in.pos.z);			// Z座標
+			pFile->Read(in.vecQua.x);		// 任意軸のX軸
+			pFile->Read(in.vecQua.y);		// 任意軸のY軸
+			pFile->Read(in.vecQua.z);		// 任意軸のZ軸
+			pFile->Read(in.fAngle);			// 回転度数
 
 			// タイプ別でオブジェクトを配置
 			CObject::TYPE type = static_cast<CObject::TYPE>(in.type);
 			if (type == fileTypeInfo.nBuildingType)
-			{ 
+			{ // CBuildingクラスの種類だった場合
 				CBuilding::TYPE buildingType = static_cast<CBuilding::TYPE>(in.nIdxModel);		// 建物の種類
 				if (CBuilding::IsLandmark(buildingType))
 				{ // ランドマークの場合、ランドマークの総数を増加
@@ -462,6 +462,11 @@ void CMapManager::Load(std::string_view sMapFile)
 
 		// ファイルを閉じる
 		pFile->CloseFile();
+	}
+
+	for (auto &pPole : m_vpPole)
+	{ // つなげられる電柱を検索する
+		pPole->FindCanConnectPole();
 	}
 }
 

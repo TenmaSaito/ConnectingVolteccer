@@ -97,7 +97,7 @@ HRESULT CLasso::Init(const Vector3 &pos,
 	m_pEnd = pEnd;
 
 	// 親クラスの初期化
-	Quaternion qua;
+	Quaternion qua;		// クォータニオン
 	return CObjectXQuaternion::Init(MODEL_PATH, pos, *D3DXQuaternionIdentity(&qua));
 }
 
@@ -166,8 +166,8 @@ void CLasso::UpdateTransform(void)
 	}
 
 	Quaternion *pQuaLasso = GetQuaternionPtr();		// 現在のクォータニオン
-	Vector3 posStartWorld = Vector3(0.0f, std::visit([](auto &x) { return x->GetVtxMax()->y; }, m_pStart), 0.0f);
-	Vector3 posEndWorld = Vector3(0.0f, m_pEnd->GetVtxMax()->y, 0.0f);
+	Vector3 posStartWorld = Vector3(0.0f, std::visit([](auto &x) { return x->GetVtxMax()->y; }, m_pStart), 0.0f);	// 始点のローカル座標
+	Vector3 posEndWorld = Vector3(0.0f, m_pEnd->GetVtxMax()->y, 0.0f);		// 終点のローカル座標
 	Vector3 pos = VECTOR3_NULL;
 
 	// 絶対座標を求める
@@ -253,8 +253,8 @@ void CLasso::CheckCollision(void)
 		Vector3 vecMove = VECTOR3_NULL;			// 移動ベクトル
 		Vector3 vecToPos = VECTOR3_NULL;		// 始点から現在座標へのベクトル
 		Vector3 vecToPosOld = VECTOR3_NULL;		// 始点から過去座標へのベクトル
-		float fVecPos = 0.0f;
-		float fVecPosOld = 0.0f;
+		float fVecPos = 0.0f;					// 現在座標との外積結果
+		float fVecPosOld = 0.0f;				// 過去座標との外積結果
 		float fPosToMove = 0.0f;				// vecToPosとの外積
 		float fLineToMove = 0.0f;				// vecLineとの外積
 		float fRate = 0.0f;						// 面積比率

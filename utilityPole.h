@@ -83,6 +83,7 @@ public:
 	void RemoveConnected(void);
 	bool CanFocus(const CPlayer *pPlayer);
 	void SetEnableSelect(const bool bEnable);
+	void FindCanConnectPole(void);
 	ICON GetIconType(void) const { return m_enableType; }
 	bool IsSelected(void) const { return m_bSelected; }
 	void SetEnableElectriced(const bool bEnable) { m_bElectriced = bEnable; }
@@ -99,6 +100,7 @@ private:
 	bool m_bElectriced;			// 既に電流が流れたかどうか
 	bool m_bSelected;			// 選択されているか(プレイヤーの視点の中心に最も近いか)
 	ICON m_enableType;			// 有効な種類
-	int m_nID;			// 生成されたID
+	int m_nID;					// 生成されたID
+	std::vector<int> m_vCanConnect;		// 接続可能な電柱のインデックス
 };
 #endif

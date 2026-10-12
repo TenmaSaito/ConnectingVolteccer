@@ -12,6 +12,7 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "main.h"
+#include <deque>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -23,7 +24,8 @@
 #define DEFAULT_EFFECT_PRIORITY	(4)			// エフェクト関連の優先順位
 #define DEFAULT_ADD_PRIORITY	(5)			// 加算合成関連の優先順位
 #define DEFAULT_UI_PRIORITY		(6)			// UIの基本優先順位
-#define ENABLE_OBJECT_LIST		TRUE		// リスト構造での管理の有効化
+#define FINALLY_PRIORITY		(7)			// 全てのオブジェクトが描画された後の最終優先順位
+#define ENABLE_OBJECT_LIST		(TRUE)		// リスト構造での管理の有効化
 #define DEBUG_ASSERT_TYPE_NONE				// オブジェクトにタイプが指定されていなかった場合、アサーション
 #define NOTIFY_WHEN_DEATH		"Death"		// 死んだ際に通知される文字列
 
@@ -69,7 +71,9 @@ public:
 		TYPE_MESHSPHERE,	// メッシュスフィア
 		TYPE_BUILDING,		// 建物
 		TYPE_POWERPLANT,	// 発電所
+		TYPE_GRASSLAND,		// 草原
 		TYPE_RANKING_MANAGER,		// ランキングマネージャ
+		TYPE_SKIP,			// スキップ表示
 		TYPE_MAX
 	} TYPE;
 
@@ -87,7 +91,7 @@ public:
 	TYPE GetType(void) const { return m_type; }
 	bool IsDeath(void) const { return m_bDeath; }
 	void AddObserver(CObject *pObserve) { m_vpObserver.push_back(pObserve); }
-	void RemoveObserver(CObject *pObserve) { std::erase(m_vpObserver, pObserve); }
+	void RemoveObserver(CObject *pObserve) { m_vpObserver.erase(std::remove(m_vpObserver.begin(), m_vpObserver.end(), pObserve), m_vpObserver.end()); }
 	static CObject* GetTop(const int nPriority) { return m_apTop[nPriority]; }
 	CObject *GetNext(void) const { return m_pNext; }
 	static int GetNumAll(void) { return m_nNumAll; }
@@ -95,6 +99,10 @@ public:
 	static void UpdateAll(void);
 	static void DrawAll(void);
 	static void FlagCheckAll(void);
+	static CObject *FindAnyObjectByType(const TYPE type);
+	static CObject *FindAnyObjectByType(const int nPriority, const TYPE type);
+	static std::deque<CObject*> FindObjectsByType(const TYPE type);
+	static std::deque<CObject*> FindObjectsByType(const int nPriority, const TYPE type);
 #if ENABLE_OBJECT_LIST
 #else
 	static CObject *GetObject(const int nPriority, const int nIdx) { return m_apObject[nPriority][nIdx]; }

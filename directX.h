@@ -15,6 +15,12 @@
 #include <atomic>
 
 //**********************************************************************************
+// *** マクロ定義 ***
+//**********************************************************************************
+#define WM_SUCCEEDED_INIT		(WM_USER + 1)		// 初期化が正常に終了した際に送信するコード
+#define WM_FAILED_INIT			(WM_USER + 2)		// 初期化が失敗した際に送信するコード
+
+//**********************************************************************************
 // *** DirectXクラス ***
 //**********************************************************************************
 class CDirectX
@@ -23,7 +29,7 @@ public:
 	CDirectX();
 	~CDirectX();
 
-	void DirectXProc(HINSTANCE hInstance, HWND hWnd, BOOL bWindowed);
+	void DirectXProc(HINSTANCE hInstance, HWND hWnd, BOOL bWindowed, int nCmdShow);
 	void Quit(void);
 
 private:

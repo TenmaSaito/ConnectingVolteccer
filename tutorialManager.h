@@ -50,7 +50,6 @@ public:
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
-	std::string_view GetTutorialMapPath(void) const;
 	void SetNextPhase(void);
 	PHASE GetPhase(void) const { return m_phase; }
 	bool GetFocus(void) const { return m_bInputFocus; }

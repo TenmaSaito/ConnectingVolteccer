@@ -22,6 +22,7 @@
 // *** 前方宣言 ***
 //**********************************************************************************
 class CGrass;
+class CBuilding;
 
 //**********************************************************************************
 // *** 草原クラス ***
@@ -40,12 +41,28 @@ public:
 		float fMinSwayWidth;	// 揺れる最小幅
 	};
 
+	struct Info
+	{
+		Vector3 pos;			// 発生位置の中心
+		Vector3 vecQua;			// 任意軸
+		float fAngle;			// 回転度数
+		Vector2 size;			// サイズ
+		const Matrix *pMtxParent;		// 親マトリックスへのポインタ
+		int nIdxTexture;		// テクスチャインデックス
+		int nNumGrass;			// 発生させる草の総数
+		float fAngleRange;		// 変動する度数の範囲
+		Vector2 maxSize;		// 最大サイズ
+		Vector2 minSize;		// 最小サイズ
+	};
+
+	static CGrassLand *Create(const Info &info);
 	static CGrassLand *Create(const Vector3 &pos, const Vector2 &size, const int nNumGrass, const Propaty &propaty = GetDefaultPropaty());
 	static Propaty GetDefaultPropaty(void);
 
 	CGrassLand();
 	~CGrassLand();
 
+	HRESULT Init(const Info &info);
 	HRESULT Init(const Vector3 &pos, const Vector2 &size, const int nNumGrass, const Propaty &propaty);
 	void Uninit(void);
 	void Update(void);
@@ -56,5 +73,9 @@ private:
 	CGrass *m_apGrass[MAX_GRASS_NUM];		// 生やした草へのポインタ
 	int m_nNumGrass;		// 生やした草の数
 	Propaty m_propaty;		// 生成時のプロパティ
+
+	Info m_info;		// 草原の情報
+	Quaternion m_qua;	// クォータニオン
+	Matrix m_mtxWorld;	// ワールドマトリックス
 };
 #endif

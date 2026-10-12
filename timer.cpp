@@ -12,7 +12,6 @@
 #include "number.h"
 #include "manager.h"
 #include "renderer.h"
-#include "observer_pointer.h"
 #include "object2D.h"
 #include "texture.h"
 #include <vector>
@@ -264,9 +263,9 @@ void CTimer::Update(void)
 //==================================================================================
 void CTimer::Draw(void)
 {
-	own::ObserverPtr pManager(CManager::GetInstance());		// マネージャへのポインタ
-	own::ObserverPtr pRenderer(pManager->GetRenderer());	// レンダラーへのポインタ
-	own::ObserverPtr pDevice(pRenderer->GetDevice());		// デバイスへのポインタ
+	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
+	CRenderer *pRenderer = pManager->GetRenderer();	// レンダラーへのポインタ
+	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
 
 	// αテストを有効化
 	pDevice->SetRenderState(D3DRS_LIGHTING, FALSE);

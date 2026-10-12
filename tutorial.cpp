@@ -10,6 +10,7 @@
 //**********************************************************************************
 #include "tutorial.h"
 #include "manager.h"
+#include "renderer.h"
 #include "sound.h"
 #include "input.h"
 #include "joypad.h"
@@ -26,13 +27,18 @@
 #include "planet.h"
 #include "player.h"
 #include "object2D.h"
+#include "skip.h"
+#include "matrix.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define COMBO_POS			Vector3(1000.0f, 200.0f, 0.0f)		// コンボ表示の座標
-#define EVALUATE_POS		Vector3(1000.0f, 350.0f, 0.0f)		// 評価表示の座標
+#define COMBO_POS			Vector3(1000.0f, 200.0f, 0.0f)		// コンボ表示の位置
+#define EVALUATE_POS		Vector3(1000.0f, 350.0f, 0.0f)		// 評価表示の位置
 #define EVALUATE_SCALE		Vector2(328.0f, 64.0f)				// 評価表示のサイズ
+#define SKIP_POS			Vector3(225.0f, 50.0f, 0.0f)		// スキップ表示の位置
+#define SKIP_SCALE			Vector2(400.0f, 60.0f)				// スキップ表示のサイズ
+#define SKIP_PATH			"data/TEXTURE/tutorial_ui/skip.png"	// スキップ表示のテクスチャパス
 #define PLAYER_MOTION_PATH	"data/SCRIPT/motion_player.txt"	// プレイヤーのモーションパス
 #define THUNDER_CAM_LENGTH	(1000.0f)		// 電流とカメラの距離
 #define FRAME_PATH			"data/TEXTURE/frame.png"		// 画面フレームのパス
@@ -83,12 +89,8 @@ HRESULT CTutorial::Init(void)
 // --- 終了処理 ---
 //==================================================================================
 void CTutorial::Uninit(void)
-{
-	if (m_pTutorialManager != nullptr)
-	{ // 生成されていれば、破棄
-		m_pTutorialManager->Uninit();
-		m_pTutorialManager.reset();
-	}
+{ // 生成されていれば、破棄
+	SafeUniqueUninit(m_pTutorialManager);
 }
 
 //==================================================================================
@@ -104,13 +106,6 @@ void CTutorial::Update(void)
 	if (pKeyboard->GetTrigger(DIK_P) || pJoypad->GetTrigger(CJoypad::KEY_START))
 	{ // ポーズ変更！
 		pManager->SetEnablePause(!pManager->GetEnablePause());
-	}
-
-	if (pKeyboard->GetTrigger(DIK_9))
-	{ // ポーズ変更！
-		CObject::ReleaseAll();
-		CMapManager::GetInstance()->Unload();
-		Start();
 	}
 
 	if (m_pEvaluate->GetLightingHouse() > 0)
@@ -135,38 +130,6 @@ void CTutorial::Draw(void)
 }
 
 //==================================================================================
-// --- 各リソースの生成し直し処理 ---
-//==================================================================================
-void CTutorial::Restart(std::string_view sMapPath)
-{
-	CMapManager *pMap = CMapManager::GetInstance();		// マップへのポインタ
-	CPlanet *pPlanet = nullptr;		// 惑星へのポインタ
-
-	// オブジェクトの破棄 + 現在のマップ情報を破棄
-	CObject::ReleaseAll();
-	pMap->Unload();
-
-	// コンボ表示生成
-	m_pCombo = CCombo::Create(COMBO_POS, VECTOR3_NULL);
-
-	// コンボ表示生成
-	m_pEvaluate = CConnectingEvaluate::Create(EVALUATE_POS, EVALUATE_SCALE);
-	pMap->BindConnectingEvaluate(m_pEvaluate);
-
-	// プレイヤー出現
-	m_pPlayer = CPlayer::Create(PLAYER_MOTION_PATH, Vector3(0.0f, 1115.0f, 0.0f), VECTOR3_NULL);
-	m_pPlayer->BindCombo(m_pCombo);
-	pMap->BindPlayer(m_pPlayer);
-	NULLPOINTER_ASSERT(m_pPlayer);
-
-	// マップ読み込み + 惑星へのポインタを取得
-	pMap->Load(sMapPath);
-
-	// 電流用カメラ生成
-	m_pThunderCam = CThunderCamera::Create(THUNDER_CAM_LENGTH);
-}
-
-//==================================================================================
 // --- 初期化後呼び出し処理 ---
 //==================================================================================
 void CTutorial::Start(void)
@@ -178,29 +141,33 @@ void CTutorial::Start(void)
 	CObject2D *pFrame = CObject2D::Create(SCREEN_MIDDLE, SCREEN_SIZE);
 	pFrame->BindTexture(CTexture::GetInstance()->Register(FRAME_PATH));
 
-	// コンボ表示生成
+	// コンボ表示生成 + ゲージ減少をストップ
 	m_pCombo = CCombo::Create(COMBO_POS, VECTOR3_NULL);
+	m_pCombo->SetEnablePause(true);
 
-	// コンボ表示生成
+	// 評価クラス生成
 	m_pEvaluate = CConnectingEvaluate::Create(EVALUATE_POS, EVALUATE_SCALE);
 	pMap->BindConnectingEvaluate(m_pEvaluate);
 
 	// プレイヤー出現
-	m_pPlayer = CPlayer::Create(PLAYER_MOTION_PATH, Vector3(0.0f, 1115.0f, 0.0f), VECTOR3_NULL);
+	m_pPlayer = CPlayer::Create(PLAYER_MOTION_PATH, Vector3(0.0f, PLANET_HEIGHT, 0.0f), VECTOR3_NULL);
 	m_pPlayer->BindCombo(m_pCombo);
 	pMap->BindPlayer(m_pPlayer);
-	NULLPOINTER_ASSERT(m_pPlayer);
 
 	// チュートリアルマネージャ生成
 	m_pTutorialManager.reset(CTutorialManager::Create());
 
 	// マップ読み込み
-	pMap->Load(m_pTutorialManager->GetTutorialMapPath());
+	pMap->Load("data/MAPS/tutorial_map.bin");
 
 	// 電流用カメラ生成
 	m_pThunderCam = CThunderCamera::Create(THUNDER_CAM_LENGTH);
 
 	CSound *pSound = CManager::GetInstance()->GetSound();		// サウンドへのポインタ
+
+	// スキップ表示を生成
+	CSkip *pSkip = CSkip::Create(SKIP_POS, SKIP_SCALE);
+	pSkip->BindSkipTexture(CTexture::GetInstance()->Register(SKIP_PATH));
 
 	// ゲームBGMを流す
 	pSound->Play(CSound::LABEL_BGM_GAME);

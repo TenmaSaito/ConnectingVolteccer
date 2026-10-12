@@ -46,17 +46,27 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define PLAYER_SPD			(2.5f)		// モデルの移動スピード
-#define PLAYER_ROTSPD		(0.1f)		// モデルの回転スピード
-#define RESIST_POW			(0.25f)		// 摩擦
-#define RIDE_LENGTH			(120.0f)	// 電柱に乗れる距離
-#define POLE_MOVE_SPEED		(0.0175f)	// 電柱を乗り移る際の角度
-#define PLAYERCAM_DEFROT	Vector3(0.0f, 0.0f, -0.4f)		// デフォルトのカメラ角度
-#define PLAYERCAM_RIDINGROT	Vector3(0.0f, 0.0f, -1.16f)		// 電柱に乗っているときのカメラ角度
-#define SHOCK_OFFSET		Vector3(0.0f, 50.0f, 0.0f)		// 感電時のエフェクトのオフセット
+#define PLAYER_SPD				(2.5f)		// モデルの移動スピード
+#define PLAYER_ROTSPD			(0.1f)		// モデルの回転スピード
+#define RESIST_POW				(0.25f)		// 摩擦
+#define ANGLE_DEST_ACCELE		(0.05f)		// 目標角度への移動速度
+#define ROTATION_EPSILON		(0.001f)	// 角度の切り捨てる大きさ
+#define RIDE_LENGTH				(120.0f)	// 電柱に乗れる距離
+#define POLE_MOVE_SPEED			(0.0175f)	// 電柱を乗り移る際の角度
+#define SLIDING_BLEND			(7)			// 電柱スライドモーションへ移行する際のブレンド時間
+#define RIDING_BLEND			(10)		// 発電所待機モーションへ移行する際のブレンド時間
+#define NEUTRAL_BLEND			(10)		// 通常待機モーションへ移行する際のブレンド時間
+#define PLAYERCAM_DEFROT		Vector3(0.0f, 0.0f, -0.4f)		// デフォルトのカメラ角度
+#define PLAYERCAM_RIDINGROT		Vector3(0.0f, 0.0f, -1.16f)		// 電柱に乗っているときのカメラ角度
+#define SHOCK_OFFSET			Vector3(0.0f, 50.0f, 0.0f)		// 感電時のエフェクトのオフセット
 #define PLAYERCAM_LEN			(1000.0f)		// プレイヤーのカメラの距離
 #define PLAYERCAM_RIDING_LEN	(250.0f)		// 電柱に乗っているときのカメラの距離
 #define RIDING_FOVY				(65.0f)			// 電線に乗っている際の視野角
+#define BACKPACK_LIGHT_BLINK_FRAME		(static_cast<int>(CManager::SecToFrame(0.5f)))		// バックパックのライトの点滅間隔
+#define LIGHT_BLINK_DURATION			(static_cast<int>(CManager::SecToFrame(0.14f)))		// バックパックのライトの消灯時間
+#define LIGHT_OUT_COL			Color(0.5f, 0.5f, 0.0f, 1.0f)	// 電気が消えたバックパックのライトの色
+#define LIGHT_CAUTION_COL		Color(1.0f, 0.0f, 0.0f, 1.0f)	// 残り時間が少なくなった際のライトの色
+#define CAUTION_TIME			(static_cast<int>(CManager::SecToFrame(7.5f)))		// 警告色になる残り時間
 //#define ENABLE_RAY_PLAYER_TO_POLE				// プレイヤーから投げ縄を投げられる電柱へのレイの表示
 //#define ENABLE_CAN_FOCUS_POLE_VECTOR			// プレイヤーがフォーカス可能な電柱へのポインタの配列の一時保持
 
@@ -65,7 +75,7 @@
 //**********************************************************************************
 namespace
 {
-	constexpr std::string_view c_asNumberPath[10] =
+	constexpr std::string_view c_asNumberPath[10] =		// 数値の各テクスチャパス
 	{
 		"data/TEXTURE/number/0.png",
 		"data/TEXTURE/number/1.png",
@@ -79,9 +89,9 @@ namespace
 		"data/TEXTURE/number/9.png",
 	};
 
-	constexpr std::string_view c_sNumberNullPath = "data/TEXTURE/number/null.png";
+	constexpr std::string_view c_sNumberNullPath = "data/TEXTURE/number/null.png";		// 非表示のテクスチャパス
 
-	constexpr std::string_view c_asComboPath[2] =
+	constexpr std::string_view c_asComboPath[2] =		// コンボの表示・非表示のテクスチャパス
 	{
 		"data/TEXTURE/number/combo.png",
 		"data/TEXTURE/number/combo_null.png",
@@ -117,11 +127,11 @@ CPlayer::CPlayer(const int nPriority) : CObject(nPriority)
 	m_pCombo = nullptr;
 	m_pMotion = nullptr;
 	m_pShock = nullptr;
-	m_pThunderEffect = nullptr;
 	m_pPoleNext = nullptr;
 	m_bShotLasso = false;
 	m_bShocked = false;
 	m_bDismountPowerPlant = false;
+	m_bMovable = false;
 	m_fAngleRest = 0.0f;
 	m_nLightBeginIdx = -1;
 	m_nLightEndIdx = -1;
@@ -202,7 +212,7 @@ void CPlayer::Uninit(void)
 
 	// 配列リセット
 	m_vpModel.clear();
-	
+
 	// モーションの破棄
 	if (m_pMotion != nullptr)
 	{ // 存在すれば破棄+終了処理
@@ -235,9 +245,6 @@ void CPlayer::Update(void)
 
 	// 電柱関連の更新
 	UpdatePole();
-
-	// 当たり判定関連処理
-	CollisionAction();
 
 	// 現在位置表示
 	pProc->Print("[PPos : {:.2f} {:.2f} {:.2f}]\n", PRINT_VECTOR3(m_pos));
@@ -279,7 +286,7 @@ void CPlayer::Draw(void)
 	//  ワールドマトリックスの設定
 	pDevice->SetTransform(D3DTS_WORLD, &m_mtxWorld);
 
-	std::array aNumber = m_pCombo->GetComboNumber();
+	std::array aNumber = m_pCombo->GetComboNumber();		// コンボの各桁の数字
 
 	for (int nIdxModel = 0; auto &model : m_vpModel)
 	{ // 各モデルの描画
@@ -296,29 +303,36 @@ void CPlayer::Draw(void)
 
 		if (nIdxModel >= m_nLightBeginIdx && nIdxModel <= m_nLightEndIdx)
 		{ // インデックスがライトの範囲の場合
-			if ((CManager::FrameToSec(m_pCombo->GetCount()) - 20) + (nIdxModel - m_nLightBeginIdx) >= 0)
+			if ((CManager::FrameToSec(m_pCombo->GetCount()) - COMBO_TIME) + (nIdxModel - m_nLightBeginIdx) >= 0)
 			{ // 今のライトがついていてもいいなら、デフォのマテリアルを使用
-				if (m_nCounterFrame % 7 != 0)
-				{ // フレームカウントが7で割り切れない時、デフォのマテリアルを使用
-					model->SetCustomMat();
+				if (m_nCounterFrame % (LIGHT_BLINK_DURATION * 2) < LIGHT_BLINK_DURATION)
+				{
+					D3DMATERIAL9 mat = D3DMATERIAL9{ 0 };		// デフォルトマテリアル
+					if (m_pCombo->GetCount() < CAUTION_TIME)
+					{ // 残り時間が少ない場合、警告色に切り替え
+						mat.Diffuse = LIGHT_CAUTION_COL;
+					}
+
+					// 色を適用
+					model->SetCustomMat(mat);
 				}
 				else
 				{ // フレームカウントが7で割り切れる時、マテリアルを薄暗くする
 					D3DMATERIAL9 matBlack = {};
-					matBlack.Diffuse = Color(0.5f, 0.5f, 0.0f, 1.0f);
+					matBlack.Diffuse = LIGHT_OUT_COL;
 					model->SetCustomMat(matBlack);
 				}
 			}
 			else
 			{ // ライトが消えているべきなら、薄暗いカスタムマテリアルを使用
 				D3DMATERIAL9 matBlack = {};
-				matBlack.Diffuse = Color(0.5f, 0.5f, 0.0f, 1.0f);
+				matBlack.Diffuse = LIGHT_OUT_COL;
 				model->SetCustomMat(matBlack);
 			}
 		}
 
 		if (nIdxModel >= m_nNumberBeginIdx && nIdxModel <= m_nNumberEndIdx)
-		{ 
+		{  // コンボ数を表示するモデルのインデックスなら
 			if (m_pCombo->GetCombo() > 0)
 			{ // コンボ数が0より大きく、電線を繋げ初めている場合、バックパックのテクスチャを変更
 				model->BindTexture(pTexture->Register(c_asNumberPath[aNumber[nIdxModel - m_nNumberBeginIdx]]));
@@ -341,6 +355,7 @@ void CPlayer::Draw(void)
 			}
 		}
 
+		// モデルの描画
 		model->Draw();
 		nIdxModel++;		// 描画したモデル数増加
 	}
@@ -389,10 +404,10 @@ void CPlayer::ChangeRidingPole(CUtilityPole *pNext)
 
 	// ベクトルを求める
 	planetToRiding = Vec3::Direction(ridingWorldPos, *pPlanet->GetPosition());
-	CRay(*pPlanet->GetPosition(), planetToRiding, 10000.0f).Draw();
+	CRay(*pPlanet->GetPosition(), planetToRiding, FLT_MAX).Draw();
 
 	planetToNext = Vec3::Direction(nextWorldPos, *pPlanet->GetPosition());
-	CRay(*pPlanet->GetPosition(), planetToNext, 10000.0f).Draw();
+	CRay(*pPlanet->GetPosition(), planetToNext, FLT_MAX).Draw();
 
 	// ベクトルから内積計算
 	float fDot = Vec3::Dot(planetToRiding, planetToNext);
@@ -411,7 +426,7 @@ void CPlayer::ChangeRidingPole(CUtilityPole *pNext)
 	m_vecQua = Vec2::ToVector3(Vec2::Direction(fAngle));
 	m_vecQua.z = m_vecQua.y;
 	m_vecQua.y = 0.0f;
-	CRay(m_offset + Vector3(0.0f, 100.0f, 0.0f), m_vecQua, 1000.0f).Draw();
+	CRay(m_offset + Vector3(0.0f, 100.0f, 0.0f), m_vecQua, FLT_MAX).Draw();
 
 	// オフセットを電柱上に設定
 	m_pos.y = m_offset.y + pNext->GetVtxMax()->y;
@@ -425,7 +440,7 @@ void CPlayer::ChangeRidingPole(CUtilityPole *pNext)
 	if (m_pCombo != nullptr) m_pCombo->AddCombo(1);
 
 	// スライドモーションへの移行
-	m_pMotion->Set(MOTIONTYPE_SLIDING, 5);
+	m_pMotion->Set(MOTIONTYPE_SLIDING, SLIDING_BLEND);
 }
 
 //==================================================================================
@@ -481,27 +496,6 @@ void CPlayer::InputAction(void)
 { // プレイヤーフォーカスのカメラではない場合、スキップ
 	if (CCamera::GetFocus() != CCamera::TYPE_PLAYER) return;
 
-	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
-	if (pManager->GetMode() == CScene::MODE_TUTORIAL)
-	{ // 今のモードがチュートリアルなら
-		CTutorialManager *pTutorialManager = pManager->GetScene<CTutorial>()->GetTutorialManager();		// チュートリアルマネージャへのポインタ
-		bool bInputFocus = pTutorialManager->GetFocus();		// 現在のフォーカス状態
-
-		if (bInputFocus == true)
-		{ // もし今チュートリアルが入力をフォーカスしているなら、基本入力処理をスキップ
-			CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();		// キーボードへのポインタ
-			CJoypad *pJoypad = pManager->GetJoypad();		// ジョイパッドへのポインタ
-
-			if (pKeyboard->GetTrigger(DIK_RETURN)
-				|| pJoypad->GetTrigger(CJoypad::KEY_A))
-			{ // AもしくはEnterでフェーズを進める
-				pTutorialManager->SetNextPhase();
-			}
-
-			return;
-		}
-	}
-
 	// 感電中ならスキップ
 	if (m_bShocked == true) return;
 
@@ -529,18 +523,19 @@ void CPlayer::InputMoving(void)
 	int nFrameBleand = 0;						// ブレンド時間
 	bool bMove = true;			// 動いたか
 
-	if (m_bShotLasso == true)
-	{ // 投げ縄を投げている最中もしくは電線を移動している最中なら、移動処理はスキップ
-		return;
-	}
+	// 移動可能フラグが立っていなければ、スキップ
+	if (m_bMovable == false) return;
+
+	// 投げ縄を投げている最中もしくは電線を移動している最中なら、移動処理はスキップ
+	if (m_bShotLasso == true) return;
 
 	if (pKeyboard->GetPress(DIK_W))
 	{ // Wを押したとき
 		if (pKeyboard->GetPress(DIK_A))
 		{ // Aを押したとき
 			// カメラの角度に合わせて、平行移動！
-			move.z += cosf(pCameraRot->y - (D3DX_PI * 0.25f)) * PLAYER_SPD;
-			move.x += sinf(pCameraRot->y - (D3DX_PI * 0.25f)) * PLAYER_SPD;
+			move.z += cosf(pCameraRot->y - QUARTER_PI) * PLAYER_SPD;
+			move.x += sinf(pCameraRot->y - QUARTER_PI) * PLAYER_SPD;
 
 			// カメラの角度に合わせて、モデルの目標角度を求める！
 			m_rotDest.y = (pCameraRot->y - (D3DX_PI * 1.25f));
@@ -548,8 +543,8 @@ void CPlayer::InputMoving(void)
 		else if (pKeyboard->GetPress(DIK_D))
 		{ // Dを押したとき
 			// カメラの角度に合わせて、平行移動！
-			move.z += cosf(pCameraRot->y + (D3DX_PI * 0.25f)) * PLAYER_SPD;
-			move.x += sinf(pCameraRot->y + (D3DX_PI * 0.25f)) * PLAYER_SPD;
+			move.z += cosf(pCameraRot->y + QUARTER_PI) * PLAYER_SPD;
+			move.x += sinf(pCameraRot->y + QUARTER_PI) * PLAYER_SPD;
 
 			// カメラの角度に合わせて、モデルの目標角度を求める！
 			m_rotDest.y = (pCameraRot->y + (D3DX_PI * 1.25f));
@@ -580,7 +575,7 @@ void CPlayer::InputMoving(void)
 			move.x += sinf(pCameraRot->y + (D3DX_PI * 1.25f)) * PLAYER_SPD;
 
 			// カメラの角度に合わせて、モデルの目標角度を求める！
-			m_rotDest.y = (pCameraRot->y + (D3DX_PI * 0.25f));
+			m_rotDest.y = (pCameraRot->y + QUARTER_PI);
 		}
 		else if (pKeyboard->GetPress(DIK_D))
 		{ // Dを押したとき
@@ -589,7 +584,7 @@ void CPlayer::InputMoving(void)
 			move.x += sinf(pCameraRot->y - (D3DX_PI * 1.25f)) * PLAYER_SPD;
 
 			// カメラの角度に合わせて、モデルの目標角度を求める！
-			m_rotDest.y = (pCameraRot->y - (D3DX_PI * 0.25f));
+			m_rotDest.y = (pCameraRot->y - QUARTER_PI);
 		}
 		else
 		{ // 純粋なS入力時
@@ -615,7 +610,7 @@ void CPlayer::InputMoving(void)
 		move.x += sinf(pCameraRot->y + (D3DX_PI * 1.5f)) * PLAYER_SPD;
 
 		// カメラの角度に合わせて、モデルの目標角度を求める！
-		m_rotDest.y = (pCameraRot->y + (D3DX_PI * 0.5f));
+		m_rotDest.y = (pCameraRot->y + HALF_PI);
 
 		if (m_pMotion->GetType() == MOTIONTYPE_NEUTRAL
 			&& m_pMotion->GetBlendType() != MOTIONTYPE_MOVE)
@@ -627,8 +622,8 @@ void CPlayer::InputMoving(void)
 	else if (pKeyboard->GetPress(DIK_D))
 	{ // Dを押したとき
 		// カメラの角度に合わせて、平行移動！
-		move.z += cosf(pCameraRot->y + (D3DX_PI * 0.5f)) * PLAYER_SPD;
-		move.x += sinf(pCameraRot->y + (D3DX_PI * 0.5f)) * PLAYER_SPD;
+		move.z += cosf(pCameraRot->y + HALF_PI) * PLAYER_SPD;
+		move.x += sinf(pCameraRot->y + HALF_PI) * PLAYER_SPD;
 
 		// カメラの角度に合わせて、モデルの目標角度を求める！
 		m_rotDest.y = (pCameraRot->y + (D3DX_PI * 1.5f));
@@ -701,7 +696,7 @@ void CPlayer::InputMoving(void)
 	else if(m_pMotion->GetType() != MOTIONTYPE_RIDING
 		&& m_pMotion->GetBlendType() != MOTIONTYPE_RIDING)
 	{ // 電柱に乗っている間の待機モーション
-		m_pMotion->Set(MOTIONTYPE_RIDING, 10);
+		m_pMotion->Set(MOTIONTYPE_RIDING, RIDING_BLEND);
 
 		// 歩行音を停止
 		pSound->Stop(CSound::LABEL_SE_WALK);
@@ -762,7 +757,7 @@ void CPlayer::InputPole(void)
 			pPlayerCam->SetState(CPlayerCamera::STATE_PLAYER);
 
 			// モーションを終了
-			m_pMotion->Set(MOTIONTYPE_NEUTRAL, 10);
+			m_pMotion->Set(MOTIONTYPE_NEUTRAL, NEUTRAL_BLEND);
 
 			if (pTutorial != nullptr)
 			{ // もし今がチュートリアルシーンなら
@@ -884,20 +879,20 @@ void CPlayer::UpdateRotateDest(void)
 	fAngle = (m_rotDest.y - m_rot.y);
 	if (fAngle < -D3DX_PI)
 	{
-		fAngle += D3DX_PI * 2.0f;
+		fAngle += DOUBLE_PI;
 	}
 	else if (fAngle >= D3DX_PI)
 	{
-		fAngle -= D3DX_PI * 2.0f;
+		fAngle -= DOUBLE_PI;
 	}
 
 	// 角度の差分だけ角度を徐々に回転する！
-	m_rot.y += fAngle * 0.05f;
+	m_rot.y += fAngle * ANGLE_DEST_ACCELE;
 
 	// 角度の修正!
 	m_rot = Vec3::FixedRotation(m_rot);
 
-	if ((m_rotDest.y - m_rot.y) < 0.001f && (m_rotDest.y - m_rot.y) > -0.001f)
+	if ((m_rotDest.y - m_rot.y) < ROTATION_EPSILON && (m_rotDest.y - m_rot.y) > -ROTATION_EPSILON)
 	{ // 角度の差分一定の範囲よりも小さくなった場合、矯正！
 		m_rot.y = m_rotDest.y;
 	}
@@ -936,7 +931,7 @@ void CPlayer::UpdatePole(void)
 		pPlayerCam->SetState(CPlayerCamera::STATE_PLAYER);
 
 		// モーションを終了
-		m_pMotion->Set(MOTIONTYPE_NEUTRAL, 10);
+		m_pMotion->Set(MOTIONTYPE_NEUTRAL, NEUTRAL_BLEND);
 		m_bShocked = false;
 	}
 
@@ -1008,7 +1003,7 @@ void CPlayer::UpdatePole(void)
 				}
 
 				// モーションを終了
-				m_pMotion->Set(MOTIONTYPE_NEUTRAL, 10);
+				m_pMotion->Set(MOTIONTYPE_NEUTRAL, NEUTRAL_BLEND);
 			}
 		}
 		else if(pPlantNear == nullptr)
@@ -1094,12 +1089,12 @@ void CPlayer::CheckRidingRight(void)
 		return;
 	}
 
-	CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera*>(CCamera::GetCamera(CCamera::TYPE_PLAYER));		// プレイヤーカメラへのポインタ
-
 	if (m_pCombo->GetContinuing() == false
 		&& std::holds_alternative<CUtilityPole *>(m_pRidingObject)
 		&& m_bShotLasso == false)
 	{ // コンボ表示が消えた且つ投げ縄を投げていないもしくは途中で死んだなら、電柱から強制的におろす
+		CPlayerCamera *pPlayerCam = static_cast<CPlayerCamera *>(CCamera::GetCamera(CCamera::TYPE_PLAYER));		// プレイヤーカメラへのポインタ
+
 		// オフセットを元に戻す
 		m_pos.y = m_offset.y;
 
@@ -1116,7 +1111,7 @@ void CPlayer::CheckRidingRight(void)
 		pPlayerCam->SetState(CPlayerCamera::STATE_PLAYER);
 
 		// モーションを終了
-		m_pMotion->Set(MOTIONTYPE_NEUTRAL, 10);
+		m_pMotion->Set(MOTIONTYPE_NEUTRAL, NEUTRAL_BLEND);
 	}
 }
 
@@ -1171,7 +1166,6 @@ void CPlayer::FindNearestPole(void)
 		{ // フォーカス可能なら
 			Vector3 posPole = VECTOR3_NULL;	// 電柱のの上の絶対座標
 			float fLength = 0.0f;	// 二点の距離
-			CRay ray;				// プレイヤーから電柱への光線
 
 			// 電柱の上の絶対座標を求める
 			posPole.y = pPole->GetVtxMax()->y;
@@ -1190,6 +1184,8 @@ void CPlayer::FindNearestPole(void)
 			vPole.push_back(pPole);
 #endif
 #ifdef ENABLE_RAY_PLAYER_TO_POLE
+			CRay ray;				// プレイヤーから電柱への光線
+
 			// レイを作成して描画
 			pos.y = m_offset.y + pPole->GetVtxMax()->y;
 			ray = CRay(pos, posPole);
@@ -1267,14 +1263,6 @@ void CPlayer::DismountPole(void)
 
 	// 電柱をnullに変更
 	m_pRidingObject = static_cast<CPowerPlant*>(nullptr);
-}
-
-//==================================================================================
-// --- 当たり判定関連処理 ---
-//==================================================================================
-void CPlayer::CollisionAction(void)
-{ // TODO : 使わない場合はこの関数を削除すること
-
 }
 
 //==================================================================================

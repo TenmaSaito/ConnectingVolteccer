@@ -115,6 +115,12 @@
     <Filter Include="ソース ファイル\manager\builder">
       <UniqueIdentifier>{3a05ae4b-7049-43ff-8f57-817afe5e03e4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\state">
+      <UniqueIdentifier>{188df499-c41a-4ccf-885e-3e5e32bde1a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\state">
+      <UniqueIdentifier>{5707cc8c-cbb7-417b-ac72-31914d4aee8e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="player.cpp">
@@ -237,9 +243,6 @@
     <ClCompile Include="renderer.cpp">
       <Filter>ソース ファイル\manager\render</Filter>
     </ClCompile>
-    <ClCompile Include="textureRenderer.cpp">
-      <Filter>ソース ファイル\manager\render</Filter>
-    </ClCompile>
     <ClCompile Include="meshSphere.cpp">
       <Filter>ソース ファイル\object\mesh</Filter>
     </ClCompile>
@@ -342,9 +345,6 @@
     <ClCompile Include="connectingEvaluate.cpp">
       <Filter>ソース ファイル\object\ui</Filter>
     </ClCompile>
-    <ClCompile Include="lightingLevel.cpp">
-      <Filter>ソース ファイル\object\ui</Filter>
-    </ClCompile>
     <ClCompile Include="polygon3D.cpp">
       <Filter>ソース ファイル\object\primitive</Filter>
     </ClCompile>
@@ -398,6 +398,21 @@
     </ClCompile>
     <ClCompile Include="rankingCamera.cpp">
       <Filter>ソース ファイル\manager\camera</Filter>
+    </ClCompile>
+    <ClCompile Include="state.cpp">
+      <Filter>ソース ファイル\state</Filter>
+    </ClCompile>
+    <ClCompile Include="stateMachine.cpp">
+      <Filter>ソース ファイル\state</Filter>
+    </ClCompile>
+    <ClCompile Include="grassQuaternion.cpp">
+      <Filter>ソース ファイル\object</Filter>
+    </ClCompile>
+    <ClCompile Include="skip.cpp">
+      <Filter>ソース ファイル\object\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="objectBillboard3DScaling.cpp">
+      <Filter>ソース ファイル\object\primitive</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -539,13 +554,7 @@
     <ClInclude Include="xfile.h">
       <Filter>ヘッダー ファイル\manager\buffer</Filter>
     </ClInclude>
-    <ClInclude Include="instancingModel.h">
-      <Filter>ヘッダー ファイル\manager\buffer</Filter>
-    </ClInclude>
     <ClInclude Include="renderer.h">
-      <Filter>ヘッダー ファイル\manager\render</Filter>
-    </ClInclude>
-    <ClInclude Include="textureRenderer.h">
       <Filter>ヘッダー ファイル\manager\render</Filter>
     </ClInclude>
     <ClInclude Include="meshSphere.h">
@@ -556,9 +565,6 @@
     </ClInclude>
     <ClInclude Include="polygon2D.h">
       <Filter>ヘッダー ファイル\object\primitive</Filter>
-    </ClInclude>
-    <ClInclude Include="delegate_t.h">
-      <Filter>ヘッダー ファイル\manager</Filter>
     </ClInclude>
     <ClInclude Include="result.h">
       <Filter>ヘッダー ファイル\manager\scene</Filter>
@@ -622,9 +628,6 @@
     </ClInclude>
     <ClInclude Include="titlemenu.h">
       <Filter>ヘッダー ファイル\object\ui</Filter>
-    </ClInclude>
-    <ClInclude Include="observer_pointer.h">
-      <Filter>ヘッダー ファイル\manager\base</Filter>
     </ClInclude>
     <ClInclude Include="combo.h">
       <Filter>ヘッダー ファイル\object\ui</Filter>
@@ -703,6 +706,24 @@
     </ClInclude>
     <ClInclude Include="rankingCamera.h">
       <Filter>ヘッダー ファイル\manager\camera</Filter>
+    </ClInclude>
+    <ClInclude Include="state.h">
+      <Filter>ヘッダー ファイル\state</Filter>
+    </ClInclude>
+    <ClInclude Include="stateMachine.h">
+      <Filter>ヘッダー ファイル\state</Filter>
+    </ClInclude>
+    <ClInclude Include="grassQuaternion.h">
+      <Filter>ヘッダー ファイル\object</Filter>
+    </ClInclude>
+    <ClInclude Include="skip.h">
+      <Filter>ヘッダー ファイル\object\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="objectBillboard3DScaling.h">
+      <Filter>ヘッダー ファイル\object\primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="delegate_t.h">
+      <Filter>ヘッダー ファイル\manager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

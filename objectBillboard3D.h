@@ -45,6 +45,8 @@ public:
 	void BindTexture(const int nIdxTexture) { m_nIdxTexture = nIdxTexture; }
 	void SetPosition(const Vector3 &position) { m_pos = position; }
 	const Vector3 *GetPosition(void) const { return &m_pos; }
+	void SetForce(const Vector3 &force) { m_move = force; }
+	const Vector3 *GetForce(void) const { return &m_move; }
 	void SetRotation(const Vector3 &rotation);
 	const Vector3 *GetRotation(void) const { return &m_rot; }
 	void SetSize(const Vector2 &size);
@@ -59,7 +61,6 @@ public:
 	bool GetEnableYBill(void) const { return m_bYBill; }
 	void SetAlpha(const bool bAlpha) { m_bAlpha = bAlpha; }
 	bool GetAlpha(void) const { return m_bAlpha; }
-	void SetEnableScaleDown(const bool bEnable);
 	void SetStateFunctionBeforeDraw(std::function<void(LPDIRECT3DDEVICE9)> before) { m_beforeDraw = before; }
 	void SetStateFunctionAfterDraw(std::function<void(LPDIRECT3DDEVICE9)> after) { m_afterDraw = after; }
 
@@ -73,14 +74,12 @@ private:
 	Vector3 m_move;			// 移動量
 	Vector2 m_size;			// サイズ
 	Color m_col;			// 色
-	Vector2 m_decreaseScale;// 一フレームで減少するサイズ
 	float m_fLength;		// 対角線の長さ
 	float m_fAngle;			// 対角線の角度
 	int m_nLife;			// 体力
 	bool m_bInFocus;		// フォーカスしているカメラの視界にいるか
 	bool m_bDisp;			// 描画するか
 	bool m_bAlpha;			// αテストの有効化
-	bool m_bScaleDown;		// スケール減少を行うか
 	bool m_bYBill;			// Y軸の回転も行うか
 	std::function<void(LPDIRECT3DDEVICE9)> m_beforeDraw;	// Draw関数前の呼び出し関数
 	std::function<void(LPDIRECT3DDEVICE9)> m_afterDraw;		// Draw関数後の呼び出し関数

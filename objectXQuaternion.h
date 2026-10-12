@@ -16,7 +16,9 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define DEFAULT_ALPHA		(-1.0f)		// α値適用の取り消し値
+#define DEFAULT_ALPHA				(-1.0f)					// α値適用の取り消し値
+#define DEFAULT_DARKNESS			(1.0f)					// マテリアルの濃さの基本値
+#define DEFAULT_OBJX_QUA_PRIORITY	DEFAULT_OBJ_PRIORITY	// objXQuaの基本優先順位
 
 //**********************************************************************************
 // *** Xモデル(クォータニオン仕様)クラス ***
@@ -29,7 +31,7 @@ public:
 		const Vector3 &vecQua,
 		const float fAngle);
 
-	CObjectXQuaternion(const int nPriority = DEFAULT_OBJ_PRIORITY);
+	CObjectXQuaternion(const int nPriority = DEFAULT_OBJX_QUA_PRIORITY);
 	~CObjectXQuaternion();
 
 	HRESULT Init(const char *pXFileName, const Vector3 &pos, const Vector3 &vecQua, const float fAngle);
@@ -49,6 +51,8 @@ public:
 	float GetAngle(void) const { return m_fAngle; }
 	void SetMaterial(const size_t pos, const D3DMATERIAL9 &mat) { m_vMat.at(pos) = mat; }
 	const D3DMATERIAL9 *GetMaterial(const size_t pos) const { return &m_vMat.at(pos); }
+	void SetDarkness(const float fDarkness) { m_fDarkness = fDarkness; }
+	float GetDarkness(void) const { return m_fDarkness; }
 	void SetAlpha(const float fAlpha) { m_fAlpha = fAlpha; }
 	float GetAlpha(void) const { return m_fAlpha; }
 	const Vector3 *GetVtxMin(void) const { return &m_vtxMin; }
@@ -83,6 +87,7 @@ private:
 	Matrix m_mtxWorld;				// ワールドマトリックス
 	const Matrix *m_pMtxParent;		// 親のワールドマトリックス
 	std::vector<D3DMATERIAL9> m_vMat;	// モデルのマテリアル色
+	float m_fDarkness;				// マテリアルの濃さ
 	float m_fAlpha;					// α値
 	char m_aFileName[MAX_PATH];		// ファイル名
 	bool m_bCalcMatrix;				// マトリックスが一度でも計算されたかを示すフラグ

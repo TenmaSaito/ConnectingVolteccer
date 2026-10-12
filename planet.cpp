@@ -53,7 +53,7 @@ CPlanet *CPlanet::Create(void)
 //==================================================================================
 // --- コンストラクタ ---
 //==================================================================================
-CPlanet::CPlanet()
+CPlanet::CPlanet() : CObject(PLANET_PRIORITY)
 { // メンバ変数のクリア
 	m_pos = VECTOR3_NULL;
 	m_vecQua = VECTOR3_NULL;

@@ -18,9 +18,9 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define INIT_WIDTH		(100)		// 初期の幅
-#define INIT_HEIGHT		(100)		// 初期の高さ
-#define INIT_LIFE		(10000000)	// 初期体力
+#define INIT_WIDTH		(100)			// 初期の幅
+#define INIT_HEIGHT		(100)			// 初期の高さ
+#define INIT_LIFE		(10000000)		// 初期体力
 #define ACCEL_RESIST	(0.003f)		// 加速度の減少係数
 
 //==================================================================================
@@ -29,12 +29,6 @@
 CObject2D *CObject2D::Create(const Vector3 &pos)
 {
 	CObject2D *pObject2D = NULL;		// 生成したオブジェクトへのポインタ
-
-	if (CObject::GetNumAll() >= MAX_OBJECT)
-	{ // オブジェクトの総数が配列の最大数だった場合
-		// 生成せずにNULLを返す
-		return NULL;
-	}
 
 	// オブジェクトの生成
 	pObject2D = new CObject2D;
@@ -58,12 +52,6 @@ CObject2D *CObject2D::Create(const Vector3 &pos)
 CObject2D *CObject2D::Create(const Vector3 &pos, const Vector3 &rot)
 {
 	CObject2D* pObject2D = NULL;		// 生成したオブジェクトへのポインタ
-
-	if (CObject::GetNumAll() >= MAX_OBJECT)
-	{ // オブジェクトの総数が配列の最大数だった場合
-		// 生成せずにNULLを返す
-		return NULL;
-	}
 
 	// オブジェクトの生成
 	pObject2D = new CObject2D;
@@ -89,13 +77,6 @@ CObject2D *CObject2D::Create(const Vector2 &size)
 	CObject2D *pObject2D = NULL;		// 生成したオブジェクトへのポインタ
 
 	// オブジェクトの生成
-	if (CObject::GetNumAll() >= MAX_OBJECT)
-	{ // オブジェクトの総数が配列の最大数だった場合
-		// 生成せずにNULLを返す
-		return NULL;
-	}
-
-	// オブジェクトの生成
 	pObject2D = new CObject2D;
 	if (pObject2D == NULL)
 	{ // 生成に失敗した場合、NULLを返す
@@ -116,13 +97,6 @@ CObject2D *CObject2D::Create(const Vector3 &pos, const Vector2 &size)
 	CObject2D *pObject2D = NULL;		// 生成したオブジェクトへのポインタ
 
 	// オブジェクトの生成
-	if (CObject::GetNumAll() >= MAX_OBJECT)
-	{ // オブジェクトの総数が配列の最大数だった場合
-		// 生成せずにNULLを返す
-		return NULL;
-	}
-
-	// オブジェクトの生成
 	pObject2D = new CObject2D;
 	if (pObject2D == NULL)
 	{ // 生成に失敗した場合、NULLを返す
@@ -131,6 +105,23 @@ CObject2D *CObject2D::Create(const Vector3 &pos, const Vector2 &size)
 
 	// 初期化処理
 	pObject2D->Init(pos, size);
+
+	return pObject2D;
+}
+
+//==================================================================================
+// --- オブジェクト2Dの生成処理 (構造体指定) ---
+//==================================================================================
+CObject2D *CObject2D::Create(const Info &info)
+{
+	CObject2D *pObject2D = new CObject2D;	// 生成したオブジェクトへのポインタ
+	if (pObject2D != nullptr)
+	{ // 生成に成功時、初期化処理
+		pObject2D->Init(info.pos, info.size);
+	}
+
+	// テクスチャ割り当て
+	pObject2D->BindTexture(CTexture::GetInstance()->Register(info.pTexturePath));
 
 	return pObject2D;
 }
@@ -912,7 +903,7 @@ void CObject2D::SetLength(const float fLength)
 //==================================================================================
 void CObject2D::SetColor(const Color &color)
 {
-	VERTEX_2D *pVtx = NULL;		// 頂点情報へのポインタ
+	VERTEX_2D *pVtx = nullptr;		// 頂点情報へのポインタ
 
 	// 色を保存
 	m_color = color;

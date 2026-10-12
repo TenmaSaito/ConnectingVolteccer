@@ -22,7 +22,7 @@
 #define DEFAULT_SIZE	(23)		// 基本サイズ
 #define DEFAULT_FONT	"Terminal"	// 基本フォント
 #define DEFAULT_STRING_CAPACITY		(2048)			// 文字数の初期サイズ
-#define PRINT_VECTOR2(vec)	(vec.x, vec.y)			// VECTOR2の表示簡略マクロ
+#define PRINT_VECTOR2(vec)	vec.x, vec.y			// VECTOR2の表示簡略マクロ
 #define PRINT_VECTOR3(vec)	vec.x, vec.y, vec.z		// VECTOR3の表示簡略マクロ
 
 //**********************************************************************************

@@ -18,6 +18,7 @@
 #include "player.h"
 #include "utilityPole.h"
 #include "billboard3D.h"
+#include "grassland.h"
 #include "object3D.h"
 #include "lightingPillar.h"
 #include "polygon3D.h"
@@ -40,12 +41,15 @@
 #define HIT_ALPHA		(0.2f)				// プレイヤーカメラのレイと当たった時に設定するα値
 #define PARTICLE_PATH	"data/TEXTURE/effect000.jpg"	// エフェクトのテクスチャパス
 #define PILLAR_PATH		"data/TEXTURE/gradation202.jpg"	// 光の柱のテクスチャパス
+#define SHADOW_PATH		"data/TEXTURE/effect001.jpg"	// 影のテクスチャパス
 #define PILLAR_SIZE				Vector2(25.0f, 1000.0f)		// 光の柱のサイズ
 #define SPECIAL_PILLAR_SIZE		Vector2(75.0f, 1000.0f)		// 特殊な建物の光の柱のサイズ
 #define PILLAR_POS		Vector3(0.0f, PILLAR_SIZE.y * 0.5f, 0.0f)		// 光の柱の座標
 #define FIRST_HEIGHT	(3000.0f)			// 最初の高さのオフセット
 #define LERP_VALUE		(CManager::SecToRatio(0.3f))		// 高さと透明度が元に戻るまでの時間
 #define DETACHED_HOUSE_ROOF_POS		(2)		// 一軒家の屋根のマテリアルインデックス
+#define LIGHT_OUT_COL_VALUE			(0.35f)	// 電気がついていない時の家のマテリアルの暗さ(alpha以外)
+#define COL_VALUE_INCREASE			(0.05f)	// マテリアルが明るくなる際の一フレームの増加量
 
 //**********************************************************************************
 // *** 定数宣言 ***
@@ -215,7 +219,7 @@ HRESULT CBuilding::Init(const Vector3 &position,
 		Vector2(GetVtxMax()->x * 2.75f, GetVtxMax()->z * 2.75f));
 	pObj3D->SetParent(GetMatrix());
 	pObj3D->SetColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
-	pObj3D->BindTexture(CTexture::GetInstance()->Register("data/TEXTURE/effect001.jpg"));
+	pObj3D->BindTexture(CTexture::GetInstance()->Register(SHADOW_PATH));
 
 	return hr;
 }
@@ -434,6 +438,16 @@ void CBuilding::Draw(void)
 
 		// α値を変更
 		SetAlpha(HIT_ALPHA);
+	}
+
+	if (m_bLighting == false)
+	{ // 電気がついていなければ、色を暗くする
+		SetDarkness(LIGHT_OUT_COL_VALUE);
+	}
+	else if(GetDarkness() < 1.0f)
+	{ // 電気がついていて色がまだ暗ければ、明るくする
+		float fDarkness = GetDarkness() + COL_VALUE_INCREASE;		// 増加後の濃さ
+		SetDarkness((fDarkness > 1.0f) ? 1.0f : fDarkness);
 	}
 
 	CObjectXQuaternion::Draw();

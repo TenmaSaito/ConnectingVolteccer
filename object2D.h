@@ -17,7 +17,7 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define DEFAULT_OBJ2D_PRIORITY		(6)		// オブジェクト2Dの基本優先順位
+#define DEFAULT_OBJ2D_PRIORITY		(DEFAULT_UI_PRIORITY)		// オブジェクト2Dの基本優先順位
 
 //**********************************************************************************
 // *** オブジェクト2Dクラス ***
@@ -25,6 +25,14 @@
 class CObject2D : public CObject
 {
 public:
+	// ポリゴン作成時の情報更新構造体
+	struct Info
+	{
+		Vector3 pos;					// 位置
+		Vector2 size;					// サイズ
+		const char *pTexturePath;		// テクスチャパス
+	};
+
 	CObject2D(const int nPriority = DEFAULT_OBJ2D_PRIORITY);
 	~CObject2D();
 
@@ -32,6 +40,7 @@ public:
 	static CObject2D *Create(const Vector3 &pos, const Vector3 &rot);
 	static CObject2D *Create(const Vector2 &size);
 	static CObject2D *Create(const Vector3 &pos, const Vector2 &size);
+	static CObject2D *Create(const Info &info);
 
 	HRESULT Init(void);
 	HRESULT Init(const Vector2 &size);
@@ -55,8 +64,10 @@ public:
 	float GetLength(void) const { return m_fLength; }
 	void SetColor(const Color &color);
 	const Color *GetColor(void) const { return &m_color; }
+	void SetAlpha(const float fAlpha) { SetColor(Color(m_color.r, m_color.g, m_color.b, fAlpha)); }
+	float GetAlpha(void) const { return m_color.a; }
 	void SetDisp(const bool bDisp) { m_bDisp = bDisp; }
-	bool GetDisp(void) { return m_bDisp; }
+	bool GetDisp(void) const { return m_bDisp; }
 	void BindTexture(const int nIdxTexture) { m_nIdxTexture = nIdxTexture; }
 
 private:

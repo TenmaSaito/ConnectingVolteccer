@@ -17,6 +17,7 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
+#define DEFAULT_MESHORBIT2D_PRIORITY		(2)		// メッシュオービット2Dの優先順位
 
 //**********************************************************************************
 // *** 前方宣言 ***
@@ -31,7 +32,7 @@ class CMeshOrbit2D : public CObject
 public:
 	static CMeshOrbit2D *Create(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &rot, const int nNumOrbit, const float fWidth);
 
-	CMeshOrbit2D(const int nPriority = 2);
+	CMeshOrbit2D(const int nPriority = DEFAULT_MESHORBIT2D_PRIORITY);
 	~CMeshOrbit2D();
 
 	HRESULT Init(const int nNumOrbit, const float fWidth);

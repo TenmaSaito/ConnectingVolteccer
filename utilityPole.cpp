@@ -39,10 +39,10 @@
 #define DEF_ICON_SIZE		Vector2(50.0f, 50.0f)			// アイコンサイズ
 #define SELECT_ICON_SIZE	(DEF_ICON_SIZE * 2.0f)			// 最も近いアイコンのサイズ
 #define FOCUS_ANGLE			(D3DXToRadian(45.0f))			// フォーカス可能な角度
-#define CONNECT_HEIGHT		(150.0f)	// 繋げられる電柱との高さの差分の最大値
-#define CONNECT_HEIGHT_EX	(30.0f)		// 発電所の場合の追加差分
+#define CONNECT_LENGTH		(700.0f)	// 繋げられる電柱の距離の最大値
+#define CONNECT_LENGTH_EX	(30.0f)		// 発電所の場合の追加差分
 #define AIMING_ROTATE_SPD	(0.04f)		// エイムアイコンの回転速度
-//#define ENABLE_BUILDING_RAY_DECISION	// 建物をまたがないかの判定
+#define ENABLE_BUILDING_RAY_DECISION	// 建物をまたがないかの判定
 
 //**********************************************************************************
 // *** 定数宣言 ***
@@ -193,7 +193,7 @@ void CUtilityPole::Update(void)
 		D3DXVec3TransformCoord(&posPlayer, &posPlayer, m_pPlayer->GetMatrix());
 
 		// 絶対座標同士で距離を測る
-		if (posPlayer.y - posPole.y <= CONNECT_HEIGHT + (CONNECT_HEIGHT_EX * (1 - nIndexVariant)))
+		if (Vec3::Length(posPole, posPlayer) <= CONNECT_LENGTH + (CONNECT_LENGTH_EX * (1 - nIndexVariant)))
 		{ // プレイヤーと電柱の距離が一定以下の場合
 			if (std::holds_alternative<CPowerPlant*>(*pObj))
 			{ // プレイヤーの乗っているオブジェクトが発電所の場合
@@ -443,22 +443,6 @@ bool CUtilityPole::CanFocus(const CPlayer *pPlayer)
 	// ベクトルの長さが0だった場合、失敗
 	if (Vec3::Length(rayPlayerToPoleInXZ) == 0.0f) return false;
 
-#ifdef ENABLE_BUILDING_RAY_DECISION
-	auto vpbuilding = CMapManager::GetInstance()->GetBuilding();			// 各建物へのポインタ
-	bool bHit = false;		// 建物との衝突判定
-
-	// どの建物にもあたっていないか確認
-	std::ranges::for_each(vpbuilding, [&](auto &x)
-		{ // 既に当たっていたら、スキップ
-			if (bHit == true) return;
-
-			// 無限長のレイと当たったか判定
-			bHit = x->IsHitByRay(posPlayerWorld, rayPlayerToPole, 10000.0f);
-		});
-
-	// 一つの建物にでも当たっていたら失敗
-	if (bHit == true) return false;
-#endif
 	// 二つのベクトルから内積を求める
 	fDot = Vec3::Dot(rayCam, rayPlayerToPoleInXZ);
 
@@ -468,8 +452,38 @@ bool CUtilityPole::CanFocus(const CPlayer *pPlayer)
 	// 角度を求める
 	fRadian = acosf(fDot);
 
-	// 角度が+-15°の範囲にいるならtrue
-	return (fRadian < FOCUS_ANGLE);
+	// 角度が+-15°の範囲にいないなら失敗
+	if (fRadian > FOCUS_ANGLE) return false;
+
+	// プレイヤーの乗っているオブジェクトを取得
+	auto ppRidingPole = std::get_if<CUtilityPole*>(pPlayer->GetRidingObject());
+	if (ppRidingPole == nullptr) return true;
+
+	// 自身が現在プレイヤーの乗っている電柱の接続可能インデックスに含まれている確認
+	CUtilityPole *pPole = *ppRidingPole;
+	return (std::ranges::find(pPole->m_vCanConnect, m_nID) != pPole->m_vCanConnect.end());
+
+#ifdef ENABLE_BUILDING_RAY_DECISION
+	auto vpBuilding = CMapManager::GetInstance()->GetBuilding();			// 各建物へのポインタ
+	bool bHit = false;		// 建物との衝突判定
+
+	// どの建物にもあたっていないか確認
+	std::ranges::for_each(vpBuilding, [&](auto &x)
+		{ // 既に当たっていたら、スキップ
+			if (bHit == true) return;
+
+			// 一定範囲の中にいない場合スキップ
+			if (Vec3::Length(x->GetWorldPosition(), posPlayerWorld) > Vec3::Length(posWorld, posPlayerWorld)) return;
+
+			// 無限長のレイと当たったか判定
+			bHit = x->IsHitByRay(posPlayerWorld, rayPlayerToPole, 10000.0f);
+		});
+
+	// 一つの建物にでも当たっていたら失敗
+	if (bHit == true) return false;
+#endif
+	// 成功
+	return true;
 }
 
 //==================================================================================
@@ -478,4 +492,62 @@ bool CUtilityPole::CanFocus(const CPlayer *pPlayer)
 void CUtilityPole::SetEnableSelect(const bool bEnable)
 {
 	m_bSelected = bEnable;
+}
+
+//==================================================================================
+// --- 接続可能な電柱の検索処理 ---
+//==================================================================================
+void CUtilityPole::FindCanConnectPole(void)
+{
+	CMapManager *pMap = CMapManager::GetInstance();		// マップ管理インスタンスへのポインタ
+	auto vpBuilding = pMap->GetBuilding();		// マップに存在する建物へのポインタ配列
+	auto vpPole = pMap->GetUtilityPole();		// マップに存在する電柱へのポインタ配列
+	Vector3 posWorldUpper = Vector3(0.0f, GetVtxMax()->y, 0.0f);		// 自身の電柱上の絶対座標
+
+	// 配列をクリア
+	m_vCanConnect.clear();
+
+	// 電柱上の絶対座標を求める
+	D3DXVec3TransformCoord(&posWorldUpper, &posWorldUpper, CalcMatrix());
+
+	for (int nCntPoles = 0; nCntPoles < vpPole.size(); nCntPoles++)
+	{ // 電柱の数分だけ繰り返し
+		CUtilityPole *pPole = vpPole[nCntPoles];		// 現在の電柱へのポインタ
+
+		if (pPole == nullptr) continue;		// nullならスキップ
+		else if (pPole->m_nID == m_nID) continue;		// ポインタが自分自身を指しているならスキップ
+
+		Vector3 posWorldUpperAnother = Vector3(0.0f, pPole->GetVtxMax()->y, 0.0f);	// 電柱上の絶対座標
+
+		// 電柱上の絶対座標を求める
+		D3DXVec3TransformCoord(&posWorldUpperAnother, &posWorldUpperAnother, pPole->CalcMatrix());
+		
+		// 絶対座標同士で距離を測り、一定距離以上ならスキップ
+		float fLength = Vec3::Length(posWorldUpperAnother, posWorldUpper);
+		if (fLength > CONNECT_LENGTH) continue;
+
+		Vector3 rayPlayerToPole = VECTOR3_NULL;		// プレイヤーと電柱を繋いだベクトル
+		bool bHit = false;		// 建物との衝突判定
+
+		// プレイヤーと電柱を繋いだベクトルを求める
+		rayPlayerToPole = Vec3::Direction(posWorldUpperAnother, posWorldUpper);
+
+		// どの建物にもあたっていないか確認
+		std::ranges::for_each(vpBuilding, [&](auto &x)
+			{ // 既に当たっていたら、スキップ
+				if (bHit == true) return;
+
+				// 一定範囲の中にいない場合スキップ
+				if (Vec3::Length(x->GetWorldPosition(), posWorldUpper) > Vec3::Length(posWorldUpperAnother, posWorldUpper)) return;
+
+				// 無限長のレイと当たったか判定
+				bHit = x->IsHitByRay(posWorldUpper, rayPlayerToPole, 10000.0f);
+			});
+
+		// どれか一つの建物に当たっていたらスキップ
+		if (bHit == true) continue;
+
+		// 配列に接続可能な電柱としてインデックスを追加
+		m_vCanConnect.emplace_back(pPole->GetID());
+	}
 }

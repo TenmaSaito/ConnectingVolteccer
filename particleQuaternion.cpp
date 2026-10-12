@@ -16,8 +16,13 @@
 #include "vec2math.h"
 #include "vec3math.h"
 #include "rand.h"
-#include "objectBillboard3D.h"
+#include "objectBillboard3DScaling.h"
 #include "game.h"
+
+//**********************************************************************************
+// *** マクロ定義 ***
+//**********************************************************************************
+#define SCALE_DECREASE		(-0.03f)		// スケール減少値
 
 //==================================================================================
 // --- 生成処理 ---
@@ -147,11 +152,14 @@ void CParticleQuaternion::Update(void)
 		Vector2 scaleVariation = Vec2::Random(-m_setting.scaleVariation * 0.5f, m_setting.scaleVariation * 0.5f);
 		int nLife = pRand->Generate(1, nLifeMax);
 
-		// エフェクトを生成
-		CObjectBillboard3D *pBill = CObjectBillboard3D::Create(m_setting.pos + Vec3::Random(-m_setting.posVariation * 0.5f, m_setting.posVariation * 0.5f),
-			m_setting.move + Vec3::Random(-m_setting.moveVariation * 0.5f, m_setting.moveVariation * 0.5f),
+		// ビルボードのエフェクトを生成
+		CObjectBillboard3DScaling *pBill = CObjectBillboard3DScaling::Create(m_setting.pos + Vec3::Random(-m_setting.posVariation * 0.5f, m_setting.posVariation * 0.5f),
 			m_setting.scale + Vec2::Random(-m_setting.scaleVariation * 0.5f, m_setting.scaleVariation * 0.5f),
+			SCALE_DECREASE,
 			pRand->Generate(1, nLifeMax));
+		
+		// 加速度追加
+		pBill->SetForce(m_setting.move + moveVariation);
 
 		// 色を指定
 		pBill->SetColor(m_setting.color);
@@ -161,9 +169,6 @@ void CParticleQuaternion::Update(void)
 
 		// テクスチャインデックスを設定
 		pBill->BindTexture(m_nIdxTexture);
-
-		// 自動スケール減少をオンに設定
-		pBill->SetEnableScaleDown(true);
 
 		if (m_setting.bEnableAlphaBlending == true)
 		{ // 加算合成有りの場合

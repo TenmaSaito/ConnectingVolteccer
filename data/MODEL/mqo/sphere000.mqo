@@ -2,13 +2,13 @@ Metasequoia Document
 Format Text Ver 1.0
 
 Scene {
-	pos 0.0000 0.0000 222.0447
+	pos 0.0000 0.0000 15258.7988
 	lookat 0.0000 0.0000 0.0000
-	head 1.5754
-	pich 0.0292
+	head 4.3954
+	pich -0.1608
 	bank 0.0000
 	ortho 0
-	zoom2 33.7756
+	zoom2 0.4915
 	amb 0.250 0.250 0.250
 	dirlights 1 {
 		light {
@@ -25,7 +25,7 @@ Material 9 {
 	"mat5" col(0.000 0.988 1.000 1.000) dif(0.800) amb(0.600) emi(0.000) spc(0.000) power(5.00)
 	"mat6" col(1.000 0.000 0.984 1.000) dif(0.800) amb(0.600) emi(0.000) spc(0.000) power(5.00)
 	"mat7" col(0.000 0.000 0.000 1.000) dif(0.800) amb(0.600) emi(0.000) spc(0.000) power(5.00)
-	"planetMat" col(1.000 1.000 1.000 1.000) dif(0.800) amb(0.600) emi(0.000) spc(0.000) power(5.00) tex("C:\Users\student\Desktop\DesktopFile\GC2\Git\ConnectingVolteccer\data\TEXTURE\xfile\planet\brick.png") proj_type(3) proj_pos(0.000 0.000 0.000) proj_scale(100.000 100.000 100.000) proj_angle(0.000 0.000 0.000)
+	"planetMat" col(1.000 1.000 1.000 1.000) dif(0.800) amb(0.000) emi(0.000) spc(0.000) power(5.00) tex("C:\Users\student\Desktop\DesktopFile\GC2\Git\ConnectingVolteccer\data\TEXTURE\xfile\planet\brick.png") proj_type(3) proj_pos(0.000 0.000 0.000) proj_scale(100.000 100.000 100.000) proj_angle(0.000 0.000 0.000)
 	"mat8" col(0.996 1.000 0.000 1.000) dif(0.800) amb(0.600) emi(1.000) spc(0.000) power(5.00)
 }
 Object "obj1" {

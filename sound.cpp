@@ -49,6 +49,7 @@ CSound::INFO const CSound::m_aInfo[CSound::LABEL_MAX] =		// サウンド情報
 	{"data/SOUND/SE/electricShock.wav", 0},		// 感電音
 	{"data/SOUND/SE/walk.wav", -1},				// 歩行音
 	{"data/SOUND/SE/gaugeup.wav", -1},			// パーセント上昇音
+	{"data/SOUND/SE/electricLong.wav", -1},		// スキップ音
 };
 
 //**********************************************************************************
@@ -375,25 +376,29 @@ void CSound::Stop(void)
 //==================================================================================
 // --- セグメントの一時停止処理 (全て) ---
 //==================================================================================
-void CSound::Pause(const LABEL label)
+void CSound::Pause(const bool bPause, const LABEL label)
 {
 	if (m_apSourceVoice[label] != nullptr)
 	{ // 一時停止
-		m_apSourceVoice[label]->Stop(0);
+		if (bPause == true)
+		{ // 停止
+			m_apSourceVoice[label]->Stop(0);
+		}
+		else
+		{ // 再生
+			m_apSourceVoice[label]->Start(0);
+		}
 	}
 }
 
 //==================================================================================
 // --- セグメントの一時停止処理 ---
 //==================================================================================
-void CSound::Pause(void)
+void CSound::Pause(const bool bPause)
 { // 一時停止
 	for (int nCntSound = 0; nCntSound < LABEL_MAX; nCntSound++)
 	{
-		if (m_apSourceVoice[nCntSound] != nullptr)
-		{ // 一時停止
-			m_apSourceVoice[nCntSound]->Stop(0);
-		}
+		Pause(bPause, static_cast<LABEL>(nCntSound));
 	}
 }
 

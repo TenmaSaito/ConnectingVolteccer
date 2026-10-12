@@ -58,6 +58,7 @@ CGrass::CGrass()
 	m_fLerpCount = 0.0f;
 	m_fSpeed = 0.0f;
 	m_bCollisionPlayer = false;
+	m_pMtxParent = nullptr;
 }
 
 //==================================================================================
@@ -149,8 +150,7 @@ HRESULT CGrass::Init(const Vector3 &pos, const Vector2 &size, const float fSwayS
 // --- 終了処理 ---
 //==================================================================================
 void CGrass::Uninit(void)
-{
-	// 頂点バッファの破棄
+{ // 頂点バッファの破棄
 	SafeRelease(m_pVtxBuff);
 }
 
@@ -166,24 +166,7 @@ void CGrass::Update(void)
 	}
 	else
 	{ // 待機中
-#if 0
-		m_rot.x += m_rotDest.x * m_fSpeed;
-		if (fabsf(m_rot.x) >= fabsf(m_fRotPower))
-		{
-			if (m_fRotPower >= 0.0f)
-			{ // 角度が指定の幅に達したら
-				// 傾く幅をランダムに指定
-				m_fRotPower = pRand->Generate(-0.25f, -0.1f);
-			}
-			else
-			{
-				// 傾く幅をランダムに指定
-				m_fRotPower = pRand->Generate(0.1f, 0.25f);
-			}
 
-			m_rotDest.x = m_fRotPower;
-		}
-#endif
 	}
 
 	m_rot = Vec3::FixedRotation(m_rot);
@@ -206,7 +189,7 @@ void CGrass::Draw(void)
 	D3DXMatrixIdentity(&m_mtxWorld);
 
 	// ワールドマトリックスの計算
-	Mtx::CalcWorld(&m_mtxWorld, m_pos, m_rot);
+	Mtx::CalcWorld(&m_mtxWorld, m_pMtxParent, m_pos, m_rot);
 
 	// ワールドマトリックスの設定
 	pDevice->SetTransform(D3DTS_WORLD, &m_mtxWorld);
@@ -236,16 +219,20 @@ bool CGrass::Collision(const Vector3 &pos, const float fRadius)
 	Vector3 rot = VECTOR3_NULL;		// 計算後の角度
 	float fLength = 0.0f;		// posと草の距離
 	float fPower = 0.0f;		// 倒れる強さ
+	Vector3 posWorld;			// 絶対座標
+
+	// 絶対座標を計算
+	D3DXVec3TransformCoord(&posWorld, &Vec3::Zero, m_pMtxParent);
 
 	// 距離を測る
-	fLength = Vec3::Length(pos, m_pos);
+	fLength = Vec3::Length(pos, posWorld);
 	if (fLength >= fRadius)
 	{ // 当たり判定をする半径外
 		return false;
 	}
 
 	// プレイヤーと草の正規化ベクトルを求める
-	vecToGrass = m_pos - pos;
+	vecToGrass = posWorld - pos;
 
 	// ベクトルの正規化した値を求める
 	D3DXVec3Normalize(&norVec, &vecToGrass);

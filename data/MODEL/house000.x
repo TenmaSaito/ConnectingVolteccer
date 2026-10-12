@@ -311,7 +311,7 @@ Mesh {
    0.000000;0.000000;0.000000;;
    0.000000;0.000000;0.000000;;
    TextureFilename {
-    "C:\\Users\\student\\Desktop\\DesktopFile\\ëfçﬁ\\âÊëú\\window-1-lighting.png";
+    "data\\TEXTURE\\xfile\\houses\\window-1-lighting.png";
    }
   }
  }

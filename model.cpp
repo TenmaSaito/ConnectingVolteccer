@@ -21,17 +21,11 @@ CModel *CModel::Create(const char *pXFileName,
 	const Vector3 &pos, 
 	const Vector3& rot)
 {
-	CModel *pObject3D = NULL;		// 生成したオブジェクトへのポインタ
-
-	// オブジェクトの生成
-	pObject3D = new CModel;
-	if (pObject3D == NULL)
-	{ // 生成に失敗した場合、NULLを返す
-		return NULL;
+	CModel *pObject3D = new CModel;		// 生成したオブジェクトへのポインタ
+	if (pObject3D != nullptr)
+	{ // 生成に成功していれば、初期化処理
+		pObject3D->Init(pXFileName, pos, rot);
 	}
-
-	// 初期化処理
-	pObject3D->Init(pXFileName, pos, rot);
 
 	return pObject3D;
 }
@@ -137,7 +131,7 @@ void CModel::Draw(void)
 {
 	CManager *pManager = CManager::GetInstance();			// マネージャーへのポインタ
 	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
-	CTexture *pTexture = CTexture::GetInstance();		// テクスチャへのポインタ
+	CTexture *pTexture = CTexture::GetInstance();			// テクスチャへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
 	D3DXMATERIAL *pMat = nullptr;	// マテリアルへのポインタ
 	D3DMATERIAL9 matDef;			// 現在のマテリアル保存用
@@ -202,38 +196,4 @@ CModel *CModel::CreateCopy(void) const
 	return CModel::Create(m_sFileName.c_str(),
 		m_pos,
 		m_rot);
-}
-
-struct __declspec(novtable) IInterface
-{
-	virtual ~IInterface() = default;
-};
-
-template<class T> struct __declspec(novtable) ICloneable : public virtual IInterface
-{
-	virtual T *Clone(void) const = 0;
-};
-
-template<class T> struct __declspec(novtable) IEqualable : public virtual IInterface
-{
-	virtual bool Equal(const T&) const = 0;
-};
-
-#define ADD_ABLE(class)		public class
-#define ADD_ABLE_TEMPLATE(this, class)		public class<this>
-
-class A : public ICloneable<A>, public IEqualable<A>
-{
-public:
-	A *Clone(void) const { return new A(*this); }
-	bool Equal(const A &other) const { return &other == this; }
-};
-
-void a()
-{
-	A *pA = new A;
-	ICloneable<A> *pClone = pA;
-
-	delete pClone->Clone();
-	delete pA;
 }

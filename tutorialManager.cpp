@@ -16,12 +16,15 @@
 #include "util.h"
 #include "tutorial.h"
 #include "manager.h"
+#include "input.h"
+#include "joypad.h"
 #include "sound.h"
 #include "texture.h"
 #include "sceneTransition.h"
 #include "combo.h"
 #include "camera.h"
 #include "color.h"
+#include "player.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -38,6 +41,7 @@
 #define FOG_COLOR			(Colors::GetColor(Colors::C_BLACK))			// フォグの色
 #define FOG_START			(400.0f)		// フォグの開始位置
 #define FOG_END				(1800.0f)		// フォグの終了位置
+#define FOG_INCREASE		(10.0f)			// フォグの増加値
 #define PITCH_START			(0.4f)			// 始めのピッチ速度
 #define PITCH_END			(1.0f)			// 終わりのピッチ速度
 #define PITCH_VALUE			(0.005f)		// ピッチの増加値
@@ -149,20 +153,16 @@ HRESULT CTutorialManager::Init(void)
 //==================================================================================
 void CTutorialManager::Uninit(void)
 {
-	auto uninit = [&](auto &x)		// ユニークポインタのインスタンス破棄処理
-	{
-		if (x != nullptr)
-		{ // nullでなければ、破棄
-			x->Uninit();
-			x.reset();
-		}
-	};
+	CSound *pSound = CManager::GetInstance()->GetSound();		// サウンドへのポインタ
+
+	// ゲームBGMのピッチを元に戻す
+	pSound->SetPitch(CSound::LABEL_BGM_GAME);
 
 	// 各ポリゴンを破棄
-	uninit(m_pNextInfo);
-	uninit(m_pComment);
-	uninit(m_pCommentBase);
-	uninit(m_pEffect);
+	SafeUniqueUninit(m_pNextInfo);
+	SafeUniqueUninit(m_pComment);
+	SafeUniqueUninit(m_pCommentBase);
+	SafeUniqueUninit(m_pEffect);
 }
 
 //==================================================================================
@@ -172,11 +172,25 @@ void CTutorialManager::Update(void)
 {
 	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
 	CTutorial *pTutorial = pManager->GetScene(&pTutorial);		// チュートリアルへのポインタ
+	CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();		// キーボードへのポインタ
+	CJoypad *pJoypad = pManager->GetJoypad();		// ジョイパッドへのポインタ
+	CSound *pSound = CManager::GetInstance()->GetSound();		// サウンドへのポインタ
+
+	if ((pKeyboard->GetTrigger(DIK_RETURN)
+		|| pJoypad->GetTrigger(CJoypad::KEY_A))
+		&& m_bInputFocus == true
+		&& pManager->GetState() == CSceneTransition::STATE_STAY)
+	{ // 入力をフォーカス中なら、AもしくはEnterでフェーズを進める
+		SetNextPhase();
+
+		// クリック音再生
+		pSound->Play(CSound::LABEL_SE_SELECT);
+	}
 
 	if (m_phase >= PHASE_AFTER_LIVELINESS && m_fFogStart < FOG_END)
 	{ // チュートリアル内で既に通電していて、フォグが晴れていない場合
 		CCamera *pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);		// プレイヤーカメラへのポインタ
-		m_fFogStart += 10.0f;		// フォグの開始位置を進める
+		m_fFogStart += FOG_INCREASE;		// フォグの開始位置を進める
 		if (m_fFogStart >= FOG_END)
 		{ // フォグの開始位置が終了位置まで付いた場合、フォグを無効にする
 			pPlayerCam->SetEnablePixelFog(false);
@@ -195,8 +209,6 @@ void CTutorialManager::Update(void)
 			m_fPitch = PITCH_END;
 		}
 
-		CSound *pSound = CManager::GetInstance()->GetSound();		// サウンドへのポインタ
-
 		// ゲームBGMのピッチを設定する
 		pSound->SetPitch(CSound::LABEL_BGM_GAME, m_fPitch);
 	}
@@ -211,14 +223,6 @@ void CTutorialManager::Draw(void)
 	if (m_pCommentBase != nullptr) m_pCommentBase->Draw();
 	if (m_pComment != nullptr) m_pComment->Draw();
 	if (m_pNextInfo != nullptr && m_bInputFocus == true) m_pNextInfo->Draw();
-}
-
-//==================================================================================
-// --- チュートリアルのマップのパス取得処理 ---
-//==================================================================================
-std::string_view CTutorialManager::GetTutorialMapPath(void) const
-{
-	return TUTORIAL_MAP_PATH;
 }
 
 //==================================================================================
@@ -239,7 +243,18 @@ void CTutorialManager::SetNextPhase(void)
 	m_phase = Util::AddEnum(m_phase, 1);
 	m_pComment->BindTexture(CTexture::GetInstance()->Register(c_asPhaseCommentPath[m_phase]));
 
-	// 発電所を見つけるフェーズになったら、入力のフォーカスを解除
-	if (m_phase == PHASE_RIDEON) m_bInputFocus = false;
-	else if (m_phase == PHASE_AFTER_LIVELINESS) m_bInputFocus = true;
+	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
+	CTutorial *pTutorial = pManager->GetScene(&pTutorial);		// チュートリアルへのポインタ
+	CPlayer *pPlayer = pTutorial->GetPlayer();			// プレイヤーへのポインタ
+
+	if (m_phase == PHASE_RIDEON)
+	{ // 発電所を見つけるフェーズになったら、入力のフォーカスを解除
+		m_bInputFocus = false;
+		pPlayer->SetMovable(true);
+	}
+	else if (m_phase == PHASE_AFTER_LIVELINESS)
+	{ // 通電後のフェーズになったら、入力のフォーカスを設定
+		m_bInputFocus = true;
+		pPlayer->SetMovable(false);
+	}
 }

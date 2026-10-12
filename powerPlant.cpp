@@ -19,19 +19,23 @@
 #include "electricalCable.h"
 #include "electricCurrent.h"
 #include "thunderCamera.h"
-#include "objectBillboard3D.h"
+#include "objectBillboard3DScaling.h"
 #include "color.h"
 #include "mapManager.h"
 #include "vec3math.h"
+#include "rand.h"
+#include "sparkEffect.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
 #define MODEL_PATH		"data/MODEL/powerPlant.x"		// 発電所のモデルパス
 #define HIT_ALPHA		(0.2f)				// プレイヤーカメラのレイと当たった時に設定するα値
-#define BILLBOARD_POS	(Vector3(0.0f, GetVtxMax()->y, 0.0f))		// ガイド用ビルボードの位置
-#define BILLBOARD_SIZE	(Vector2(225.0f, 50.0f))		// ガイド用ビルボードのサイズ
-#define BILLBOARD_PATH	"data/TEXTURE/rideon.png"		// ガイド用ビルボードのテクスチャパス
+#define BILLBOARD_SCALE	Vector2(10.0f, 10.0f)		// 発電所から出るビルボードの初期サイズ
+#define BILLBOARD_LIFE	(CManager::SecToFrame(5))	// 発電所から出るビルボードの体力
+#define SCALING_VALUE	(2.5f)						// 発電所から出るビルボードのスケール増加値
+#define BILLBOARD_SPAWN_INTERVAL	(BILLBOARD_LIFE / 2)				// 発電所から出るビルボードの発生間隔
+#define BILLBOARD_PATH	"data/TEXTURE/effect/powerPlant_effect.png"		// 発電所から出るビルボードのテクスチャパス
 
 //==================================================================================
 // --- 生成処理 ---
@@ -73,6 +77,7 @@ CPowerPlant::CPowerPlant(const int nPriority) : CObjectXQuaternion(nPriority)
 	m_pCurrentCable = nullptr;
 	m_pPlayer = nullptr;
 	m_nID = -1;
+	m_nCounterFrame = 0;
 	m_bHitByPlayerCamRay = false;
 	m_bDisp = true;
 
@@ -183,6 +188,38 @@ void CPowerPlant::Update(void)
 	{ // 内積が0より小さく映る可能性が低い且つゲームモード場合、無効化
 		m_bDisp = false;
 	}
+
+	// playerが登録済みの場合
+	if (m_pPlayer != nullptr)
+	{ // 一定時間経ったうえ、プレイヤーが上に乗っていなければ
+		if (m_nCounterFrame % BILLBOARD_SPAWN_INTERVAL == 0 && m_pPlayer->IsRiding() == false)
+		{ // ビルボードの作成
+			CObjectBillboard3DScaling *pBillboard3D = CObjectBillboard3DScaling::Create(VECTOR3_NULL,
+				BILLBOARD_SCALE,
+				SCALING_VALUE,
+				BILLBOARD_LIFE);
+
+			// 親の設定
+			pBillboard3D->SetParent(GetMatrix());
+
+			// テクスチャ割り当て
+			pBillboard3D->BindTexture(CTexture::GetInstance()->Register(BILLBOARD_PATH));
+
+			// ライティングをオフにする設定を追加
+			pBillboard3D->SetStateFunctionBeforeDraw([](LPDIRECT3DDEVICE9 pDevice)
+				{ // ライティングをオフに設定
+					pDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
+				});
+
+			// ライティングをオンにする設定を追加
+			pBillboard3D->SetStateFunctionAfterDraw([](LPDIRECT3DDEVICE9 pDevice)
+				{ // ライティングをオフに設定
+					pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
+				});
+		}
+	}
+
+	m_nCounterFrame++;
 }
 
 //==================================================================================

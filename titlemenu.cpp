@@ -17,7 +17,6 @@
 #include "input.h"
 #include "sound.h"
 #include "joypad.h"
-#include "observer_pointer.h"
 #include "util.h"
 #include "sceneTransition.h"
 #include "mapManager.h"
@@ -34,6 +33,9 @@
 #define LOGO_POSITION	Vector3(400.0f, 150.0f, 0.0f)	// ロゴの位置
 #define LOGO_SIZE		Vector2(700.0f, 200.0f)			// ロゴのサイズ
 #define LOGO_FILEPATH	"data/TEXTURE/title_ui/titlelogo.png"	// ロゴテクスチャへのパス
+#define CIRCLE_COL		Color(1.0f, 1.0f, 1.0f, 0.3f)		// 円形ポリゴンの色
+#define SELECT_COL		Color()
+#define UNSELECT_COL	Color()
 
 //**********************************************************************************
 // *** 定数宣言 ***
@@ -90,7 +92,7 @@ HRESULT CTitleMenu::Init(void)
 		Vector2(SCREEN_SIZE.y, SCREEN_SIZE.y)));
 
 	// 色を設定
-	m_pCircle->SetColor(Color(1.0f, 1.0f, 1.0f, 0.3f));
+	m_pCircle->SetColor(CIRCLE_COL);
 
 	// 円形テクスチャを登録
 	m_pCircle->BindTexture(CTexture::TYPE_CIRCLE);
@@ -190,9 +192,9 @@ void CTitleMenu::Uninit(void)
 //==================================================================================
 void CTitleMenu::Update(void)
 {
-	own::ObserverPtr pManager(CManager::GetInstance());			// マネージャへのポインタ
-	own::ObserverPtr pKeyboard(pManager->GetInputKeyboard());	// キーボードへのポインタ
-	own::ObserverPtr pJoypad(pManager->GetJoypad());			// ジョイパッドへのポインタ
+	CManager *pManager = CManager::GetInstance();			// マネージャへのポインタ
+	CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();	// キーボードへのポインタ
+	CJoypad *pJoypad = pManager->GetJoypad();			// ジョイパッドへのポインタ
 	CSound *pSound = pManager->GetSound();			// サウンドへのポインタ
 
 	// 既に遷移を開始している場合、スキップ
@@ -319,7 +321,7 @@ void CTitleMenu::Draw(void)
 //==================================================================================
 void CTitleMenu::ActionType(void)
 {
-	own::ObserverPtr pManager(CManager::GetInstance());			// マネージャへのポインタ
+	CManager *pManager = CManager::GetInstance();			// マネージャへのポインタ
 
 	switch (m_currentType)
 	{

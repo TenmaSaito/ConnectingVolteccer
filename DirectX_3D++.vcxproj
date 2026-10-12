@@ -171,7 +171,9 @@
     <ClCompile Include="electricCurrent.cpp" />
     <ClCompile Include="filestream.cpp" />
     <ClCompile Include="game.cpp" />
+    <ClCompile Include="grassQuaternion.cpp" />
     <ClCompile Include="happyNote.cpp" />
+    <ClCompile Include="objectBillboard3DScaling.cpp" />
     <ClCompile Include="percent.cpp" />
     <ClCompile Include="pause.cpp" />
     <ClCompile Include="ranking.cpp" />
@@ -188,7 +190,6 @@
     <ClCompile Include="joypad.cpp" />
     <ClCompile Include="lasso.cpp" />
     <ClCompile Include="light.cpp" />
-    <ClCompile Include="lightingLevel.cpp" />
     <ClCompile Include="lightingPillar.cpp" />
     <ClCompile Include="lineScaleUpTransition.cpp" />
     <ClCompile Include="main.cpp" />
@@ -234,8 +235,10 @@
     <ClCompile Include="scene.cpp" />
     <ClCompile Include="sceneTransition.cpp" />
     <ClCompile Include="circleTransition.cpp" />
+    <ClCompile Include="skip.cpp" />
+    <ClCompile Include="state.cpp" />
+    <ClCompile Include="stateMachine.cpp" />
     <ClCompile Include="stopwatch.cpp" />
-    <ClCompile Include="textureRenderer.cpp" />
     <ClCompile Include="thunderCamera.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="title.cpp" />
@@ -269,7 +272,9 @@
     <ClInclude Include="directXSubDrawer.h" />
     <ClInclude Include="edit.h" />
     <ClInclude Include="game.h" />
+    <ClInclude Include="grassQuaternion.h" />
     <ClInclude Include="happyNote.h" />
+    <ClInclude Include="objectBillboard3DScaling.h" />
     <ClInclude Include="pause.h" />
     <ClInclude Include="percent.h" />
     <ClInclude Include="ranking.h" />
@@ -290,16 +295,17 @@
     <ClInclude Include="motionLoader.h" />
     <ClInclude Include="number.h" />
     <ClInclude Include="object2D.h" />
-    <ClInclude Include="instancingModel.h" />
     <ClInclude Include="objectLine.h" />
     <ClInclude Include="objectXQuaternion.h" />
-    <ClInclude Include="observer_pointer.h" />
     <ClInclude Include="particleQuaternion.h" />
     <ClInclude Include="particleQuaternionBuilder.h" />
     <ClInclude Include="partsLoader.h" />
     <ClInclude Include="planet.h" />
     <ClInclude Include="effect.h" />
     <ClInclude Include="electricCurrent.h" />
+    <ClInclude Include="skip.h" />
+    <ClInclude Include="state.h" />
+    <ClInclude Include="stateMachine.h" />
     <ClInclude Include="tutorialManager.h" />
     <ClInclude Include="field.h" />
     <ClInclude Include="filestream.h" />
@@ -337,7 +343,6 @@
     <ClInclude Include="sceneTransition.h" />
     <ClInclude Include="circleTransition.h" />
     <ClInclude Include="stopwatch.h" />
-    <ClInclude Include="textureRenderer.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="title.h" />
     <ClInclude Include="titleCamera.h" />

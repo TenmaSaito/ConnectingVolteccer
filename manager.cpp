@@ -42,7 +42,8 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define CAPTURE_DIRECTLY		"data/SCREENSHOT"		// 画面キャプチャの画像のディレクトリパス
+#define CAPTURE_DIRECTLY		"data/SCREENSHOT"			// 画面キャプチャの画像のディレクトリパス
+#define TRANSITION_FRAME		(CManager::SecToFrame(2))	// シーン遷移の移行時間
 
 //==================================================================================
 // --- マネージャの取得処理 ---
@@ -274,47 +275,38 @@ void CManager::Uninit(void)
 	// パーツ状態の破棄
 	CPartsLoader::GetInstance()->Unload();
 
-	auto uninit = [&](auto &x)
-	{ // 各スマートポインタのインスタンスの破棄処理
-		if (x != nullptr)
-		{
-			x->Uninit();
-			x.reset();
-		}
-	};
-
 	// ポーズオブジェクトの破棄
-	uninit(m_pPause);
+	SafeUniqueUninit(m_pPause);
 
 	// シーンオブジェクトの破棄
-	uninit(m_pScene);
+	SafeUniqueUninit(m_pScene);
 
 	// 遷移オブジェクトの破棄
-	uninit(m_pTransition);
+	SafeUniqueUninit(m_pTransition);
 
 	// ライトオブジェクトの破棄
-	uninit(m_pLight);
+	SafeUniqueUninit(m_pLight);
 
 	// サウンドオブジェクトの破棄
-	uninit(m_pSound);
+	SafeUniqueUninit(m_pSound);
 
 	// デバッグ表示オブジェクトの破棄
-	uninit(m_pDebugProc);
+	SafeUniqueUninit(m_pDebugProc);
 	
 	// ジョイパッドオブジェクトの破棄
-	uninit(m_pJoypad);
+	SafeUniqueUninit(m_pJoypad);
 
 	// マウスオブジェクトの破棄
-	uninit(m_pInputMouse);
+	SafeUniqueUninit(m_pInputMouse);
 
 	// キーボードオブジェクトの破棄
-	uninit(m_pInputKeyboard);
+	SafeUniqueUninit(m_pInputKeyboard);
 
 	// キャプチャオブジェクトの破棄
-	uninit(m_pCapture);
+	SafeUniqueUninit(m_pCapture);
 
 	// レンダラーオブジェクトの破棄
-	uninit(m_pRenderer);
+	SafeUniqueUninit(m_pRenderer);
 }
 
 //==================================================================================
@@ -423,7 +415,6 @@ HRESULT CManager::SetMode(const CScene::MODE modeNext)
 
 	// シーンの生成
 	CScene::Create(modeNext, m_pScene);
-	NULLPOINTER_ASSERT(m_pScene);
 
 	return (m_pScene == nullptr) ? E_FAIL : S_OK;
 }
@@ -433,5 +424,5 @@ HRESULT CManager::SetMode(const CScene::MODE modeNext)
 //==================================================================================
 void CManager::SetTransition(const CScene::MODE modeNext)
 {
-	m_pTransition->StartTransition(120, modeNext);
+	m_pTransition->StartTransition(TRANSITION_FRAME, modeNext);
 }

@@ -63,6 +63,7 @@ CSparkEffect::CSparkEffect()
 	m_fSpeed = 0.0f;
 	m_nLife = 0;
 	m_pOrbit = nullptr;
+	m_pMtxPrent = nullptr;
 
 	// タイプの指定
 	CObject::SetType(TYPE_SPARK);
@@ -162,8 +163,8 @@ void CSparkEffect::Uninit(void)
 //==================================================================================
 void CSparkEffect::Update(void)
 {
-	CDebugProc* pProc = CManager::GetInstance()->GetDebugProc();		// デバッグ表示へのポインタ
-	CRand* pRand = CRand::GetInstance();							// 乱数生成機へのポインタ
+	CDebugProc *pProc = CManager::GetInstance()->GetDebugProc();		// デバッグ表示へのポインタ
+	CRand *pRand = CRand::GetInstance();							// 乱数生成機へのポインタ
 	float fWidth = pRand->Generate(m_fMinWidth, m_fMaxWidth);		// オービットの幅
 
 	// 親の座標を更新
@@ -206,4 +207,7 @@ void CSparkEffect::Draw(void)
 
 	// 親マトリックスを適用
 	D3DXMatrixMultiply(&m_mtxWorld, &m_mtxWorld, &mtxParentTemp);
+
+	// 親が登録されていれば、それも適用
+	if(m_pMtxPrent != nullptr) D3DXMatrixMultiply(&m_mtxWorld, &m_mtxWorld, m_pMtxPrent);
 }

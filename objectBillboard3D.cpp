@@ -57,9 +57,8 @@ CObjectBillboard3D::CObjectBillboard3D(const int nPriority) : CObject(nPriority)
 	m_pMtxParent = nullptr;
 	m_bDisp = true;
 	m_bAlpha = true;
-	m_bScaleDown = false;
 	m_bYBill = false;
-	m_decreaseScale = VECTOR2_NULL;
+	m_bInFocus = false;
 	m_nLife = 0;
 
 	// タイプを指定
@@ -193,12 +192,6 @@ void CObjectBillboard3D::Update(void)
 	// 内積を求める
 	fDot = Vec3::Dot(vecToPos, vecToR);
 	m_bInFocus = (fDot > 0);		// 内積結果でフラグを指定
-	
-	if (m_bScaleDown == true)
-	{ // 自動スケール減少ありの場合
-		SetSize(Vector2(m_size.x - m_decreaseScale.x, m_size.y - m_decreaseScale.y));
-	}
-
 	m_pos += m_move;	// 位置更新
 
 	if(m_nLife != INT_MAX) m_nLife--;		// 寿命を減らす
@@ -283,7 +276,6 @@ void CObjectBillboard3D::Draw(void)
 
 	if (m_bAlpha)
 	{ // αテストを有効にする
-		pDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
 		pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
 		pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
 		pDevice->SetRenderState(D3DRS_ALPHAREF, 30);
@@ -302,7 +294,6 @@ void CObjectBillboard3D::Draw(void)
 
 	if (m_bAlpha)
 	{ // αテストを無効にする
-		pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
 		pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
 		pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_ALWAYS);
 		pDevice->SetRenderState(D3DRS_ALPHAREF, 0);
@@ -418,28 +409,11 @@ void CObjectBillboard3D::SetColor(const std::array<Color, DEFAULT_VERTEX_NUM> &a
 	m_pVtxBuff->Lock(0, 0, (void **)&pVtx, 0);
 
 	// 頂点カラー設定
-	pVtx[0].col = aColor.at(0);
-	pVtx[1].col = aColor.at(1);
-	pVtx[2].col = aColor.at(2);
-	pVtx[3].col = aColor.at(3);
+	pVtx[0].col = aColor[0];
+	pVtx[1].col = aColor[1];
+	pVtx[2].col = aColor[2];
+	pVtx[3].col = aColor[3];
 
 	// 頂点バッファをアンロック
 	m_pVtxBuff->Unlock();
-}
-
-//==================================================================================
-// --- 自動スケール減少のフラグ指定処理 ---
-//==================================================================================
-void CObjectBillboard3D::SetEnableScaleDown(const bool bEnable)
-{ // 引数を保存
-	m_bScaleDown = bEnable;
-	if (m_bScaleDown == true)
-	{ // フラグが立った場合、残りフレーム数から減少係数を計算
-		m_decreaseScale.x = m_size.x / static_cast<float>(m_nLife);
-		m_decreaseScale.y = m_size.y / static_cast<float>(m_nLife);
-	}
-	else
-	{ // フラグが下りた場合、無し
-		m_decreaseScale = VECTOR2_NULL;
-	}
 }

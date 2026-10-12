@@ -44,7 +44,6 @@ public:
 	void Uninit(void) override;
 	void Update(void) override;
 	void Draw(void) override;
-	void Restart(std::string_view sMapPath);
 	CPlayer *GetPlayer(void) const { return m_pPlayer; }
 	CCombo *GetCombo(void) const { return m_pCombo; }
 	CTutorialManager *GetTutorialManager(void) const { return m_pTutorialManager.get(); }

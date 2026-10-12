@@ -23,7 +23,7 @@
 class CObjectLine : public CObject
 {
 public:
-	CObjectLine(const int nPriority = 6);
+	CObjectLine(const int nPriority = DEFAULT_OBJ_PRIORITY);
 	~CObjectLine();
 
 	static CObjectLine *Create(const Vector3 &start, const Vector3 &end);

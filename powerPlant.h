@@ -61,7 +61,8 @@ private:
 	CUtilityPole *m_pCurrentPole;			// 今回のコンボで繋げている電柱へのポインタ
 	CElectricalCable *m_pCurrentCable;		// 今回のコンボで繋げてた電線へのポインタ
 	CPlayer *m_pPlayer;			// プレイヤーへのポインタ
-	int m_nID;		// 生成されたID
+	int m_nID;					// 生成されたID
+	int m_nCounterFrame;		// フレームカウンタ
 	bool m_bHitByPlayerCamRay;	// プレイヤーカメラとプレイヤの間にいるか
 	bool m_bDisp;				// 描画フラグ
 };

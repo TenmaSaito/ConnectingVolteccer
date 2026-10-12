@@ -33,7 +33,7 @@ CDirectX::~CDirectX()
 //==================================================================================
 // --- DirectXのプロシージャ処理 ---
 //==================================================================================
-void CDirectX::DirectXProc(HINSTANCE hInstance, HWND hWnd, BOOL bWindowed)
+void CDirectX::DirectXProc(HINSTANCE hInstance, HWND hWnd, BOOL bWindowed, int nCmdShow)
 {
 	CManager *pManager = nullptr;		// マネージャへのポインタ
 	DWORD dwCurrentTime;			// 現在時刻
@@ -51,6 +51,9 @@ void CDirectX::DirectXProc(HINSTANCE hInstance, HWND hWnd, BOOL bWindowed)
 	// マネージャーを初期化
 	if (SUCCEEDED(pManager->Init(hInstance, hWnd, bWindowed)))
 	{ // 成功時
+		// 初期化成功メッセージを送信 (ウィンドウの表示を待機)
+		SendMessage(hWnd, WM_SUCCEEDED_INIT, nCmdShow, 0);
+
 		// FPS計測用変数を初期化
 		dwCurrentTime = 0;							// 初期化
 		dwExecLastTimeUpdate = timeGetTime();		// 現在時刻を取得
@@ -101,6 +104,9 @@ void CDirectX::DirectXProc(HINSTANCE hInstance, HWND hWnd, BOOL bWindowed)
 	else
 	{ // 初期化失敗時
 		MessageBox(hWnd, "DirectXの初期化に失敗しました...", "DirectX Initialize Failed", MB_ICONERROR);
+
+		// 失敗メッセージを送信
+		PostMessage(hWnd, WM_FAILED_INIT, 0, 0);
 	}
 
 	// マネージャの終了処理

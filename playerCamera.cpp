@@ -126,23 +126,20 @@ void CPlayerCamera::Update(void)
 	Vector3 rot = *CCamera::GetRotate();	// 角度
 	Vector3 stick;		// スティックの入力
 
-	if (m_state == STATE_RIDING)
-	{ // 電柱に載っている場合は視点移動を可能にする
-		// カメラの回転！(注視点中心)
-		if (pKeyboard->GetPress(DIK_D))
-		{ // 角度をずらして修正
-			rot.y += DEFAULT_ROTSPD;
-			rot = Vec3::FixedRotation(rot);
-		}
-		else if (pKeyboard->GetPress(DIK_A))
-		{ // 角度をずらして修正
-			rot.y -= DEFAULT_ROTSPD;
-			rot = Vec3::FixedRotation(rot);
-		}
-		else if (pJoypad->GetStick(CJoypad::STICK_LEFT, &stick) && Vec3::Length(stick) > STICK_DEADZONE)
-		{ // スティックから角度を取得
-			rot.y += stick.x * DEFAULT_ROTSPD;
-		}
+	// カメラの回転！(注視点中心)
+	if (pKeyboard->GetPress(DIK_E))
+	{ // 角度をずらして修正
+		rot.y += DEFAULT_ROTSPD;
+		rot = Vec3::FixedRotation(rot);
+	}
+	else if (pKeyboard->GetPress(DIK_Q))
+	{ // 角度をずらして修正
+		rot.y -= DEFAULT_ROTSPD;
+		rot = Vec3::FixedRotation(rot);
+	}
+	else if (pJoypad->GetStick(CJoypad::STICK_RIGHT, &stick) && Vec3::Length(stick) > STICK_DEADZONE)
+	{ // スティックから角度を取得
+		rot.y += stick.x * DEFAULT_ROTSPD;
 	}
 
 	if (m_state == STATE_PLAYER)

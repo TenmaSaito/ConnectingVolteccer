@@ -59,6 +59,7 @@ CObjectXQuaternion::CObjectXQuaternion(const int nPriority) : CObject(nPriority)
 	m_fAlpha = DEFAULT_ALPHA;
 	m_vtxMin = VECTOR3_NULL;
 	m_vtxMax = VECTOR3_NULL;
+	m_fDarkness = DEFAULT_DARKNESS;
 	m_bCalcMatrix = false;
 	D3DXMatrixIdentity(&m_mtxWorld);
 	D3DXQuaternionIdentity(&m_qua);
@@ -186,10 +187,19 @@ void CObjectXQuaternion::Draw(void)
 	for (int nCntMat = 0; nCntMat < static_cast<int>(m_dwNumMat); nCntMat++)
 	{
 		D3DMATERIAL9 matSub = m_vMat.at(nCntMat);
-		if(m_fAlpha != DEFAULT_ALPHA)
+		if (m_fAlpha != DEFAULT_ALPHA)
 		{ // α値の変更が有効なら、α値を変更
 			matSub.Diffuse.a = m_fAlpha;
 		}
+
+		// 各マテリアルのα値以外に色の濃さを掛ける
+		matSub.Ambient.r *= m_fDarkness;
+		matSub.Ambient.g *= m_fDarkness;
+		matSub.Ambient.b *= m_fDarkness;
+
+		matSub.Diffuse.r *= m_fDarkness;
+		matSub.Diffuse.g *= m_fDarkness;
+		matSub.Diffuse.b *= m_fDarkness;
 
 		// マテリアルの設定
 		pDevice->SetMaterial(&matSub);

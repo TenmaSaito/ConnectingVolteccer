@@ -79,7 +79,8 @@ CObject::~CObject()
 //==================================================================================
 void CObject::NotifyAll(std::string_view message)
 {
-	for (auto &pObserver : m_vpObserver)
+	std::vector<CObject*> vpSnapshot = m_vpObserver;	// Notify直前のポインタ配列のコピー
+	for (auto &pObserver : vpSnapshot)
 	{ // nullの場合スキップ
 		if (pObserver == nullptr) continue;
 
@@ -230,6 +231,90 @@ void CObject::FlagCheckAll(void)
 		}
 	}
 #endif
+}
+
+//==================================================================================
+// --- オブジェクトの検索処理 (タイプ指定 : 最初に見つかったポインタ) ---
+//==================================================================================
+CObject *CObject::FindAnyObjectByType(const TYPE type)
+{
+	CObject *pObject = nullptr;		// 見つかったオブジェクトへのポインタ
+
+	for (int nCntPriority = 0; nCntPriority < MAX_OBJPRIORITY; nCntPriority++)
+	{ // 全プライオリティを検索
+		pObject = FindAnyObjectByType(nCntPriority, type);
+
+		// ポインタがnullでなければ終了
+		if (pObject != nullptr) break;
+	}
+
+	// 検索結果を返す
+	return pObject;
+}
+
+//==================================================================================
+// --- オブジェクトの検索処理 (優先順位, タイプ指定 : 最初に見つかったポインタ) ---
+//==================================================================================
+CObject *CObject::FindAnyObjectByType(const int nPriority, const TYPE type)
+{
+	CObject *pObject = m_apTop[nPriority];		// オブジェクトへのポインタ
+
+	while (pObject != nullptr)
+	{ // オブジェクトへのポインタがnullではない間ループ
+		CObject *pObjectNext = pObject->GetNext();		// 次のオブジェクトへのポインタ
+
+		// タイプが同じだった場合、ループ終了
+		if (pObject->GetType() == type) break;
+
+		pObject = pObjectNext;		// ポインタを進める
+	}
+
+	// 検索結果を返す
+	return pObject;
+}
+
+//==================================================================================
+// --- オブジェクトの検索処理 (タイプ指定 : 見つかったポインタ全て) ---
+//==================================================================================
+std::deque<CObject*> CObject::FindObjectsByType(const TYPE type)
+{
+	std::deque<CObject*> vpObject;				// 見つかったオブジェクトへのポインタ
+
+	for (int nCntPriority = 0; nCntPriority < MAX_OBJPRIORITY; nCntPriority++)
+	{ // 全プライオリティを検索
+		std::deque<CObject*> vpFind;		// 今回のプライオリティで見つかった配列
+
+		// 検索
+		vpFind = std::move(FindObjectsByType(nCntPriority, type));
+
+		// 配列の要素を挿入
+		vpObject.insert(vpObject.end(), vpFind.begin(), vpFind.end());
+	}
+
+	// 検索結果を返す
+	return vpObject;
+}
+
+//==================================================================================
+// --- オブジェクトの検索処理 (優先順位, タイプ指定 : 見つかったポインタ全て) ---
+//==================================================================================
+std::deque<CObject*> CObject::FindObjectsByType(const int nPriority, const TYPE type)
+{
+	CObject *pObject = m_apTop[nPriority];		// オブジェクトへのポインタ
+	std::deque<CObject*> vpObject;				// 見つかったオブジェクトへのポインタ
+
+	while (pObject != nullptr)
+	{ // オブジェクトへのポインタがnullではない間ループ
+		CObject *pObjectNext = pObject->GetNext();		// 次のオブジェクトへのポインタ
+
+		// タイプが同じだった場合、ポインタを追加
+		if (pObject->GetType() == type) vpObject.push_back(pObject);
+
+		pObject = pObjectNext;		// ポインタを進める
+	}
+
+	// 検索結果を返す
+	return vpObject;
 }
 
 //==================================================================================

@@ -49,6 +49,7 @@ public:
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
+	void SetParent(const Matrix *pMtxParent) { m_pMtxPrent = pMtxParent; }
 
 private:
 	CMeshOrbit3D *m_pOrbit;	// オービットへのポインタ
@@ -58,7 +59,8 @@ private:
 	float m_fSpeed;			// 移動速度
 	Vector3 m_min, m_max;		// 座標の範囲
 	float m_fMinWidth, m_fMaxWidth;	// オフセット座標の範囲
-	Matrix m_mtxWorld;	// ワールドマトリックス
+	Matrix m_mtxWorld;			// ワールドマトリックス
+	const Matrix *m_pMtxPrent;	// 親マトリックスへのポインタ
 	int m_nLife;			// 寿命
 };
 #endif

@@ -23,6 +23,7 @@ class CCombo;
 class CConnectingEvaluate;
 class CStopWatch;
 class CThunderCamera;
+class CObject2D;
 
 //**********************************************************************************
 // *** タイトルクラス ***
@@ -30,6 +31,15 @@ class CThunderCamera;
 class CGame : public CSceneBase<CGame, CScene::MODE_GAME>
 {
 public:
+	typedef enum
+	{
+		STATE_NONE = 0,		// 状態無し
+		STATE_READY,		// 開始待機
+		STATE_NORMAL,		// 進行中
+		STATE_END,			// ゲーム終了
+		STATE_MAX
+	} STATE;
+
 	CGame();
 	~CGame();
 
@@ -37,32 +47,36 @@ public:
 	void Uninit(void) override;
 	void Update(void) override;
 	void Draw(void) override;
-	void AddEffect(const int nValue) { m_nNumEffect += nValue; }
 	void AddLandmark(void) { m_nNumLightingLandmark++; }
-	void SetEnablePause(const bool bEnable) { m_bPause = bEnable; }
-	bool GetEnableEdit(void) { return m_bEdit; }
+	void SetState(const STATE state);
+	STATE GetState(void) const { return m_state; }
 	CTimer *GetTimer(void) const { return m_pTimer; }
 	CCombo *GetCombo(void) const { return m_pCombo; }
 	CConnectingEvaluate *GetConnectingEvaluate(void) const { return m_pEvaluate; }
 
 private:
 	void Start(void);
-	void UpdateEdit(void);
-	void MapEdit(void);
+	void UpdateState(void);
+	void UpdateReady(void);
+	void UpdateNormal(void);
+	void UpdateEnd(void);
 
 	std::unique_ptr<CStopWatch> m_pStopWatch;		// ストップウォッチへのポインタ
 	CPlayer *m_pPlayer;		// プレイヤーへのポインタ
 	CTimer *m_pTimer;		// タイマーへのポインタ
 	CCombo *m_pCombo;		// コンボ表示へのポインタ
-	CThunderCamera *m_pThunderCam;			// 電流表示用カメラへのポインタ
-	CConnectingEvaluate *m_pEvaluate;		// 接続時評価用クラスへのポインタ
-	bool m_bEdit;			// エディットモードフラグ
-	bool m_bPause;			// ポーズ状態
+	CThunderCamera *m_pThunderCam;		// 電流表示用カメラへのポインタ
+	CConnectingEvaluate *m_pEvaluate;	// 接続時評価用クラスへのポインタ
+	CObject2D *m_pBack;					// 黒い半透明表示用ポリゴンへのポインタ
+	CObject2D *m_pReady;				// Ready表示用ポリゴンへのポインタ
+	CObject2D *m_pGo;					// Go表示用ポリゴンへのポインタ
+	CObject2D *m_pFinish;				// Finish表示用ポリゴンへのポインタ
 	int m_nNumLightingHouse;			// 電線の接続で電気のついた家の総数
 	int m_nNumLightingLandmark;			// 電線の接続で電気のついたランドマークの総数
 	int m_nCurrentConnectLighting;		// 今回の電線の接続で電気のついた家の数
 	bool m_bCreateConnectEffect;		// 電気のついた家の数で表示が変わる演出を既に生成したか
 	int m_nCounterFrame;	// フレームカウント
-	int m_nNumEffect;		// エフェクト数
+	int m_nCounterState;	// 状態カウンター
+	STATE m_state;			// 現在の状態
 };
 #endif

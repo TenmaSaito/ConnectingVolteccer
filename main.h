@@ -18,7 +18,6 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define ENABLE_WINDOW		(FALSE)			// ウィンドウフラグ
 #define ENABLE_NULLPOINTER_ASSERT			// NULL時のアサートの有効化マクロ
 #ifdef ENABLE_NULLPOINTER_ASSERT
 #define NULLPOINTER_ASSERT(pointer)		assert(pointer != nullptr)		// NULLアサート
@@ -35,6 +34,15 @@ template<class T> void SafeRelease(T *&pRelease)
 	{ // nullptrでなければ解放
 		pRelease->Release();
 		pRelease = nullptr;
+	}
+}
+
+template<class T> void SafeUniqueUninit(std::unique_ptr<T> &ptr)
+{ // ユニークポインタのバッファ解放処理
+	if (ptr != nullptr)
+	{ // nullptrでなければ解放
+		ptr->Uninit();
+		ptr.reset();
 	}
 }
 #endif

@@ -12,6 +12,7 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "main.h"
+#include "object.h"
 
 //**********************************************************************************
 // *** 草クラス ***
@@ -25,9 +26,10 @@ public:
 	~CGrass();
 
 	HRESULT Init(const Vector3 &pos, const Vector2 &size, const float fSwaySpeed, const float fSwayWidth);
-	void Uninit(void);
-	void Update(void);
-	void Draw(void);
+	virtual void Uninit(void);
+	virtual void Update(void);
+	virtual void Draw(void);
+	void SetParent(const Matrix *pMtxParent) { m_pMtxParent = pMtxParent; }
 	bool Collision(const Vector3 &pos, const float fRadius);
 
 private:
@@ -38,6 +40,7 @@ private:
 	Vector3 m_rotDest;		// 目標角度
 	Vector2 m_size;			// サイズ
 	Matrix m_mtxWorld;		// ワールドマトリックス
+	const Matrix *m_pMtxParent;		// 親マトリックスへのポインタ
 	float m_fSwaySpeed;		// 揺れる速度
 	float m_fSwayWidth;		// 揺れる幅
 	float m_fLerpCount;		// 線形補間用変数

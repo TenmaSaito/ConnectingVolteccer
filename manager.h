@@ -114,8 +114,6 @@ template<IsScene T> T *CManager::GetScene(T **ppOut) const
 
 	// シーンのポインタをキャスト
 	pScene = static_cast<T*>(m_pScene.get());
-	NULLPOINTER_ASSERT(pScene);
-
 	if (ppOut != nullptr)
 	{ // 引数がnullじゃなければ、値を代入
 		*ppOut = pScene;

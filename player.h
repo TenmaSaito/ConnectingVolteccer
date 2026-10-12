@@ -17,7 +17,7 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define DEFAULT_PLAYER_PRIORITY	DEFAULT_OBJ_PRIORITY			// プレイヤーの基本優先順位
+#define PLAYER_PRIORITY	DEFAULT_OBJ_PRIORITY					// プレイヤーの基本優先順位
 #define DEFAULT_PLAYER_POS		VECTOR3_NULL					// プレイヤーの基本位置
 #define DEFAULT_PLAYER_ROT		VECTOR3_NULL					// プレイヤーの基本角度
 #define MAX_PLAYER_MODEL_PATH	(50)							// 保存可能なモデルパス数
@@ -64,7 +64,7 @@ public:
 		const Vector3 &pos,
 		const Vector3 &rot);
 
-	CPlayer(const int nPriority = DEFAULT_PLAYER_PRIORITY);
+	CPlayer(const int nPriority = PLAYER_PRIORITY);
 	~CPlayer();
 
 	HRESULT Init(const char *pFilename,
@@ -82,6 +82,7 @@ public:
 	const Matrix *GetMatrix(void) const { return &m_mtxWorld; }
 	const std::variant<CPowerPlant*, CUtilityPole*> *GetRidingObject(void) const { return &m_pRidingObject; }
 	CPowerPlant *GetStartPlant(void) const { return m_pStartPlant; }
+	void SetMovable(const bool bMovable) { m_bMovable = bMovable; }
 	bool IsShotLasso(void) const { return m_bShotLasso; }
 	bool IsShocked(void) const { return m_bShocked; }
 	bool IsRiding(void) const { return std::visit([](auto &x) { return x != nullptr; }, m_pRidingObject); }
@@ -102,7 +103,6 @@ private:
 	void FindNearestPole(void);
 	void FixedQuaternion(CObjectXQuaternion *pRide);
 	void DismountPole(void);
-	void CollisionAction(void);
 	void OtherUpdate(void);
 	CObjectXQuaternion *GetRidingObjectX(void);
 
@@ -115,7 +115,6 @@ private:
 	Matrix m_mtxWorld;	// ワールドマトリックス
 	CCombo *m_pCombo;	// コンボ表示へのポインタ
 	CShock *m_pShock;			// 感電エフェクトへのポインタ
-	CThunderEffect *m_pThunderEffect;	// 雷エフェクトへのポインタ
 	std::variant<CPowerPlant*, CUtilityPole*> m_pRidingObject;		// 乗っているオブジェクト (発電所 or 電柱)
 	CPowerPlant *m_pStartPlant;		// 初めに乗った発電所へのポインタ
 	CUtilityPole *m_pPoleNext;	// 次に乗る電柱	
@@ -128,6 +127,7 @@ private:
 	int m_nNumberBeginIdx;	// 数値の開始インデックス
 	int m_nNumberEndIdx;	// 数値の終了インデックス
 	int m_nIdxCombo;		// コンボ表示インデックス
+	bool m_bMovable;		// 移動可能か
 	bool m_bShotLasso;		// 投げ縄を投げたか
 	bool m_bDismountPowerPlant;		// 発電所から降りたか
 	Vector3 m_vecQua;		// 回転の任意軸
