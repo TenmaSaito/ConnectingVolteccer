@@ -22,19 +22,10 @@
 //**********************************************************************************
 #define DEFAULT_FOVY		(45.0f)		// 視野角
 #define DEFAULT_ZN			(1.0f)		// 最短距離
-#define DEFAULT_ZF			(10000.0f)	// 最遠距離
+#define DEFAULT_ZF			(3000.0f)	// 最遠距離
 #define DEFAULT_SPD			(1.0f)		// 移動速度
 #define DEFAULT_ROTSPD		(0.01f)		// 回転速度
 #define DEFAULT_LENGTH		(300.0f)	// 注視点との距離
-#define DEFAULT_VP			D3DVIEWPORT9{0,0,SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 1.0f}	// デフォルトのビューポート
-
-//**********************************************************************************
-// *** 静的メンバ変数 ***
-//**********************************************************************************
-CCamera *CCamera::m_apCamera[TYPE_MAX] = {};					// 現在登録されているカメラへのポインタ
-D3DVIEWPORT9 CCamera::m_vpDef = DEFAULT_VP;						// デフォルトのビューポート
-CCamera::TYPE CCamera::m_currentType = CCamera::TYPE_PLAYER;	// 現在設置されているカメラのタイプ
-CCamera::TYPE CCamera::m_focusType = CCamera::TYPE_MAX;			// 現在フォーカスされているカメラのタイプ
 
 //==================================================================================
 // --- コンストラクタ ---
@@ -45,8 +36,15 @@ CCamera::CCamera(const TYPE type)
 	m_posR = VECTOR3_NULL;
 	m_vecU = VECTOR3_NULL;
 	m_rot = VECTOR3_NULL;
+	m_colFog = COLOR_NULL;
+	m_fStart = 0.0f;
+	m_fEnd = 0.0f;
+	m_fFovy = 0.0f;
+	m_fNear = 0.0f;
+	m_fFar = 0.0f;
 	m_vp = {};
 	m_bEnableOrtho = false;
+	m_bEnableFog = false;
 
 	// タイプを保存
 	m_type = type;
@@ -65,19 +63,22 @@ CCamera::~CCamera()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-void CCamera::Init(const D3DXVECTOR3 &posV)
+void CCamera::Init(const Vector3 &posV, const Vector3 &posR)
 {
 	{ // メンバ変数を初期化
 		D3DXMatrixIdentity(&m_mtxProjection);
 		D3DXMatrixIdentity(&m_mtxView);
-		m_posR = VECTOR3_NULL;
 		m_rot = VECTOR3_NULL;
 	}
 
-	{ // 視点・上方向ベクトル・ビューポートを設定
+	{ // 描画に用いる各値を設定
 		m_posV = posV;
-		m_vecU = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+		m_posR = posR;
+		m_vecU = Vector3(0.0f, 1.0f, 0.0f);
 		m_vp = DEFAULT_VP;
+		m_fFovy = DEFAULT_FOVY;
+		m_fNear = DEFAULT_ZN;
+		m_fFar = DEFAULT_ZF;
 	}
 }
 
@@ -104,7 +105,7 @@ void CCamera::Update(void)
 //==================================================================================
 void CCamera::SetCamera(void)
 {
-	LPDIRECT3DDEVICE9 pDevice = CManager::GetDeviceByInstance();	// デバイスへのポインタ
+	LPDIRECT3DDEVICE9 pDevice = CManager::GetInstance()->GetRenderer()->GetDevice();	// デバイスへのポインタ
 	RECT rect = { 0,0,SCREEN_WIDTH,SCREEN_HEIGHT };		// 画面サイズ
 
 	// プロジェクションマトリックスの初期化
@@ -116,18 +117,18 @@ void CCamera::SetCamera(void)
 		D3DXMatrixOrthoLH(&m_mtxProjection,					// 書き出し先
 			static_cast<float>(m_vp.Width),					// スクリーンの幅
 			static_cast<float>(m_vp.Height),				// スクリーンの高さ
-			DEFAULT_ZN,					// カメラの描画最小範囲
-			DEFAULT_ZF);				// カメラの描画最大範囲
+			m_fNear,				// カメラの描画最小範囲
+			m_fFar);				// カメラの描画最大範囲
 	}
 	else
 	{ // 透視投影によるプロジェクションマトリックスの設定
 		// マトリックスの作成
 		D3DXMatrixPerspectiveFovLH(&m_mtxProjection,		// 書き出し先
-			D3DXToRadian(DEFAULT_FOVY),						// 視野角
+			D3DXToRadian(m_fFovy),							// 視野角
 			static_cast<float>(m_vp.Width)
 			/ static_cast<float>(m_vp.Height),				// スクリーンのアスペクト比
-			DEFAULT_ZN,					// カメラの描画最小範囲
-			DEFAULT_ZF);				// カメラの描画最大範囲
+			m_fNear,				// カメラの描画最小範囲
+			m_fFar);				// カメラの描画最大範囲
 	}
 
 	// マトリックスの設定
@@ -146,12 +147,26 @@ void CCamera::SetCamera(void)
 		// マトリックスの設定
 		pDevice->SetTransform(D3DTS_VIEW, &m_mtxView);
 	}
+
+	if (m_bEnableFog == true)
+	{ // フォグを設定
+		// フォグブレンディングを有効化
+		pDevice->SetRenderState(D3DRS_FOGENABLE, TRUE);
+
+		// フォグカラ―を設定
+		pDevice->SetRenderState(D3DRS_FOGCOLOR, m_colFog);
+
+		// フォグパラメータを設定
+		pDevice->SetRenderState(D3DRS_FOGTABLEMODE, D3DFOG_LINEAR);
+		pDevice->SetRenderState(D3DRS_FOGSTART, *(reinterpret_cast<DWORD*>(&m_fStart)));
+		pDevice->SetRenderState(D3DRS_FOGEND, *(reinterpret_cast<DWORD*>(&m_fEnd)));
+	}
 }
 
 //==================================================================================
 // --- カメラの内外判定処理 ---
 //==================================================================================
-bool CCamera::IsVisible(const D3DXVECTOR3 &pos)
+bool CCamera::IsVisible(const Vector3 &pos)
 {
 	bool bBeside = false;		// 横判定
 	bool bVertical = false;		// 縦判定
@@ -170,23 +185,33 @@ bool CCamera::IsVisible(const D3DXVECTOR3 &pos)
 //==================================================================================
 // --- カメラのレイ取得処理 ---
 //==================================================================================
-D3DXVECTOR3 CCamera::GetRay(void) const
+Vector3 CCamera::GetRay(void) const
 {
 	return Vec3::Direction(m_posR, m_posV);
 }
 
 //==================================================================================
+// --- カメラのフォグ設定処理 ---
+//==================================================================================
+void CCamera::SetPixelFog(Color col, float fStart, float fEnd)
+{ // 各値を保存
+	m_colFog = col;
+	m_fStart = fStart;
+	m_fEnd = fEnd;
+}
+
+//==================================================================================
 // --- カメラからスクリーン上の座標へのレイ取得処理 ---
 //==================================================================================
-D3DXVECTOR3 CCamera::GetRayToScreen(const D3DXVECTOR2 &screenPos)
+Vector3 CCamera::GetRayToScreen(const Vector2 &screenPos)
 {
 	CManager *pManager = CManager::GetInstance();			// マネージャへのポインタ
 	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
 	D3DVIEWPORT9 vp;		// ビューポート
-	D3DXMATRIX mtxVp, mtxView, mtxProj;				// ビューポート行列, ビュー行列, プロジェクション行列
-	D3DXMATRIX mtxVpInv, mtxViewInv, mtxProjInv;	// ビューポート逆行列, ビュー逆行列, プロジェクション逆行列
-	D3DXVECTOR3 from, to;	// レイベクトルの始点、終点
+	Matrix mtxVp, mtxView, mtxProj;				// ビューポート行列, ビュー行列, プロジェクション行列
+	Matrix mtxVpInv, mtxViewInv, mtxProjInv;	// ビューポート逆行列, ビュー逆行列, プロジェクション逆行列
+	Vector3 from, to;	// レイベクトルの始点、終点
 
 	// ビューポート行列を初期化
 	D3DXMatrixIdentity(&mtxVp);
@@ -199,8 +224,8 @@ D3DXVECTOR3 CCamera::GetRayToScreen(const D3DXVECTOR2 &screenPos)
 	pDevice->GetTransform(D3DTS_PROJECTION, &mtxProj);
 
 	// レイベクトルの始点, 終点を設定
-	from = D3DXVECTOR3(screenPos.x, screenPos.y, 0.0f);
-	to = D3DXVECTOR3(screenPos.x, screenPos.y, 1.0f);
+	from = Vector3(screenPos.x, screenPos.y, 0.0f);
+	to = Vector3(screenPos.x, screenPos.y, 1.0f);
 
 	// 行列計算
 	mtxVp._11 = static_cast<float>(vp.Width) / 2.0f;
@@ -268,7 +293,7 @@ CCamera *CCamera::Begin(const int nIdx)
 { // nullの場合スキップ
 	if (m_apCamera[nIdx] == nullptr) return nullptr;
 
-	LPDIRECT3DDEVICE9 pDevice = CManager::GetDeviceByInstance();	// デバイスへのポインタ
+	LPDIRECT3DDEVICE9 pDevice = CManager::GetInstance()->GetRenderer()->GetDevice();	// デバイスへのポインタ
 
 	// ビューポートを取得
 	pDevice->GetViewport(&m_vpDef);
@@ -290,10 +315,16 @@ CCamera *CCamera::Begin(const int nIdx)
 //==================================================================================
 void CCamera::End(void)
 {
-	LPDIRECT3DDEVICE9 pDevice = CManager::GetDeviceByInstance();	// デバイスへのポインタ
+	LPDIRECT3DDEVICE9 pDevice = CManager::GetInstance()->GetRenderer()->GetDevice();	// デバイスへのポインタ
 
 	// ビューポートを元に戻す
 	pDevice->SetViewport(&m_vpDef);
+
+	if (m_apCamera[m_currentType]->m_bEnableFog == true)
+	{ // フォグを解除
+		// フォグブレンディングを無効化
+		pDevice->SetRenderState(D3DRS_FOGENABLE, FALSE);
+	}
 }
 
 //==================================================================================

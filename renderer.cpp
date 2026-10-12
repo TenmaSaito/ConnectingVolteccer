@@ -13,13 +13,14 @@
 #include "debugproc.h"
 #include "object.h"
 #include "camera.h"
+#include "pause.h"
 #include "sceneTransition.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define FEEDBACK_SIZE		(10.0f)		// フィードバック用ポリゴンの差分
-#define FEEDBACK_ALPHA		(0.99f)	// フィードバック用ポリゴンのα値
+#define FEEDBACK_SIZE		(8.0f)		// フィードバック用ポリゴンの差分
+#define FEEDBACK_ALPHA		(0.80f)		// フィードバック用ポリゴンのα値
 
 //==================================================================================
 // --- コンストラクタ ---
@@ -71,6 +72,31 @@ HRESULT CRenderer::Init(HWND hWnd, BOOL bWindow)
 		return E_FAIL;
 	}
 
+	D3DFORMAT AutoDepthStencilFormat = D3DFMT_D24S8;		// 深度バッファ及びステンシルバッファのビット数
+
+	// 深度24,ステンシル8bitで使用できるかチェック
+	if (FAILED(m_pD3D->CheckDeviceFormat(
+		D3DADAPTER_DEFAULT,
+		D3DDEVTYPE_HAL,
+		d3ddm.Format,
+		D3DUSAGE_DEPTHSTENCIL,
+		D3DRTYPE_SURFACE,
+		AutoDepthStencilFormat)))
+	{ // 深度24,ステンシル8bitを使えない場合
+		// 深度24bitのみに制限して再チェック
+		AutoDepthStencilFormat = D3DFMT_D24X8;
+		if (FAILED(m_pD3D->CheckDeviceFormat(
+			D3DADAPTER_DEFAULT,
+			D3DDEVTYPE_HAL,
+			d3ddm.Format,
+			D3DUSAGE_DEPTHSTENCIL,
+			D3DRTYPE_SURFACE,
+			AutoDepthStencilFormat)))
+		{ // 深度24bitを使えない場合
+			AutoDepthStencilFormat = D3DFMT_D16;		// 深度16bitのみに制限
+		}
+	}
+
 	// デバイスのプレゼンテーションパラメータの設定
 	ZeroMemory(&d3dpp, sizeof(d3dpp));			// パラメータのゼロクリア
 
@@ -80,7 +106,7 @@ HRESULT CRenderer::Init(HWND hWnd, BOOL bWindow)
 	d3dpp.BackBufferCount = 1;					// バックバッファの数
 	d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;	// ダブルバッファの切り替え(映像信号と同期)
 	d3dpp.EnableAutoDepthStencil = TRUE;		// デプスバッファとステンシルバッファを作成
-	d3dpp.AutoDepthStencilFormat = D3DFMT_D16;	// デプスバッファとして16bitを使う
+	d3dpp.AutoDepthStencilFormat = AutoDepthStencilFormat;	// デプスバッファとして使えるbitを使う
 	d3dpp.Windowed = bWindow;					// ウィンドウモード
 	d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;			// リフレッシュレート
 	d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;			// インターバル
@@ -193,10 +219,10 @@ HRESULT CRenderer::Init(HWND hWnd, BOOL bWindow)
 	// 頂点バッファをロック
 	m_pVtxBuffMT->Lock(0, 0, (void**)&pVtx, 0);
 
-	pVtx[0].pos = D3DXVECTOR3(-FEEDBACK_SIZE, -FEEDBACK_SIZE, 0.0f);
-	pVtx[1].pos = D3DXVECTOR3(SCREEN_WIDTH + FEEDBACK_SIZE, -FEEDBACK_SIZE, 0.0f);
-	pVtx[2].pos = D3DXVECTOR3(-FEEDBACK_SIZE, SCREEN_HEIGHT + FEEDBACK_SIZE, 0.0f);
-	pVtx[3].pos = D3DXVECTOR3(SCREEN_WIDTH + FEEDBACK_SIZE, SCREEN_HEIGHT + FEEDBACK_SIZE, 0.0f);
+	pVtx[0].pos = Vector3(-FEEDBACK_SIZE, -FEEDBACK_SIZE, 0.0f);
+	pVtx[1].pos = Vector3(SCREEN_WIDTH + FEEDBACK_SIZE, -FEEDBACK_SIZE, 0.0f);
+	pVtx[2].pos = Vector3(-FEEDBACK_SIZE, SCREEN_HEIGHT + FEEDBACK_SIZE, 0.0f);
+	pVtx[3].pos = Vector3(SCREEN_WIDTH + FEEDBACK_SIZE, SCREEN_HEIGHT + FEEDBACK_SIZE, 0.0f);
 
 	// 座標変換用変数設定
 	pVtx[0].rhw = 1.0f;
@@ -205,16 +231,16 @@ HRESULT CRenderer::Init(HWND hWnd, BOOL bWindow)
 	pVtx[3].rhw = 1.0f;
 
 	// 頂点カラー設定
-	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, FEEDBACK_ALPHA);
-	pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, FEEDBACK_ALPHA);
-	pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, FEEDBACK_ALPHA);
-	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, FEEDBACK_ALPHA);
+	pVtx[0].col = Color(1.0f, 1.0f, 1.0f, FEEDBACK_ALPHA);
+	pVtx[1].col = Color(1.0f, 1.0f, 1.0f, FEEDBACK_ALPHA);
+	pVtx[2].col = Color(1.0f, 1.0f, 1.0f, FEEDBACK_ALPHA);
+	pVtx[3].col = Color(1.0f, 1.0f, 1.0f, FEEDBACK_ALPHA);
 
 	// テクスチャ座標設定
-	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(1.0f, 0.0f);
-	pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
-	pVtx[3].tex = D3DXVECTOR2(1.0f, 1.0f);
+	pVtx[0].tex = Vector2(0.0f, 0.0f);
+	pVtx[1].tex = Vector2(1.0f, 0.0f);
+	pVtx[2].tex = Vector2(0.0f, 1.0f);
+	pVtx[3].tex = Vector2(1.0f, 1.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuffMT->Unlock();
@@ -264,7 +290,7 @@ void CRenderer::Uninit(void)
 	SafeRelease(m_pZBuffDef);
 
 	// レンダリングターゲット用テクスチャとテクスチャインターフェースの破棄
-	for (int nCntMulti = 0; nCntMulti < 2; nCntMulti++)
+	for (int nCntMulti = 0; nCntMulti < FEEDBACK_TEX_NUM; nCntMulti++)
 	{
 		SafeRelease(m_apTextureMT[nCntMulti]);
 		SafeRelease(m_apRenderMT[nCntMulti]);
@@ -294,8 +320,8 @@ void CRenderer::Update(void)
 void CRenderer::Draw(void)
 {
 	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
+	CScene *pScene = pManager->GetScene();				// シーンへのポインタ
 	CDebugProc *pDebugProc = pManager->GetDebugProc();	// デバッグ表示へのポインタ
-	CScene *pScene = pManager->GetScene();
 
 	// 画面クリア(バックバッファとZバッファのクリア)
 	m_pD3DDevice->Clear(0, NULL,
@@ -305,15 +331,12 @@ void CRenderer::Draw(void)
 	// 描画開始
 	if (SUCCEEDED(m_pD3DDevice->BeginScene()))
 	{// 描画開始が成功した場合
-			// カメラの設置
+		// カメラの設置
 		CCamera *pCurrentCamera = CCamera::Begin(CCamera::GetFocus());
 		if (pCurrentCamera != nullptr)
 		{ // カメラが生成済みならビューポート変更
 			// レンダリングターゲット変更
-			ChangeTarget(*pCurrentCamera->GetPosV(),
-				*pCurrentCamera->GetPosR(),
-				*pCurrentCamera->GetVecU(),
-				pCurrentCamera->GetViewport());
+			ChangeTarget(pCurrentCamera);
 		}
 
 		// 画面クリア(バックバッファとZバッファのクリア)
@@ -323,6 +346,9 @@ void CRenderer::Draw(void)
 
 		// 全てのオブジェクトを描画
 		CObject::DrawAll();
+		
+		// シーンの描画
+		pScene->Draw();
 
 		// カメラの設置終了
 		CCamera::End();
@@ -339,6 +365,10 @@ void CRenderer::Draw(void)
 		// スクリーン用ポリゴンの描画
 		DrawScreen();
 
+		// ポーズ画面の描画
+		pManager->GetPause()->Draw();
+
+		// 遷移用トランジション描画
 		pManager->GetTransition()->Draw();
 
 		// デバッグ表示の描画
@@ -370,12 +400,12 @@ void CRenderer::SetDefaultTarget(void)
 //==================================================================================
 // --- レンダリングターゲット変更処理 ---
 //==================================================================================
-void CRenderer::ChangeTarget(const D3DXVECTOR3 &posV,
-	const D3DXVECTOR3 &posR,
-	const D3DXVECTOR3 &vecU,
+void CRenderer::ChangeTarget(const Vector3 &posV,
+	const Vector3 &posR,
+	const Vector3 &vecU,
 	const D3DVIEWPORT9 *pViewport)
 {
-	D3DXMATRIX mtxProj, mtxView;	// ビュー・プロジェクションマトリックス
+	Matrix mtxProj, mtxView;	// ビュー・プロジェクションマトリックス
 	const D3DVIEWPORT9 *pViewportMT = &m_viewportMT;		// 設定するビューポートへのポインタ
 	float fAspect;					// アスペクト比
 
@@ -422,6 +452,55 @@ void CRenderer::ChangeTarget(const D3DXVECTOR3 &posV,
 }
 
 //==================================================================================
+// --- レンダリングターゲット変更処理 (カメラの値を使用) ---
+//==================================================================================
+void CRenderer::ChangeTarget(const CCamera *pFocus)
+{
+	Matrix mtxProj, mtxView;	// ビュー・プロジェクションマトリックス
+	const D3DVIEWPORT9 *pViewportMT = &m_viewportMT;		// 設定するビューポートへのポインタ
+	float fAspect;					// アスペクト比
+
+	// ビューポートを変更
+	pViewportMT = pFocus->GetViewport();
+
+	// レンダリングターゲットを切り替え
+	if (FAILED(m_pD3DDevice->SetRenderTarget(0, m_apRenderMT[0]))
+		&& FAILED(m_pD3DDevice->SetDepthStencilSurface(m_pZBuffMT)))
+	{ // 切り替え失敗
+		return;
+	}
+
+	// ビューポート設定
+	m_pD3DDevice->SetViewport(pViewportMT);
+
+	// マトリックスの初期化
+	D3DXMatrixIdentity(&mtxProj);
+	D3DXMatrixIdentity(&mtxView);
+
+	// プロジェクションマトリックスの作成
+	fAspect = static_cast<float>(pViewportMT->Width) / static_cast<float>(pViewportMT->Height);
+	D3DXMatrixPerspectiveFovLH(&mtxProj,
+		D3DXToRadian(pFocus->GetFovy()),
+		fAspect,
+		pFocus->GetNear(),
+		pFocus->GetFar());
+
+	// プロジェクションマトリックスの設定
+	m_pD3DDevice->GetTransform(D3DTS_PROJECTION, &m_mtxProjDef);
+	m_pD3DDevice->SetTransform(D3DTS_PROJECTION, &mtxProj);
+
+	// ビューマトリックスの作成
+	D3DXMatrixLookAtLH(&mtxView,
+		pFocus->GetPosV(),
+		pFocus->GetPosR(),
+		pFocus->GetVecU());
+
+	// ビューマトリックスの設定
+	m_pD3DDevice->GetTransform(D3DTS_VIEW, &m_mtxViewDef);
+	m_pD3DDevice->SetTransform(D3DTS_VIEW, &mtxView);
+}
+
+//==================================================================================
 // --- フィードバック用ポリゴン描画処理 ---
 //==================================================================================
 void CRenderer::DrawFeedBack(void)
@@ -431,10 +510,10 @@ void CRenderer::DrawFeedBack(void)
 	// 頂点バッファをロック
 	m_pVtxBuffMT->Lock(0, 0, (void**)&pVtx, 0);
 
-	pVtx[0].pos = D3DXVECTOR3(-FEEDBACK_SIZE, -FEEDBACK_SIZE, 0.0f);
-	pVtx[1].pos = D3DXVECTOR3(SCREEN_WIDTH + FEEDBACK_SIZE, -FEEDBACK_SIZE, 0.0f);
-	pVtx[2].pos = D3DXVECTOR3(-FEEDBACK_SIZE, SCREEN_HEIGHT + FEEDBACK_SIZE, 0.0f);
-	pVtx[3].pos = D3DXVECTOR3(SCREEN_WIDTH + FEEDBACK_SIZE, SCREEN_HEIGHT + FEEDBACK_SIZE, 0.0f);
+	pVtx[0].pos = Vector3(-FEEDBACK_SIZE, -FEEDBACK_SIZE, 0.0f);
+	pVtx[1].pos = Vector3(SCREEN_WIDTH + FEEDBACK_SIZE, -FEEDBACK_SIZE, 0.0f);
+	pVtx[2].pos = Vector3(-FEEDBACK_SIZE, SCREEN_HEIGHT + FEEDBACK_SIZE, 0.0f);
+	pVtx[3].pos = Vector3(SCREEN_WIDTH + FEEDBACK_SIZE, SCREEN_HEIGHT + FEEDBACK_SIZE, 0.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuffMT->Unlock();
@@ -464,10 +543,10 @@ void CRenderer::DrawScreen(void)
 	// 頂点バッファをロック
 	m_pVtxBuffMT->Lock(0, 0, (void**)&pVtx, 0);
 
-	pVtx[0].pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-	pVtx[1].pos = D3DXVECTOR3(SCREEN_WIDTH, 0.0f, 0.0f);
-	pVtx[2].pos = D3DXVECTOR3(0.0f, SCREEN_HEIGHT, 0.0f);
-	pVtx[3].pos = D3DXVECTOR3(SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f);
+	pVtx[0].pos = Vector3(0.0f, 0.0f, 0.0f);
+	pVtx[1].pos = Vector3(SCREEN_WIDTH, 0.0f, 0.0f);
+	pVtx[2].pos = Vector3(0.0f, SCREEN_HEIGHT, 0.0f);
+	pVtx[3].pos = Vector3(SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuffMT->Unlock();

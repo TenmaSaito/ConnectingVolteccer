@@ -18,6 +18,12 @@
 //**********************************************************************************
 #define ENABLE_MULTI_TARGET_RENDERING		// マルチターゲットレンダリング
 #define ENABLE_FEEDBACK_EFFECT				// フィードバックエフェクト
+#define FEEDBACK_TEX_NUM		(2)			// フィードバックエフェクト用バッファの配列数
+
+//**********************************************************************************
+// *** 前方宣言 ***
+//**********************************************************************************
+class CCamera;
 
 //**********************************************************************************
 // *** レンダラークラス ***
@@ -35,13 +41,15 @@ public:
 	LPDIRECT3D9 GetD3DObject(void) const;
 	LPDIRECT3DDEVICE9 GetDevice(void) const;
 	void SetDefaultTarget(void);
-	void ChangeTarget(const D3DXVECTOR3 &posV, 
-		const D3DXVECTOR3 &posR, 
-		const D3DXVECTOR3 &vecU,
+	void ChangeTarget(const Vector3 &posV, 
+		const Vector3 &posR, 
+		const Vector3 &vecU,
 		const D3DVIEWPORT9 *pViewport = nullptr);
+	void ChangeTarget(const CCamera *pFocus);
 #ifdef ENABLE_FEEDBACK_EFFECT
 	LPDIRECT3DTEXTURE9 GetTextureMT(void) { return m_apTextureMT[0]; }
 	void SetEnableFeedBack(const bool bEnable) { m_bEnableFeedBack = bEnable; }
+	bool GetEnableFeedBack(void) const { return m_bEnableFeedBack; }
 #else
 	LPDIRECT3DTEXTURE9 GetTextureMT(void) { return m_pTextureMT; }
 #endif
@@ -57,11 +65,11 @@ private:
 	LPDIRECT3DSURFACE9 m_pRenderDef;	// デフォルトインターフェース
 	LPDIRECT3DSURFACE9 m_pZBuffDef;		// 〃Zバッファ
 	D3DVIEWPORT9 m_viewportDef;			// 〃ビューポート
-	D3DXMATRIX m_mtxProjDef;			// 〃プロジェクションマトリックス
-	D3DXMATRIX m_mtxViewDef;			// 〃ビューマトリックス
+	Matrix m_mtxProjDef;			// 〃プロジェクションマトリックス
+	Matrix m_mtxViewDef;			// 〃ビューマトリックス
 #ifdef ENABLE_FEEDBACK_EFFECT
-	LPDIRECT3DTEXTURE9 m_apTextureMT[2];	// レンダリングターゲット用テクスチャ
-	LPDIRECT3DSURFACE9 m_apRenderMT[2];		// テクスチャレンダリング用インターフェース
+	LPDIRECT3DTEXTURE9 m_apTextureMT[FEEDBACK_TEX_NUM];		// レンダリングターゲット用テクスチャ
+	LPDIRECT3DSURFACE9 m_apRenderMT[FEEDBACK_TEX_NUM];		// テクスチャレンダリング用インターフェース
 	LPDIRECT3DVERTEXBUFFER9 m_pVtxBuffMT;	// フィードバックエフェクト用頂点バッファ
 	bool m_bEnableFeedBack;					// フィードバックエフェクトの有無
 #else

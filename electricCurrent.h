@@ -16,11 +16,13 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define DEFAULT_ELECTRIC_TIME		(60)		// 電流が電柱間を流れ終わる時間
+#define DEFAULT_ELECTRIC_TIME		(25)		// 電流が電柱間を流れ終わる時間
+#define ELECTRIC_CURRENT_PRIORITY	(DEFAULT_OBJ_PRIORITY)		// 電流の先頭オブジェクトの優先順位
 
 //**********************************************************************************
 // *** 前方宣言 ***
 //**********************************************************************************
+class CObjectXQuaternion;
 class CUtilityPole;
 class CThunderEffect;
 
@@ -30,31 +32,34 @@ class CThunderEffect;
 class CElectricCurrent : public CObject
 {
 public:
-	static CElectricCurrent *Create(CUtilityPole *pStart, 
+	static CElectricCurrent *Create(CObjectXQuaternion *pStart,
 		CUtilityPole *pEnd,
 		const float fTotalTime = DEFAULT_ELECTRIC_TIME);
 
 	CElectricCurrent();
 	~CElectricCurrent();
 
-	HRESULT Init(CUtilityPole *pStart, 
+	HRESULT Init(CObjectXQuaternion *pStart,
 		CUtilityPole *pEnd,
 		const float fTotalTime);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
-	void SetParent(const D3DXMATRIX *pMtxParent) { m_pMtxParent = pMtxParent; }
+	void SetParent(const Matrix *pMtxParent) { m_pMtxParent = pMtxParent; }
+	const Matrix *GetMatrix(void) const { return &m_mtxWorld; }
 
 private:
-	CUtilityPole *m_pStart;		// 始まりの電柱
-	CUtilityPole *m_pEnd;		// 終わりの電柱
+	CObjectXQuaternion *m_pStart;	// 始まりのオブジェクトへのポインタ	(電柱もしくは発電所)
+	CUtilityPole *m_pEnd;			// 終わりのオブジェクトへのポインタ (電柱)
 	CThunderEffect *m_pThunder;		// 生成した電流エフェクトへのポインタ
-	D3DXMATRIX m_mtxWorld;			// ワールドマトリックス
-	const D3DXMATRIX *m_pMtxParent;	// 親マトリックスへのポインタ
-	D3DXVECTOR3 m_pos;	// 位置
-	D3DXVECTOR3 m_rot;	// 角度
-	D3DXQUATERNION m_qua;		// クォータニオン
+	Matrix m_mtxWorld;			// ワールドマトリックス
+	const Matrix *m_pMtxParent;	// 親マトリックスへのポインタ
+	Vector3 m_pos;	// 位置
+	Vector3 m_rot;	// 角度
+	Quaternion m_qua;		// クォータニオン
 	float m_fTime;		// 線形補間用変数
 	float m_fTotalTime;	// 線形補間完了にかかる時間
+	bool m_bGenerate;	// 次の電流を流し終えたか
+	bool m_bCreateConnectEffect;		// 電気のついた家の数で表示が変わる演出を既に生成したか
 };
 #endif

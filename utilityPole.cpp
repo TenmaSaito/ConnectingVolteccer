@@ -9,34 +9,61 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "utilityPole.h"
+#include "powerPlant.h"
 #include "manager.h"
 #include "renderer.h"
+#include "sound.h"
 #include "game.h"
+#include "debugproc.h"
 #include "texture.h"
 #include "electricalCable.h"
 #include "electricCurrent.h"
-#include "objectBillboard.h"
+#include "objectBillboard3D.h"
 #include "effect.h"
 #include "player.h"
 #include "planet.h"
 #include "camera.h"
+#include "thunderCamera.h"
 #include "vec3math.h"
+#include "color.h"
+#include "mapManager.h"
+#include "building.h"
 #include <algorithm>
+#include <ranges>
+#include <string_view>
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
 #define POLE_PATH			"data/MODEL/utilityPole.x"		// 電柱のパス
-#define DEF_ICON_SIZE		D3DXVECTOR2(50.0f, 50.0f)		// アイコンサイズ
+#define DEF_ICON_SIZE		Vector2(50.0f, 50.0f)			// アイコンサイズ
 #define SELECT_ICON_SIZE	(DEF_ICON_SIZE * 2.0f)			// 最も近いアイコンのサイズ
-#define ICON_CAN_PATH		"data/TEXTURE/LOGO_CAN.png"		// 可能アイコンへのパス
-#define ICON_CANT_PATH		"data/TEXTURE/LOGO_CANT.png"	// 不可能アイコンへのパス
-#define CONNECT_LENGTH		(700.0f)			// 繋げられる電柱との長さの限界
+#define FOCUS_ANGLE			(D3DXToRadian(45.0f))			// フォーカス可能な角度
+#define CONNECT_LENGTH		(700.0f)	// 繋げられる電柱の距離の最大値
+#define CONNECT_LENGTH_EX	(30.0f)		// 発電所の場合の追加差分
+#define AIMING_ROTATE_SPD	(0.04f)		// エイムアイコンの回転速度
+#define ENABLE_BUILDING_RAY_DECISION	// 建物をまたがないかの判定
+
+//**********************************************************************************
+// *** 定数宣言 ***
+//**********************************************************************************
+namespace
+{
+	std::string_view c_asIconPath[CUtilityPole::ICON_MAX] =
+	{ // 各アイコンのテクスチャパス
+		"data/TEXTURE/icon/can.png",		// 可能アイコン
+		"data/TEXTURE/icon/cant.png",		// 不可能アイコン
+		"data/TEXTURE/icon/aiming.png",		// ターゲットアイコン
+	};
+}
 
 //==================================================================================
 // --- オブジェクト3Dの生成処理 ---
 //==================================================================================
-CUtilityPole *CUtilityPole::Create(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &vecQua, const float fAngle)
+CUtilityPole *CUtilityPole::Create(const Vector3 &pos,
+	const Vector3 &vecQua,
+	const float fAngle,
+	const int nID)
 {
 	CUtilityPole *pPole = NULL;		// 生成したオブジェクトへのポインタ
 
@@ -48,7 +75,7 @@ CUtilityPole *CUtilityPole::Create(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &ve
 	}
 
 	// 初期化処理
-	pPole->Init(pos, vecQua, fAngle);
+	pPole->Init(pos, vecQua, fAngle, nID);
 
 	return pPole;
 }
@@ -58,12 +85,13 @@ CUtilityPole *CUtilityPole::Create(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &ve
 //==================================================================================
 CUtilityPole::CUtilityPole() : CObjectXQuaternion(UTILITYPOLE_PRIORITY)
 { // メンバ変数をクリア
-	ZeroMemory(m_apPole, sizeof(m_apPole));
 	ZeroMemory(m_apBillboard, sizeof(m_apBillboard));
-	m_pConnected = nullptr;
+	m_pConnect = nullptr;
+	m_pCurrentCable = nullptr;
 	m_nNumConnect = 0;
 	m_bElectriced = false;
 	m_enableType = ICON_CAN;
+	m_nID = -1;
 
 	// タイプの指定
 	CObject::SetType(TYPE_POLE);
@@ -79,29 +107,33 @@ CUtilityPole::~CUtilityPole()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CUtilityPole::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &vecQua, const float fAngle)
+HRESULT CUtilityPole::Init(const Vector3 &pos,
+	const Vector3 &vecQua,
+	const float fAngle,
+	const int nID)
 {
 	HRESULT hr;		// 初期化結果
 	CTexture *pTexture = CTexture::GetInstance();		// テクスチャ管理オブジェクトへのポインタ
-	D3DXVECTOR3 posIcon;
+	Vector3 posIcon;
 
 	// 親クラスの初期化
 	hr = CObjectXQuaternion::Init(POLE_PATH, pos, vecQua, fAngle);
-	posIcon = D3DXVECTOR3(0.0f, GetVtxMax()->y, 0.0f);
+	posIcon = Vector3(0.0f, GetVtxMax()->y, 0.0f);
 
 	// ビルボード生成
-	m_apBillboard[ICON_CAN] = CObjectBillboard::Create(posIcon, DEF_ICON_SIZE);
-	m_apBillboard[ICON_CAN]->BindTexture(pTexture->Register(ICON_CAN_PATH));
-	m_apBillboard[ICON_CAN]->SetDisp(false);
-	m_apBillboard[ICON_CAN]->SetAlpha(true);
-
-	m_apBillboard[ICON_CANT] = CObjectBillboard::Create(posIcon, DEF_ICON_SIZE);
-	m_apBillboard[ICON_CANT]->BindTexture(pTexture->Register(ICON_CANT_PATH));
-	m_apBillboard[ICON_CANT]->SetDisp(false);
-	m_apBillboard[ICON_CANT]->SetAlpha(true);
+	for (int nCntIcon = 0; nCntIcon < ICON_MAX; nCntIcon++)
+	{
+		m_apBillboard[nCntIcon] = CObjectBillboard3D::Create(posIcon, VECTOR3_NULL, DEF_ICON_SIZE);
+		m_apBillboard[nCntIcon]->BindTexture(pTexture->Register(c_asIconPath[nCntIcon]));
+		m_apBillboard[nCntIcon]->SetDisp(false);
+		m_apBillboard[nCntIcon]->SetAlpha(true);
+	}
 
 	// タイプを初期化
 	m_enableType = ICON_CAN;
+
+	// 引数を保存
+	m_nID = nID;
 
 	// 初期化結果を返す
 	return hr;
@@ -111,7 +143,10 @@ HRESULT CUtilityPole::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &vecQua, co
 // --- 終了処理 ---
 //==================================================================================
 void CUtilityPole::Uninit(void)
-{ // 親クラスの終了
+{ // 繋がっている電線の終了
+	RemoveConnected();
+	
+	// 親クラスの終了
 	CObjectXQuaternion::Uninit();
 }
 
@@ -120,52 +155,94 @@ void CUtilityPole::Uninit(void)
 //==================================================================================
 void CUtilityPole::Update(void)
 {
-	CManager *pManager = CManager::GetInstance();	// マネージャーへのポインタ
-	CGame *pGame = pManager->GetScene<CGame>();		// ゲームシーンへのポインタ
-	CPlayer *pPlayer = pGame->GetPlayer();			// プレイヤーへのポインタ
+	if (m_pPlayer == nullptr) return;			// プレイヤーがnullの場合、以下の処理を無視
+
 	CCamera *pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);		// プレイヤーカメラへのポインタ
-	D3DXVECTOR3 posPlayer = VECTOR3_NULL;			// プレイヤーの絶対座標
-	D3DXVECTOR3 posPole = *GetPosition();			// 電柱の絶対座標
-	CUtilityPole *pRidingPole = pPlayer->GetRidingPole();			// プレイヤーの乗っている電柱
+	Vector3 posPlayer = VECTOR3_NULL;			// プレイヤーの絶対座標
+	Vector3 posPole = *GetPosition();			// 電柱の絶対座標
+	auto pObj = m_pPlayer->GetRidingObject();	// プレイヤーの乗っているオブジェクトが保存されている変数
+	int nIndexVariant = pObj->index();			// 現在入っている型のインデックス
+	CObjectXQuaternion *pConnected = nullptr;	// 繋げてきたオブジェクト
+	const CObjectXQuaternion *pRidingObject = nullptr;	// プレイヤーの乗っているオブジェクト
+
+	// ポインタを取得
+	std::visit([&](auto &x) { pConnected = x; }, m_pConnected);
+	std::visit([&](auto &x) { pRidingObject = x; }, *pObj);
 
 	// 電柱の上の絶対座標を求める
 	posPole.y = GetVtxMax()->y;
 	D3DXVec3TransformCoord(&posPole, &posPole, GetMatrix());
 
-	if (pRidingPole != nullptr)
+	if (pRidingObject != nullptr)
 	{ // プレイヤーが電柱に乗っている場合
 		for (auto &pBill : m_apBillboard)
 		{ // ビルボードの位置を修正
 			pBill->SetPosition(posPole);
 
-			if (m_bSelected == true && m_pConnected != pRidingPole)
-			{ // プレイヤーのカメラの中心に最も近い場合(かつ既につながっていない場合)、サイズアップ
+			if (m_bSelected == true)
+			{ // 選ばれている場合
 				pBill->SetSize(SELECT_ICON_SIZE);
 			}
 			else
-			{ // プレイヤーのカメラの中心に最も近くない場合、サイズダウン
+			{ // 選ばれていない場合、サイズダウン
 				pBill->SetSize(DEF_ICON_SIZE);
 			}
 		}
 
 		// プレイヤーの絶対座標を求める
-		D3DXVec3TransformCoord(&posPlayer, pPlayer->GetPosition(), pPlayer->GetMatrix());
+		D3DXVec3TransformCoord(&posPlayer, &posPlayer, m_pPlayer->GetMatrix());
 
 		// 絶対座標同士で距離を測る
-		// + 最大接続数を超えていないか確認
-		// + 既に繋げている電柱では無いか確認
-		// TODO : Add Check => Is PosPlayerToPosPole's Vector not Collision Mesh?
-		if (Vec3::Length(posPlayer, posPole) <= CONNECT_LENGTH
-			&& pRidingPole->m_nNumConnect < MAX_CONNECT_POLE
-			&& std::find(std::begin(pRidingPole->m_apPole), std::end(pRidingPole->m_apPole), this) == std::end(pRidingPole->m_apPole))
-		{ // 上記の条件を全てクリアしていた場合アイコンを可能アイコンに設定
-			m_enableType = ICON_CAN;
+		if (Vec3::Length(posPole, posPlayer) <= CONNECT_LENGTH + (CONNECT_LENGTH_EX * (1 - nIndexVariant)))
+		{ // プレイヤーと電柱の距離が一定以下の場合
+			if (std::holds_alternative<CPowerPlant*>(*pObj))
+			{ // プレイヤーの乗っているオブジェクトが発電所の場合
+				auto pPowerPlant = std::get<CPowerPlant*>(*pObj);		// 発電所のポインタを取得
+				auto vpPole = pPowerPlant->GetConnectPole();			// 発電所とつながっている電柱のポインタ
+
+				// 電柱のポインタから自身を検索
+				if (std::ranges::find(vpPole, this) == vpPole.end()
+					&& pConnected == nullptr
+					&& m_pConnect == nullptr)
+				{ // 既に繋げている電柱では無い場合
+					m_enableType = ICON_CAN;		// 可能アイコンに設定
+				}
+				else
+				{ // 上記の条件を一つでも満たしていなかった場合
+					m_enableType = ICON_CANT;		// 不可能アイコンに設定
+				}
+			}
+			else
+			{ // プレイヤーの乗っているオブジェクトが電柱なら
+				if (m_pConnect == nullptr
+					&& pConnected == nullptr)
+				{ // 自身が何処にもつながっていない場合
+					m_enableType = ICON_CAN;		// 可能アイコンに設定
+				}
+				else
+				{ // 上記の条件を一つでも満たしていなかった場合
+					m_enableType = ICON_CANT;		// 不可能アイコンに設定
+				}
+			}
 		}
 		else
-		{ // 上記の条件を一つでも満たしていなかった場合アイコンを不可能アイコンに設定
-			m_enableType = ICON_CANT;
+		{ // 一定距離以上の場合
+			m_enableType = ICON_CANT;		// 不可能アイコンに設定
 		}
 	}
+	else
+	{ // プレイヤーが電柱に載っていない場合
+		m_enableType = ICON_CANT;
+	}
+
+	float fRotate = m_apBillboard[ICON_AIMING]->GetRotation()->y;		// 現在のポリゴンの角度
+	float fScale = 1.25f + (sinf(fRotate) * 0.5f);		// 拡縮倍率
+
+	// 回転
+	m_apBillboard[ICON_AIMING]->SetRotation(Vector3(0.0f, fRotate + AIMING_ROTATE_SPD, 0.0f));
+
+	// サイズ変更
+	m_apBillboard[ICON_AIMING]->SetSize(SELECT_ICON_SIZE * fScale);
 }
 
 //==================================================================================
@@ -176,22 +253,32 @@ void CUtilityPole::Draw(void)
 	CManager *pManager = CManager::GetInstance();			// マネージャへのポインタ
 	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
-	CGame *pGame = pManager->GetScene<CGame>();			// ゲームシーンへのポインタ
-	CPlayer *pPlayer = pGame->GetPlayer();				// プレイヤーへのポインタ
 
 	// モデルの描画
 	CObjectXQuaternion::Draw();
 
-	if (pPlayer->GetRidingPole() != nullptr)
+	if (m_pPlayer == nullptr) return;			// プレイヤーがnullの場合、以下の処理を無視
+
+	auto pObj = m_pPlayer->GetRidingObject();	// プレイヤーの乗っているオブジェクトが保存されている変数
+	const CObjectXQuaternion *pRidingObject;	// プレイヤーの乗っているオブジェクト
+
+	// ポインタを取得
+	std::visit([&](auto &x) { pRidingObject = x; }, *pObj);
+
+	for (auto &pBill : m_apBillboard)
+	{ // 全ビルボードを非表示に設定
+		pBill->SetDisp(false);
+	}
+
+	if (pRidingObject != nullptr)
 	{ // プレイヤーが電柱に乗っていれば
 		// 現在のアイコンタイプのビルボードのみ表示
 		m_apBillboard[m_enableType]->SetDisp(true);
-		m_apBillboard[(m_enableType + 1) % ICON_MAX]->SetDisp(false);
-	}
-	else
-	{ // 全ビルボードを非表示に設定
-		m_apBillboard[ICON_CAN]->SetDisp(false);
-		m_apBillboard[ICON_CANT]->SetDisp(false);
+
+		if (m_bSelected == true)
+		{ // 選択されていれば、エイムビルボードを表示
+			m_apBillboard[ICON_AIMING]->SetDisp(true);
+		}
 	}
 }
 
@@ -199,47 +286,31 @@ void CUtilityPole::Draw(void)
 // --- 他の電柱との接続処理 ---
 //==================================================================================
 bool CUtilityPole::Connect(CUtilityPole *pPole)
-{
-	int nIdxNull = -1;		// nullがあったインデックス
-
-	// もしポインタが自分もしくはnullだった場合スキップ
-	if (pPole == nullptr || pPole == this) return false;
-	 
-	for (int nCntPole = 0; nCntPole < MAX_CONNECT_POLE; nCntPole++)
-	{ // 既につながっている電柱では無いか確認
-		if (m_apPole[nCntPole] == pPole || m_pConnected == pPole)
-		{ // 既に繋がっていた場合、処理をスキップ
-			return false;
-		}
-		else if (m_apPole[nCntPole] == nullptr && nIdxNull == -1)
-		{ // 枠に空きがあったらそのインデックスを保存
-			nIdxNull = nCntPole;
-		}
+{ // ポインタを確認
+	if (pPole == nullptr) return false;					// ポインタがnullだった場合、失敗
+	else if (pPole == this) return false;				// ポインタが自分だった場合、失敗
+	else if (m_pConnect != nullptr) return false;		// 既に他の電柱と接続している場合、失敗
+	else if (m_pConnect == pPole) return false;			// 既にその電柱と接続している場合、失敗
+	
+	// 発電所へのポインタを取得
+	CPowerPlant **ppPlant = std::get_if<CPowerPlant*>(&pPole->m_pConnected);
+	if (ppPlant)
+	{ // 発電所へのポインタだった場合
+		if (*ppPlant != nullptr) return false;			// 発電所へのポインタが代入されていれば、失敗
 	}
 
-	// 空きがなかった場合、処理をスキップ
-	if (nIdxNull == -1) return false;
-
-	for (int nCntPole = 0; nCntPole < MAX_CONNECT_POLE; nCntPole++)
-	{ // 既につながっている電柱では無いか確認
-		if (pPole->m_pConnected == this) return false;
-		else if (pPole->m_apPole[nCntPole] == this) return false;
-	}
-
-	// 空きのあるインデックスにポインタを保存
-	m_apPole[nIdxNull] = pPole;
+	// ポインタを保存
+	m_pConnect = pPole;
 
 	// 接続処理を呼び出し
 	pPole->Connected(this);
 
 	// 電柱同士を電線で接続
-	auto pCable = CElectricalCable::Create(this, pPole);
-	pCable->SetParent(GetParent());
+	m_pCurrentCable = CElectricalCable::Create(this, 
+		pPole,
+		CMapManager::GetInstance()->GetPlanet());
+	m_pCurrentCable->SetParent(GetParent());
 	m_nNumConnect++;
-
-	// 電流エフェクト生成
-	CElectricCurrent *pCurrect = CElectricCurrent::Create(this, pPole);
-	pCurrect->SetParent(CManager::GetInstance()->GetScene<CGame>()->GetPlanet()->GetMatrix());
 
 	return true;
 }
@@ -248,13 +319,23 @@ bool CUtilityPole::Connect(CUtilityPole *pPole)
 // --- 他の電柱からの接続処理 ---
 //==================================================================================
 bool CUtilityPole::Connected(CUtilityPole *pPole)
-{
-	// 接続先が自身もしくはnullならスキップ
-	if (pPole == nullptr || pPole == this) return false;
+{ // 接続先が自身もしくはnullならスキップ
+	if (pPole == nullptr || pPole == this || IsDeath() == true) return false;
 
 	// 電柱へのポインタを保存
 	m_pConnected = pPole;
+	return true;
+}
 
+//==================================================================================
+// --- 発電所からの接続処理 ---
+//==================================================================================
+bool CUtilityPole::Connected(CPowerPlant *pPowerPlant)
+{ // nullの場合スキップ
+	if (pPowerPlant == nullptr || IsDeath() == true) return false;
+
+	// 発電所へのポインタを保存
+	m_pConnected = pPowerPlant;
 	return true;
 }
 
@@ -262,19 +343,147 @@ bool CUtilityPole::Connected(CUtilityPole *pPole)
 // --- 接続済みの電柱へ電流を送信する処理 ---
 //==================================================================================
 void CUtilityPole::GenerateElectricity(void)
-{ // 既に流れている場合は流さない
-	if (m_bElectriced == true) return;
+{ // 既に死んでいる場合処理は行わない
+	if (IsDeath() == true) return;
 
-	// 自身とつながっている全ての電柱に電気を流す
-	for (auto *pPole : m_apPole)
-	{ // nullptrならスキップ
-		if (pPole == nullptr) continue;
-
-		CElectricCurrent::Create(this, pPole);
-	}
+	// 電流用カメラを取得
+	CThunderCamera *pThunderCam = static_cast<CThunderCamera*>(CCamera::GetCamera(CCamera::TYPE_THUNDER));
 
 	// 電流が流れたためフラグを立てる
 	m_bElectriced = true;
+
+	if (m_pConnect == nullptr)
+	{ // 電流用カメラにnullを登録
+		if(pThunderCam != nullptr) pThunderCam->ChangeTarget(nullptr);
+		return;
+	}
+
+	// 自身とつながっている電柱に電気を流す + カメラに登録
+	CElectricCurrent *pCurrent = CElectricCurrent::Create(this, m_pConnect);
+	pCurrent->SetParent(CMapManager::GetInstance()->GetPlanet()->GetMatrix());
+	
+	if (pThunderCam != nullptr)
+	{ // 電流用カメラに電柱を登録
+		pThunderCam->ChangeTarget(pCurrent);
+	}
+
+	// 電線を通電させる
+	m_pCurrentCable->Electric();
+
+	// 電流が流れたためフラグを立てる
+	m_bElectriced = true;
+
+	CSound *pSound = CManager::GetInstance()->GetSound();		// サウンドへのポインタ
+
+	// 通電音を流す
+	pSound->Play(CSound::LABEL_SE_ELECTRIC);
+}
+
+//==================================================================================
+// --- 接続の取り消し処理 ---
+//==================================================================================
+void CUtilityPole::RemoveConnected(void)
+{ // nullptrか確認
+	if (std::visit([](auto &x) { return (x != nullptr); }, m_pConnected))
+	{ // 自分に繋げてきた電柱にも通知
+		std::visit([](auto &x) { x->RemoveConnected(); }, m_pConnected);
+	}
+
+	if (m_pCurrentCable != nullptr)
+	{ // 繋げた電線があれば破棄
+		m_pCurrentCable->Uninit();
+		m_pCurrentCable = nullptr;
+	}
+
+	// 接続先ポインタを手放す
+	m_pConnect = nullptr;
+
+	// ポインタを手放す
+	m_pConnected = static_cast<CPowerPlant*>(nullptr);
+}
+
+//==================================================================================
+// --- プレイヤーがフォーカス可能か判定する処理 ---
+//==================================================================================
+bool CUtilityPole::CanFocus(const CPlayer *pPlayer)
+{ // 計算無しで判定できるものを先に判定
+	if (pPlayer == nullptr) return false;				// プレイヤーがnullの場合、false
+	else if (m_enableType != ICON_CAN) return false;	// タイプが接続不可の場合、false
+
+	CCamera *pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);		// プレイヤーのカメラ
+	Vector3 posWorld = VECTOR3_NULL;			// 自身の絶対座標
+	Vector3 posPlayerWorld = VECTOR3_NULL;		// プレイヤーの絶対座標
+	Vector3 rayCam = VECTOR3_NULL;				// カメラの視線ベクトル
+	Vector3 rayPlayerToPole = VECTOR3_NULL;		// プレイヤーと電柱を繋いだベクトル
+	Vector3 rayPlayerToPoleInXZ = VECTOR3_NULL;	// プレイヤーと電柱を繋いだXZ平面のベクトル
+	float fDot = 0.0f;			// 視線ベクトルとプレイヤーと電柱を繋いだベクトルの内積結果
+	float fRadian = 0.0f;		// 二つのベクトル間の角度
+
+	// 自身の絶対座標を取得
+	posWorld.y = GetVtxMax()->y;
+	D3DXVec3TransformCoord(&posWorld, &posWorld, GetMatrix());
+
+	// プレイヤーの絶対座標を取得
+	D3DXVec3TransformCoord(&posPlayerWorld, &posPlayerWorld, pPlayer->GetMatrix());
+
+	// カメラのレイを取得 + Y軸のベクトルを0に戻す
+	rayCam = Vec3::Direction(posPlayerWorld, *pPlayerCam->GetPosV());
+	rayCam.y = 0.0f;
+
+	// ベクトルの長さが0だった場合、失敗
+	if (Vec3::Length(rayCam) == 0.0f) return false;
+
+	// プレイヤーと電柱を繋いだベクトルを求める
+	rayPlayerToPole = Vec3::Direction(posWorld, posPlayerWorld);
+
+	// XZ平面のベクトルに変換
+	rayPlayerToPoleInXZ = rayPlayerToPole;
+	rayPlayerToPoleInXZ.y = 0.0f;
+
+	// ベクトルの長さが0だった場合、失敗
+	if (Vec3::Length(rayPlayerToPoleInXZ) == 0.0f) return false;
+
+	// 二つのベクトルから内積を求める
+	fDot = Vec3::Dot(rayCam, rayPlayerToPoleInXZ);
+
+	// -1.0f～1.0fの間にクランプ
+	fDot = std::clamp(fDot, -1.0f, 1.0f);
+
+	// 角度を求める
+	fRadian = acosf(fDot);
+
+	// 角度が+-15°の範囲にいないなら失敗
+	if (fRadian > FOCUS_ANGLE) return false;
+
+	// プレイヤーの乗っているオブジェクトを取得
+	auto ppRidingPole = std::get_if<CUtilityPole*>(pPlayer->GetRidingObject());
+	if (ppRidingPole == nullptr) return true;
+
+	// 自身が現在プレイヤーの乗っている電柱の接続可能インデックスに含まれている確認
+	CUtilityPole *pPole = *ppRidingPole;
+	return (std::ranges::find(pPole->m_vCanConnect, m_nID) != pPole->m_vCanConnect.end());
+
+#ifdef ENABLE_BUILDING_RAY_DECISION
+	auto vpBuilding = CMapManager::GetInstance()->GetBuilding();			// 各建物へのポインタ
+	bool bHit = false;		// 建物との衝突判定
+
+	// どの建物にもあたっていないか確認
+	std::ranges::for_each(vpBuilding, [&](auto &x)
+		{ // 既に当たっていたら、スキップ
+			if (bHit == true) return;
+
+			// 一定範囲の中にいない場合スキップ
+			if (Vec3::Length(x->GetWorldPosition(), posPlayerWorld) > Vec3::Length(posWorld, posPlayerWorld)) return;
+
+			// 無限長のレイと当たったか判定
+			bHit = x->IsHitByRay(posPlayerWorld, rayPlayerToPole, 10000.0f);
+		});
+
+	// 一つの建物にでも当たっていたら失敗
+	if (bHit == true) return false;
+#endif
+	// 成功
+	return true;
 }
 
 //==================================================================================
@@ -283,4 +492,62 @@ void CUtilityPole::GenerateElectricity(void)
 void CUtilityPole::SetEnableSelect(const bool bEnable)
 {
 	m_bSelected = bEnable;
+}
+
+//==================================================================================
+// --- 接続可能な電柱の検索処理 ---
+//==================================================================================
+void CUtilityPole::FindCanConnectPole(void)
+{
+	CMapManager *pMap = CMapManager::GetInstance();		// マップ管理インスタンスへのポインタ
+	auto vpBuilding = pMap->GetBuilding();		// マップに存在する建物へのポインタ配列
+	auto vpPole = pMap->GetUtilityPole();		// マップに存在する電柱へのポインタ配列
+	Vector3 posWorldUpper = Vector3(0.0f, GetVtxMax()->y, 0.0f);		// 自身の電柱上の絶対座標
+
+	// 配列をクリア
+	m_vCanConnect.clear();
+
+	// 電柱上の絶対座標を求める
+	D3DXVec3TransformCoord(&posWorldUpper, &posWorldUpper, CalcMatrix());
+
+	for (int nCntPoles = 0; nCntPoles < vpPole.size(); nCntPoles++)
+	{ // 電柱の数分だけ繰り返し
+		CUtilityPole *pPole = vpPole[nCntPoles];		// 現在の電柱へのポインタ
+
+		if (pPole == nullptr) continue;		// nullならスキップ
+		else if (pPole->m_nID == m_nID) continue;		// ポインタが自分自身を指しているならスキップ
+
+		Vector3 posWorldUpperAnother = Vector3(0.0f, pPole->GetVtxMax()->y, 0.0f);	// 電柱上の絶対座標
+
+		// 電柱上の絶対座標を求める
+		D3DXVec3TransformCoord(&posWorldUpperAnother, &posWorldUpperAnother, pPole->CalcMatrix());
+		
+		// 絶対座標同士で距離を測り、一定距離以上ならスキップ
+		float fLength = Vec3::Length(posWorldUpperAnother, posWorldUpper);
+		if (fLength > CONNECT_LENGTH) continue;
+
+		Vector3 rayPlayerToPole = VECTOR3_NULL;		// プレイヤーと電柱を繋いだベクトル
+		bool bHit = false;		// 建物との衝突判定
+
+		// プレイヤーと電柱を繋いだベクトルを求める
+		rayPlayerToPole = Vec3::Direction(posWorldUpperAnother, posWorldUpper);
+
+		// どの建物にもあたっていないか確認
+		std::ranges::for_each(vpBuilding, [&](auto &x)
+			{ // 既に当たっていたら、スキップ
+				if (bHit == true) return;
+
+				// 一定範囲の中にいない場合スキップ
+				if (Vec3::Length(x->GetWorldPosition(), posWorldUpper) > Vec3::Length(posWorldUpperAnother, posWorldUpper)) return;
+
+				// 無限長のレイと当たったか判定
+				bHit = x->IsHitByRay(posWorldUpper, rayPlayerToPole, 10000.0f);
+			});
+
+		// どれか一つの建物に当たっていたらスキップ
+		if (bHit == true) continue;
+
+		// 配列に接続可能な電柱としてインデックスを追加
+		m_vCanConnect.emplace_back(pPole->GetID());
+	}
 }

@@ -34,7 +34,17 @@ public:
 	//******************************************************************************
 	typedef enum
 	{
-		LABEL_SAMPLE = 0,		// サンプル音源
+		LABEL_BGM_TITLE = 0,		// タイトル画面のBGM
+		LABEL_BGM_GAME,				// ゲーム画面のBGM
+		LABEL_BGM_RESULT,			// 結果画面のBGM
+		LABEL_SE_SELECT,			// セレクト音
+		LABEL_SE_SWING,				// 投擲音
+		LABEL_SE_ELECTRIC,			// 通電音
+		LABEL_SE_ELECTRIC_LONG,		// 通電音 (long ver)
+		LABEL_SE_ELECTRIC_SHOCK,	// 感電音
+		LABEL_SE_WALK,				// 歩行音
+		LABEL_SE_PERCENT_UP,		// パーセント上昇音
+		LABEL_SE_SKIP,				// スキップボタン長押し音
 		LABEL_MAX
 	} LABEL;
 
@@ -55,6 +65,9 @@ public:
 	void Play(const LABEL label);
 	void Stop(const LABEL label);
 	void Stop(void);
+	void Pause(const bool bPause, const LABEL label);
+	void Pause(const bool bPause);
+	void SetPitch(const LABEL label, const float fPitch = 1.0f);
 	bool GetPlay(const LABEL label) const;
 	HRESULT GetError(const LABEL label) const;
 

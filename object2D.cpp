@@ -13,27 +13,22 @@
 #include "renderer.h"
 #include "input.h"
 #include "texture.h"
+#include "color.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define INIT_WIDTH		(100)		// 初期の幅
-#define INIT_HEIGHT		(100)		// 初期の高さ
-#define INIT_LIFE		(10000000)	// 初期体力
+#define INIT_WIDTH		(100)			// 初期の幅
+#define INIT_HEIGHT		(100)			// 初期の高さ
+#define INIT_LIFE		(10000000)		// 初期体力
 #define ACCEL_RESIST	(0.003f)		// 加速度の減少係数
 
 //==================================================================================
 // --- オブジェクト2Dの生成処理 ---
 //==================================================================================
-CObject2D *CObject2D::Create(const D3DXVECTOR3 &pos)
+CObject2D *CObject2D::Create(const Vector3 &pos)
 {
 	CObject2D *pObject2D = NULL;		// 生成したオブジェクトへのポインタ
-
-	if (CObject::GetNumAll() >= MAX_OBJECT)
-	{ // オブジェクトの総数が配列の最大数だった場合
-		// 生成せずにNULLを返す
-		return NULL;
-	}
 
 	// オブジェクトの生成
 	pObject2D = new CObject2D;
@@ -54,15 +49,9 @@ CObject2D *CObject2D::Create(const D3DXVECTOR3 &pos)
 //==================================================================================
 // --- オブジェクト2Dの生成処理 (位置と角度指定) ---
 //==================================================================================
-CObject2D *CObject2D::Create(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &rot)
+CObject2D *CObject2D::Create(const Vector3 &pos, const Vector3 &rot)
 {
 	CObject2D* pObject2D = NULL;		// 生成したオブジェクトへのポインタ
-
-	if (CObject::GetNumAll() >= MAX_OBJECT)
-	{ // オブジェクトの総数が配列の最大数だった場合
-		// 生成せずにNULLを返す
-		return NULL;
-	}
 
 	// オブジェクトの生成
 	pObject2D = new CObject2D;
@@ -83,16 +72,9 @@ CObject2D *CObject2D::Create(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &rot)
 //==================================================================================
 // --- オブジェクト2Dの生成処理 (サイズ指定) ---
 //==================================================================================
-CObject2D *CObject2D::Create(const D3DXVECTOR2 &size)
+CObject2D *CObject2D::Create(const Vector2 &size)
 {
 	CObject2D *pObject2D = NULL;		// 生成したオブジェクトへのポインタ
-
-	// オブジェクトの生成
-	if (CObject::GetNumAll() >= MAX_OBJECT)
-	{ // オブジェクトの総数が配列の最大数だった場合
-		// 生成せずにNULLを返す
-		return NULL;
-	}
 
 	// オブジェクトの生成
 	pObject2D = new CObject2D;
@@ -110,16 +92,9 @@ CObject2D *CObject2D::Create(const D3DXVECTOR2 &size)
 //==================================================================================
 // --- オブジェクト2Dの生成処理 (位置、サイズ指定) ---
 //==================================================================================
-CObject2D *CObject2D::Create(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size)
+CObject2D *CObject2D::Create(const Vector3 &pos, const Vector2 &size)
 {
 	CObject2D *pObject2D = NULL;		// 生成したオブジェクトへのポインタ
-
-	// オブジェクトの生成
-	if (CObject::GetNumAll() >= MAX_OBJECT)
-	{ // オブジェクトの総数が配列の最大数だった場合
-		// 生成せずにNULLを返す
-		return NULL;
-	}
 
 	// オブジェクトの生成
 	pObject2D = new CObject2D;
@@ -135,21 +110,40 @@ CObject2D *CObject2D::Create(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size)
 }
 
 //==================================================================================
+// --- オブジェクト2Dの生成処理 (構造体指定) ---
+//==================================================================================
+CObject2D *CObject2D::Create(const Info &info)
+{
+	CObject2D *pObject2D = new CObject2D;	// 生成したオブジェクトへのポインタ
+	if (pObject2D != nullptr)
+	{ // 生成に成功時、初期化処理
+		pObject2D->Init(info.pos, info.size);
+	}
+
+	// テクスチャ割り当て
+	pObject2D->BindTexture(CTexture::GetInstance()->Register(info.pTexturePath));
+
+	return pObject2D;
+}
+
+//==================================================================================
 // --- コンストラクタ ---
 //==================================================================================
 CObject2D::CObject2D(const int nPriority) : CObject(nPriority)
-{
-	// メンバ変数をクリア
+{ // メンバ変数をクリア
 	m_pVtxBuff = NULL;
 	m_nIdxTexture = -1;
 	m_pos = VECTOR3_NULL;
 	m_rot = VECTOR3_NULL;
 	m_offset = VECTOR3_NULL;
 	m_size = VECTOR2_NULL;
-	m_color = Constant::ZeroCol;
+	m_color = COLOR_NULL;
 	m_fLength = 0.0f;
 	m_fAngle = 0.0f;
 	m_bDisp = false;
+
+	// タイプを指定
+	SetType(TYPE_OBJ_2D);
 }
 
 //==================================================================================
@@ -185,8 +179,8 @@ HRESULT CObject2D::Init(void)
 	// 変数の初期化
 	m_pos = VECTOR3_NULL;
 	m_rot = VECTOR3_NULL;
-	m_size = D3DXVECTOR2(INIT_WIDTH, INIT_HEIGHT);
-	m_color = Constant::White;
+	m_size = Vector2(INIT_WIDTH, INIT_HEIGHT);
+	m_color = Colors::GetColor(Colors::C_WHITE);
 	m_bDisp = true;
 
 	// 対角線の長さと角度を求める
@@ -220,16 +214,16 @@ HRESULT CObject2D::Init(void)
 	pVtx[3].rhw = 1.0f;
 
 	// 頂点カラー設定
-	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[0].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[1].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[2].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[3].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
-	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(1.0f, 0.0f);
-	pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
-	pVtx[3].tex = D3DXVECTOR2(1.0f, 1.0f);
+	pVtx[0].tex = Vector2(0.0f, 0.0f);
+	pVtx[1].tex = Vector2(1.0f, 0.0f);
+	pVtx[2].tex = Vector2(0.0f, 1.0f);
+	pVtx[3].tex = Vector2(1.0f, 1.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuff->Unlock();
@@ -241,7 +235,7 @@ HRESULT CObject2D::Init(void)
 //==================================================================================
 // --- 初期化処理 (位置指定) ---
 //==================================================================================
-HRESULT CObject2D::Init(const D3DXVECTOR3 &pos)
+HRESULT CObject2D::Init(const Vector3 &pos)
 {
 	HRESULT hr;					// テクスチャ読み込みの判定
 	VERTEX_2D *pVtx = NULL;		// 頂点情報へのポインタ
@@ -263,8 +257,8 @@ HRESULT CObject2D::Init(const D3DXVECTOR3 &pos)
 
 	// 変数の初期化
 	m_rot = VECTOR3_NULL;
-	m_size = D3DXVECTOR2(INIT_WIDTH, INIT_HEIGHT);
-	m_color = Constant::White;
+	m_size = Vector2(INIT_WIDTH, INIT_HEIGHT);
+	m_color = Colors::GetColor(Colors::C_WHITE);
 	m_bDisp = true;
 
 	// 位置を保存
@@ -301,16 +295,16 @@ HRESULT CObject2D::Init(const D3DXVECTOR3 &pos)
 	pVtx[3].rhw = 1.0f;
 
 	// 頂点カラー設定
-	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[0].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[1].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[2].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[3].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
-	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(1.0f, 0.0f);
-	pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
-	pVtx[3].tex = D3DXVECTOR2(1.0f, 1.0f);
+	pVtx[0].tex = Vector2(0.0f, 0.0f);
+	pVtx[1].tex = Vector2(1.0f, 0.0f);
+	pVtx[2].tex = Vector2(0.0f, 1.0f);
+	pVtx[3].tex = Vector2(1.0f, 1.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuff->Unlock();
@@ -322,7 +316,7 @@ HRESULT CObject2D::Init(const D3DXVECTOR3 &pos)
 //==================================================================================
 // --- 初期化処理 (位置と角度指定) ---
 //==================================================================================
-HRESULT CObject2D::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &rot)
+HRESULT CObject2D::Init(const Vector3 &pos, const Vector3 &rot)
 {
 	HRESULT hr;					// テクスチャ読み込みの判定
 	VERTEX_2D* pVtx = NULL;		// 頂点情報へのポインタ
@@ -343,8 +337,8 @@ HRESULT CObject2D::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &rot)
 	}
 
 	// 変数の初期化
-	m_size = D3DXVECTOR2(INIT_WIDTH, INIT_HEIGHT);
-	m_color = Constant::White;
+	m_size = Vector2(INIT_WIDTH, INIT_HEIGHT);
+	m_color = Colors::GetColor(Colors::C_WHITE);
 	m_bDisp = true;
 
 	// 位置と角度を保存
@@ -382,16 +376,16 @@ HRESULT CObject2D::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &rot)
 	pVtx[3].rhw = 1.0f;
 
 	// 頂点カラー設定
-	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[0].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[1].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[2].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[3].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
-	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(1.0f, 0.0f);
-	pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
-	pVtx[3].tex = D3DXVECTOR2(1.0f, 1.0f);
+	pVtx[0].tex = Vector2(0.0f, 0.0f);
+	pVtx[1].tex = Vector2(1.0f, 0.0f);
+	pVtx[2].tex = Vector2(0.0f, 1.0f);
+	pVtx[3].tex = Vector2(1.0f, 1.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuff->Unlock();
@@ -403,7 +397,7 @@ HRESULT CObject2D::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &rot)
 //==================================================================================
 // --- 初期化処理 (サイズ指定) ---
 //==================================================================================
-HRESULT CObject2D::Init(const D3DXVECTOR2 &size)
+HRESULT CObject2D::Init(const Vector2 &size)
 {
 	HRESULT hr;					// テクスチャ読み込みの判定
 	VERTEX_2D *pVtx = NULL;		// 頂点情報へのポインタ
@@ -426,7 +420,7 @@ HRESULT CObject2D::Init(const D3DXVECTOR2 &size)
 	// 変数の初期化
 	m_pos = VECTOR3_NULL;
 	m_rot = VECTOR3_NULL;
-	m_color = Constant::White;
+	m_color = Colors::GetColor(Colors::C_WHITE);
 	m_bDisp = true;
 
 	// サイズを保存
@@ -463,16 +457,16 @@ HRESULT CObject2D::Init(const D3DXVECTOR2 &size)
 	pVtx[3].rhw = 1.0f;
 
 	// 頂点カラー設定
-	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[0].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[1].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[2].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[3].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
-	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(1.0f, 0.0f);
-	pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
-	pVtx[3].tex = D3DXVECTOR2(1.0f, 1.0f);
+	pVtx[0].tex = Vector2(0.0f, 0.0f);
+	pVtx[1].tex = Vector2(1.0f, 0.0f);
+	pVtx[2].tex = Vector2(0.0f, 1.0f);
+	pVtx[3].tex = Vector2(1.0f, 1.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuff->Unlock();
@@ -484,7 +478,7 @@ HRESULT CObject2D::Init(const D3DXVECTOR2 &size)
 //==================================================================================
 // --- 初期化処理 (位置、サイズ指定) ---
 //==================================================================================
-HRESULT CObject2D::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size)
+HRESULT CObject2D::Init(const Vector3 &pos, const Vector2 &size)
 {
 	HRESULT hr;					// テクスチャ読み込みの判定
 	VERTEX_2D *pVtx = NULL;		// 頂点情報へのポインタ
@@ -506,7 +500,7 @@ HRESULT CObject2D::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size)
 
 	// 変数の初期化
 	m_rot = VECTOR3_NULL;
-	m_color = Constant::White;
+	m_color = Colors::GetColor(Colors::C_WHITE);
 	m_bDisp = true;
 
 	// 位置、サイズを保存
@@ -544,16 +538,16 @@ HRESULT CObject2D::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size)
 	pVtx[3].rhw = 1.0f;
 
 	// 頂点カラー設定
-	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[0].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[1].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[2].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[3].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
-	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(1.0f, 0.0f);
-	pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
-	pVtx[3].tex = D3DXVECTOR2(1.0f, 1.0f);
+	pVtx[0].tex = Vector2(0.0f, 0.0f);
+	pVtx[1].tex = Vector2(1.0f, 0.0f);
+	pVtx[2].tex = Vector2(0.0f, 1.0f);
+	pVtx[3].tex = Vector2(1.0f, 1.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuff->Unlock();
@@ -565,7 +559,7 @@ HRESULT CObject2D::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size)
 //==================================================================================
 // --- 初期化処理 (位置、角度、サイズ指定) ---
 //==================================================================================
-HRESULT CObject2D::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &rot, const D3DXVECTOR2 &size)
+HRESULT CObject2D::Init(const Vector3 &pos, const Vector3 &rot, const Vector2 &size)
 {
 	HRESULT hr;					// テクスチャ読み込みの判定
 	VERTEX_2D* pVtx = NULL;		// 頂点情報へのポインタ
@@ -573,7 +567,7 @@ HRESULT CObject2D::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &rot, const D3
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();				// デバイスへのポインタ
 
 	// 頂点バッファ作成
-	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * 4,
+	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * DEFAULT_VERTEX_NUM,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_2D,
 		D3DPOOL_MANAGED,
@@ -586,7 +580,7 @@ HRESULT CObject2D::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &rot, const D3
 	}
 
 	// 変数の初期化
-	m_color = Constant::White;
+	m_color = Colors::GetColor(Colors::C_WHITE);
 	m_bDisp = true;
 
 	// 位置、角度、サイズを保存
@@ -625,16 +619,16 @@ HRESULT CObject2D::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &rot, const D3
 	pVtx[3].rhw = 1.0f;
 
 	// 頂点カラー設定
-	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[0].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[1].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[2].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[3].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
-	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(1.0f, 0.0f);
-	pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
-	pVtx[3].tex = D3DXVECTOR2(1.0f, 1.0f);
+	pVtx[0].tex = Vector2(0.0f, 0.0f);
+	pVtx[1].tex = Vector2(1.0f, 0.0f);
+	pVtx[2].tex = Vector2(0.0f, 1.0f);
+	pVtx[3].tex = Vector2(1.0f, 1.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuff->Unlock();
@@ -695,7 +689,7 @@ void CObject2D::Draw(void)
 //==================================================================================
 // --- 位置設定処理 ---
 //==================================================================================
-void CObject2D::SetPosition(const D3DXVECTOR3 &position)
+void CObject2D::SetPosition(const Vector3 &position)
 {
 	VERTEX_2D *pVtx = NULL;		// 頂点情報へのポインタ
 
@@ -729,7 +723,7 @@ void CObject2D::SetPosition(const D3DXVECTOR3 &position)
 //==================================================================================
 // --- オフセット設定処理 ---
 //==================================================================================
-void CObject2D::SetOffset(const D3DXVECTOR3 &offset)
+void CObject2D::SetOffset(const Vector3 &offset)
 {
 	VERTEX_2D* pVtx = NULL;		// 頂点情報へのポインタ
 
@@ -763,7 +757,7 @@ void CObject2D::SetOffset(const D3DXVECTOR3 &offset)
 //==================================================================================
 // --- 角度設定処理 ---
 //==================================================================================
-void CObject2D::SetRotation(const D3DXVECTOR3 &rotation)
+void CObject2D::SetRotation(const Vector3 &rotation)
 {
 	VERTEX_2D *pVtx = NULL;		// 頂点情報へのポインタ
 
@@ -797,7 +791,7 @@ void CObject2D::SetRotation(const D3DXVECTOR3 &rotation)
 //==================================================================================
 // --- 位置+角度の設定処理 ---
 //==================================================================================
-void CObject2D::SetPositionAndRotation(const D3DXVECTOR3 &position, const D3DXVECTOR3 &rotation)
+void CObject2D::SetPositionAndRotation(const Vector3 &position, const Vector3 &rotation)
 {
 	VERTEX_2D *pVtx = NULL;		// 頂点情報へのポインタ
 
@@ -832,7 +826,7 @@ void CObject2D::SetPositionAndRotation(const D3DXVECTOR3 &position, const D3DXVE
 //==================================================================================
 // --- サイズ設定処理 ---
 //==================================================================================
-void CObject2D::SetSize(const D3DXVECTOR2 &size)
+void CObject2D::SetSize(const Vector2 &size)
 {
 	VERTEX_2D *pVtx = NULL;		// 頂点情報へのポインタ
 
@@ -907,9 +901,9 @@ void CObject2D::SetLength(const float fLength)
 //==================================================================================
 // --- 色の設定処理 ---
 //==================================================================================
-void CObject2D::SetColor(const D3DXCOLOR &color)
+void CObject2D::SetColor(const Color &color)
 {
-	VERTEX_2D *pVtx = NULL;		// 頂点情報へのポインタ
+	VERTEX_2D *pVtx = nullptr;		// 頂点情報へのポインタ
 
 	// 色を保存
 	m_color = color;

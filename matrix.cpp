@@ -1,6 +1,6 @@
 //==================================================================================
 // 
-// D3DXMATRIXの計算関連関数をまとめたソースファイル [matrix.cpp]
+// Matrixの計算関連関数をまとめたソースファイル [matrix.cpp]
 // Author : TENMA SAITO
 // Date   : 2026/5/16
 // 
@@ -13,12 +13,12 @@
 //==================================================================================
 // --- 位置によるマトリックス計算処理 ---
 //==================================================================================
-D3DXMATRIX *Mtx::CalcPosition(D3DXMATRIX *pMtx, const D3DXVECTOR3 &position)
+Matrix *Mtx::CalcPosition(Matrix *pMtx, const Vector3 &position)
 {
 	// 出力先がnullptrならnullptrを返す
 	if (pMtx == nullptr) return nullptr;
 
-	D3DXMATRIX MtxTrans;		// 計算用変数
+	Matrix MtxTrans;		// 計算用変数
 
 	// マトリックス計算
 	D3DXMatrixTranslation(&MtxTrans,
@@ -36,12 +36,12 @@ D3DXMATRIX *Mtx::CalcPosition(D3DXMATRIX *pMtx, const D3DXVECTOR3 &position)
 //==================================================================================
 // --- 角度によるマトリックス計算処理 ---
 //==================================================================================
-D3DXMATRIX *Mtx::CalcRotation(D3DXMATRIX *pMtx, const D3DXVECTOR3 &rotation)
+Matrix *Mtx::CalcRotation(Matrix *pMtx, const Vector3 &rotation)
 {
 	// 出力先がnullptrならnullptrを返す
 	if (pMtx == nullptr) return nullptr;
 
-	D3DXMATRIX MtxRot;		// 計算用変数
+	Matrix MtxRot;		// 計算用変数
 
 	// マトリックス計算
 	D3DXMatrixRotationYawPitchRoll(&MtxRot,
@@ -59,12 +59,12 @@ D3DXMATRIX *Mtx::CalcRotation(D3DXMATRIX *pMtx, const D3DXVECTOR3 &rotation)
 //==================================================================================
 // --- クォータニオンによるマトリックス計算処理 ---
 //==================================================================================
-D3DXMATRIX *Mtx::CalcRotation(D3DXMATRIX *pMtx, const D3DXQUATERNION &quaternion)
+Matrix *Mtx::CalcRotation(Matrix *pMtx, const Quaternion &quaternion)
 {
 	// 出力先がnullptrならnullptrを返す
 	if (pMtx == nullptr) return nullptr;
 
-	D3DXMATRIX MtxQua;		// 計算用変数
+	Matrix MtxQua;		// 計算用変数
 
 	// マトリックス計算
 	D3DXMatrixRotationQuaternion(&MtxQua, &quaternion);
@@ -77,9 +77,28 @@ D3DXMATRIX *Mtx::CalcRotation(D3DXMATRIX *pMtx, const D3DXQUATERNION &quaternion
 }
 
 //==================================================================================
+// --- スケーリングによるマトリックス計算処理 ---
+//==================================================================================
+Matrix *Mtx::CalcScale(Matrix *pMtx, const Vector3 &scale)
+{
+	// 出力先がnullptrならnullptrを返す
+	if (pMtx == nullptr) return nullptr;
+
+	Matrix MtxScale;		// 計算用変数
+
+	// マトリックス計算
+	D3DXMatrixScaling(&MtxScale, scale.x, scale.y, scale.z);
+
+	// マトリックスを掛け合わせる
+	D3DXMatrixMultiply(pMtx, pMtx, &MtxScale);
+
+	return pMtx;
+}
+
+//==================================================================================
 // --- ワールドマトリックスの計算処理 ---
 //==================================================================================
-D3DXMATRIX *Mtx::CalcWorld(D3DXMATRIX *pMtx, const D3DXVECTOR3 &position, const D3DXVECTOR3 &rotation)
+Matrix *Mtx::CalcWorld(Matrix *pMtx, const Vector3 &position, const Vector3 &rotation)
 {
 	// 出力先がnullptrならnullptrを返す
 	if (pMtx == nullptr) return nullptr;
@@ -97,7 +116,7 @@ D3DXMATRIX *Mtx::CalcWorld(D3DXMATRIX *pMtx, const D3DXVECTOR3 &position, const 
 //==================================================================================
 // --- ワールドマトリックスの計算処理 (クォータニオン) ---
 //==================================================================================
-D3DXMATRIX *Mtx::CalcWorld(D3DXMATRIX *pMtx, const D3DXVECTOR3 &position, const D3DXQUATERNION &quaternion)
+Matrix *Mtx::CalcWorld(Matrix *pMtx, const Vector3 &position, const Quaternion &quaternion)
 { // ※クォータニオンの場合、先にオフセットのマトリックスを生成する
 	// 出力先がnullptrならnullptrを返す
 	if (pMtx == nullptr) return nullptr;
@@ -115,10 +134,10 @@ D3DXMATRIX *Mtx::CalcWorld(D3DXMATRIX *pMtx, const D3DXVECTOR3 &position, const 
 //==================================================================================
 // --- 親マトリックスを持つワールドマトリックスの計算処理 ---
 //==================================================================================
-D3DXMATRIX *Mtx::CalcWorld(D3DXMATRIX *pMtx,
-	const D3DXMATRIX *pParent,
-	const D3DXVECTOR3 &position,
-	const D3DXVECTOR3 &rotation)
+Matrix *Mtx::CalcWorld(Matrix *pMtx,
+	const Matrix *pParent,
+	const Vector3 &position,
+	const Vector3 &rotation)
 {
 	// 出力先がnullptrならnullptrを返す
 	if (pMtx == nullptr) return nullptr;
@@ -142,10 +161,10 @@ D3DXMATRIX *Mtx::CalcWorld(D3DXMATRIX *pMtx,
 //==================================================================================
 // --- 親マトリックスを持つワールドマトリックスの計算処理 (クォータニオン) ---
 //==================================================================================
-D3DXMATRIX *Mtx::CalcWorld(D3DXMATRIX *pMtx,
-	const D3DXMATRIX *pParent,
-	const D3DXVECTOR3 &position, 
-	const D3DXQUATERNION &quaternion)
+Matrix *Mtx::CalcWorld(Matrix *pMtx,
+	const Matrix *pParent,
+	const Vector3 &position,
+	const Quaternion &quaternion)
 {
 	// 出力先がnullptrならnullptrを返す
 	if (pMtx == nullptr) return nullptr;
@@ -167,13 +186,44 @@ D3DXMATRIX *Mtx::CalcWorld(D3DXMATRIX *pMtx,
 }
 
 //==================================================================================
+// --- 親マトリックスを持つワールドマトリックスの計算処理 (Scaling + Quaternion) ---
+//==================================================================================
+Matrix *Mtx::CalcWorld(Matrix *pMtx,
+	const Matrix *pParent,
+	const Vector3 &scale,
+	const Vector3 &position,
+	const Quaternion &quaternion)
+{
+	// 出力先がnullptrならnullptrを返す
+	if (pMtx == nullptr) return nullptr;
+
+	// スケーリングのマトリックス計算
+	CalcScale(pMtx, scale);
+
+	// 位置のマトリックス計算
+	CalcPosition(pMtx, position);
+
+	// 角度のマトリックス計算
+	CalcRotation(pMtx, quaternion);
+
+	if (pParent != nullptr)
+	{ // 親マトリックスへのポインタがnullptrではない場合
+		// 親マトリックスと掛け合わせる
+		D3DXMatrixMultiply(pMtx, pMtx, pParent);
+	}
+
+	// 計算後のマトリックスへのポインタを返す
+	return pMtx;
+}
+
+//==================================================================================
 // --- シャドウマトリックスの作成処理 ---
 //==================================================================================
-D3DXMATRIX *Mtx::CreateShadow(const D3DXMATRIX *pMtxWorld,
-	const D3DXVECTOR3 &pos,
-	const D3DXVECTOR3 &nor,
+Matrix *Mtx::CreateShadow(const Matrix *pMtxWorld,
+	const Vector3 &pos,
+	const Vector3 &nor,
 	const D3DLIGHT9 &light,
-	D3DXMATRIX *pOut)
+	Matrix *pOut)
 {
 	// ワールドマトリックスがnullptrならnullptrを返す
 	if (pMtxWorld == nullptr) return nullptr;

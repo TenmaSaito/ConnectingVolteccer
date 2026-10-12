@@ -13,20 +13,22 @@
 #include "utilityPole.h"
 #include "planet.h"
 #include "effect.h"
+#include "manager.h"
 #include "vec3math.h"
 #include "vec2math.h"
 #include "matrix.h"
+#include "joypad.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define THUNDER_MAX		(D3DXVECTOR3(40.0f, 0.0f, 0.0f))		// 雷エフェクトの最大値
-#define THUNDER_MIN		(D3DXVECTOR3(-40.0f, 0.0f, 0.0f))		// 雷エフェクトの最小値
+#define THUNDER_MAX		(Vector3(40.0f, 0.0f, 0.0f))		// 雷エフェクトの最大値
+#define THUNDER_MIN		(Vector3(-40.0f, 0.0f, 0.0f))		// 雷エフェクトの最小値
 
 //==================================================================================
 // --- 生成処理 ---
 //==================================================================================
-CElectricCurrent *CElectricCurrent::Create(CUtilityPole *pStart, 
+CElectricCurrent *CElectricCurrent::Create(CObjectXQuaternion *pStart,
 	CUtilityPole *pEnd,
 	const float fTotalTime)
 {
@@ -48,12 +50,14 @@ CElectricCurrent *CElectricCurrent::Create(CUtilityPole *pStart,
 //==================================================================================
 // --- コンストラクタ ---
 //==================================================================================
-CElectricCurrent::CElectricCurrent()
+CElectricCurrent::CElectricCurrent() : CObject(ELECTRIC_CURRENT_PRIORITY)
 { // メンバ変数をクリア
 	m_pStart = nullptr;
 	m_pEnd = nullptr;
 	m_pThunder = nullptr;
 	m_pMtxParent = nullptr;
+	m_bGenerate = false;
+	m_bCreateConnectEffect = false;
 	m_pos = VECTOR3_NULL;
 	m_rot = VECTOR3_NULL;
 	m_fTime = 0.0f;
@@ -73,15 +77,14 @@ CElectricCurrent::~CElectricCurrent()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CElectricCurrent::Init(CUtilityPole *pStart, 
+HRESULT CElectricCurrent::Init(CObjectXQuaternion *pStart,
 	CUtilityPole *pEnd,
 	const float fTotalTime)
 {
-	D3DXVECTOR3 posStart = *pStart->GetPosition();		// 始点の座標
-	D3DXVECTOR3 posEnd = *pEnd->GetPosition();			// 終点の座標
+	Vector3 posStart = *pStart->GetPosition();		// 始点の座標
+	Vector3 posEnd = *pEnd->GetPosition();			// 終点の座標
 	
-	const D3DXQUATERNION *pQuaStart = pStart->GetQuaternion();	// 始点のクォータニオン
-	const D3DXQUATERNION *pQuaEnd = pEnd->GetQuaternion();		// 終点のクォータニオン
+	const Quaternion *pQuaStart = pStart->GetQuaternion();	// 始点のクォータニオン
 
 	// 最初の電柱と最後の電柱を保存
 	m_pStart = pStart;
@@ -101,6 +104,15 @@ HRESULT CElectricCurrent::Init(CUtilityPole *pStart,
 
 	// 雷エフェクトを生成
 	m_pThunder = CThunderEffect::Create(THUNDER_MIN, THUNDER_MAX, &m_mtxWorld);
+
+	CManager *pManager = CManager::GetInstance();	// マネージャへのポインタ
+	CJoypad *pJoypad = pManager->GetJoypad();		// ジョイパッドへのポインタ
+
+	if (pManager->GetMode() == CScene::MODE_GAME
+		|| pManager->GetMode() == CScene::MODE_TUTORIAL)
+	{// ゲームもしくはチュートリアルシーンならば、バイブレーション発生
+		pJoypad->SetVibration(15000, 20000, m_fTotalTime - 5);
+	}
 
 	return S_OK;
 }
@@ -124,7 +136,9 @@ void CElectricCurrent::Uninit(void)
 // --- 更新処理 ---
 //==================================================================================
 void CElectricCurrent::Update(void)
-{
+{ // 死んでいたらスキップ
+	if (IsDeath() == true) return;
+
 	if (m_fTime < 1.0f)
 	{ // 線形補間を行う
 		D3DXQuaternionSlerp(&m_qua,
@@ -136,12 +150,17 @@ void CElectricCurrent::Update(void)
 		m_fTime += 1.0f / m_fTotalTime;
 	}
 
-	if (m_fTime >= 1.0f && m_pThunder->IsEndAnim(5.0f))
+	if (m_fTime >= 1.0f && m_bGenerate != true)
 	{ // 線形補間が終わった時
 		// 終了地点の電柱から電流を新規で生成
 		m_pEnd->GenerateElectricity();
+		m_bGenerate = true;
+	}
 
-		// 終了
+	if ((m_pThunder->IsEndAnim(5.0f) 
+		|| CManager::GetInstance()->GetMode() != CScene::MODE_GAME)
+		&& m_bGenerate == true)
+	{ // 電流がある程度短くなったもしくはゲームシーン以外で、既に次の電線に電気を流したなら終了
 		Uninit();
 	}
 }

@@ -31,18 +31,21 @@ class CModel;
 class CMotion
 {
 public:
+	// エイリアス宣言
+	using ModelArray = std::span<std::unique_ptr<CModel>>;				// モデルのポインタ配列へのビュー
+
 	// キー要素構造体の定義 
 	typedef struct
 	{
-		D3DXVECTOR3 pos;	// 位置
-		D3DXVECTOR3 rot;	// 角度
+		Vector3 pos;	// 位置
+		Vector3 rot;	// 角度
 	} KEY;
 
 	// キー情報構造体の定義
 	typedef struct
 	{
 		int nFrame;					// 再生フレーム
-		KEY aKey[MAX_KEY];			// 各パーツのキー要素(パーツ数分だけ用意)
+		std::vector<KEY> vKey;		// 各パーツのキー要素(パーツ数分だけ用意)
 	} KEY_INFO;
 
 	// モーション情報構造体の定義
@@ -50,7 +53,7 @@ public:
 	{
 		bool bLoop;							// ループするかどうか
 		int nNumKey;						// キーの総数
-		KEY_INFO aKeyInfo[MAX_KEY_INFO];	// キー情報
+		std::vector<KEY_INFO> vKeyInfo;		// キー情報
 	} INFO;
 
 	CMotion();
@@ -60,8 +63,7 @@ public:
 	void Uninit(void);
 	void Update(void);
 	void SetInfo(const INFO info);
-	void SetModel(CModel **ppModel,
-		const int nNumModel);
+	void SetModel(ModelArray ppModel);
 	void Set(const int nType);
 	void Set(const int nType, const int nBlendFrame);
 	int GetType(void) const { return m_nType; }
@@ -71,10 +73,8 @@ public:
 private:
 	void SetByBlend(void);
 
-	INFO m_aInfo[MAX_MOTION_NUM];		// モーション情報
-	int m_nNumAll;			// モーションの総数
-	CModel **m_ppModel;		// モデルへのポインタ
-	int m_nNumModel;		// モデルの総数
+	std::vector<INFO> m_vInfo;		// モーション情報
+	ModelArray m_ppModel;	// モデルの配列へのアクセス
 	int m_nType;			// モーションタイプ
 	bool m_bLoop;			// 現在のモーションのループの有無
 	int m_nNumKey;			// 現在のキーの総数

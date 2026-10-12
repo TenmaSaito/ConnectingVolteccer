@@ -14,12 +14,10 @@
 #include "texture.h"
 
 //**********************************************************************************
-// *** インクルードファイル ***
+// *** マクロ定義 ***
 //**********************************************************************************
-// フレーム無しの円のテクスチャパス
-#define NOFRAME_CIRCLE_PATH		"data/TEXTURE/Transition/Circle/noFrame.png"	
-// フレーム有りの円のテクスチャパス
-#define FRAME_CIRCLE_PATH		"data/TEXTURE/Transition/Circle/frame.png"
+#define NOFRAME_CIRCLE_PATH		"data/TEXTURE/Transition/Circle/noFrame.png"	// フレーム無しの円のテクスチャパス
+#define FRAME_CIRCLE_PATH		"data/TEXTURE/Transition/Circle/frame.png"		// フレーム有りの円のテクスチャパス
 #define MAX_RADIUS				(SCREEN_WIDTH)		// 半径の最大値
 #define RADIUS_INCREASE			(23.0f)		// 半径の増加値
 #define RADIUS_DECREASE			(23.0f)		// 半径の減少値
@@ -61,8 +59,8 @@ HRESULT CCircleTransition::Init(void)
 
 	for (auto &circle : m_aCircle)
 	{
-		D3DXVECTOR3 *pPos = &circle.pos;		// 位置
-		D3DXVECTOR3 *pRot = &circle.rot;		// 角度
+		Vector3 *pPos = &circle.pos;		// 位置
+		Vector3 *pRot = &circle.rot;		// 角度
 		float fRadius = circle.fRadius;			// 半径
 
 		// 頂点バッファを作成
@@ -77,7 +75,7 @@ HRESULT CCircleTransition::Init(void)
 		circle.nIdxTexture = nIdxNoFrame;
 
 		// 座標を中心に設定し、角度をリセット
-		*pPos = WINDOW_MIDDLE;
+		*pPos = SCREEN_MIDDLE;
 		*pRot = VECTOR3_NULL;
 
 		// 頂点ロック
@@ -107,16 +105,16 @@ HRESULT CCircleTransition::Init(void)
 		pVtx[3].rhw = 1.0f;
 
 		// 頂点カラー設定
-		pVtx[0].col = D3DXCOLOR(1.0f, 1.0f / (float)nCntCircle, 1.0f, 1.0f);
-		pVtx[1].col = D3DXCOLOR(1.0f, 1.0f / (float)nCntCircle, 1.0f, 1.0f);
-		pVtx[2].col = D3DXCOLOR(1.0f, 1.0f / (float)nCntCircle, 1.0f, 1.0f);
-		pVtx[3].col = D3DXCOLOR(1.0f, 1.0f / (float)nCntCircle, 1.0f, 1.0f);
+		pVtx[0].col = Color(1.0f, 1.0f / (float)nCntCircle, 1.0f, 1.0f);
+		pVtx[1].col = Color(1.0f, 1.0f / (float)nCntCircle, 1.0f, 1.0f);
+		pVtx[2].col = Color(1.0f, 1.0f / (float)nCntCircle, 1.0f, 1.0f);
+		pVtx[3].col = Color(1.0f, 1.0f / (float)nCntCircle, 1.0f, 1.0f);
 
 		// テクスチャ座標設定
-		pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-		pVtx[1].tex = D3DXVECTOR2(1.0f, 0.0f);
-		pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
-		pVtx[3].tex = D3DXVECTOR2(1.0f, 1.0f);
+		pVtx[0].tex = Vector2(0.0f, 0.0f);
+		pVtx[1].tex = Vector2(1.0f, 0.0f);
+		pVtx[2].tex = Vector2(0.0f, 1.0f);
+		pVtx[3].tex = Vector2(1.0f, 1.0f);
 
 		// ロック終了
 		circle.pVtxBuff->Unlock();
@@ -294,8 +292,8 @@ void CCircleTransition::UpdateVertex(void)
 
 	for (auto &circle : m_aCircle)
 	{
-		D3DXVECTOR3 *pPos = &circle.pos;		// 位置
-		D3DXVECTOR3 *pRot = &circle.rot;		// 角度
+		Vector3 *pPos = &circle.pos;		// 位置
+		Vector3 *pRot = &circle.rot;		// 角度
 		float fRadius = circle.fRadius;			// 半径
 
 		// 頂点ロック

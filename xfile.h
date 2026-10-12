@@ -16,7 +16,7 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define MAX_XFILE		(256)		// Xファイルの読み込める数
+#define INVALID_XFILE_ID		((UINT)-1)	// XFILEの無効値
 
 //**********************************************************************************
 // *** Xファイルクラス ***
@@ -27,25 +27,27 @@ public:
 	// XFileの情報構造体
 	struct XDATA
 	{
-		char *pXFileName;			// 読み込んだXファイルパス
+		std::string sXFileName;		// 読み込んだXファイルパス
 		LPD3DXMESH pMesh;			// メッシュ(頂点情報)へのポインタ
 		LPD3DXBUFFER pBuffMat;		// マテリアルへのポインタ
-		int *pIdx;					// テクスチャインデックスの配列
+		std::vector<int> vIdx;		// テクスチャインデックスの配列
 		DWORD dwNumMat;				// マテリアルの数
-		D3DXVECTOR3 vtxMin, vtxMax;	// モデルの各最大最小頂点の位置
+		Vector3 vtxMin, vtxMax;		// モデルの各最大最小頂点の位置
 	};
-
-	CXFile();
-	~CXFile();
 
 	static CXFile *GetInstance(void);
 
-	int Resister(const char *pXFileName, const bool bCopy = false);
+	UINT Resister(const std::string_view sXFileName, const bool bCopy = false);
+	UINT Resister(const char *pXFileName, const bool bCopy = false);
 	void Unload(void);
-	bool GetAddress(const int nIdxXFile, XDATA **ppOut);
+	bool GetAddress(const UINT uIdxXFile, XDATA **ppOut);
 
 private:
-	XDATA m_aXData[MAX_XFILE];		// 読み込んだデータ
-	int m_nNumAll;			// 読み込んだモデルの総数
+	CXFile();
+	~CXFile();
+
+	UINT Load(const char *pXFileName);
+
+	std::vector<XDATA> m_vXData;	// 読み込んだデータ
 };
 #endif

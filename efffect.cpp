@@ -37,10 +37,10 @@ HRESULT CEffect::Load(void)
 //==================================================================================
 // --- 数値オブジェクトの生成処理 (位置、サイズ指定) ---
 //==================================================================================
-CEffect *CEffect::Create(const D3DXVECTOR3 &pos, 
+CEffect *CEffect::Create(const Vector3 &pos, 
 	const int nLife,
 	const float fRadius,
-	const D3DXVECTOR3 &move,
+	const Vector3 &move,
 	const float fGravity)
 {
 	CEffect *pEffect = nullptr;		// 生成したオブジェクトへのポインタ
@@ -65,7 +65,7 @@ CEffect *CEffect::Create(const D3DXVECTOR3 &pos,
 //==================================================================================
 // --- コンストラクタ ---
 //==================================================================================
-CEffect::CEffect(const int nPriority) : CObjectBillboard(nPriority)
+CEffect::CEffect(const int nPriority) : CObjectBillboard3D(nPriority)
 { // メンバ変数をクリア
 	m_move = VECTOR3_NULL;
 	m_nLife = 0;
@@ -87,18 +87,17 @@ CEffect::~CEffect()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CEffect::Init(const D3DXVECTOR3 &pos, 
+HRESULT CEffect::Init(const Vector3 &pos, 
 	const int nLife, 
 	const float fRadius,
-	const D3DXVECTOR3 &move,
+	const Vector3 &move,
 	const float fGravity)
 {
 	HRESULT hr = S_OK;			// 関数の結果
-	VERTEX_3D *pVtx = NULL;		// 頂点情報へのポインタ
-	D3DXVECTOR2 size = {};		// ポリゴンサイズ
+	Vector2 size = {};		// ポリゴンサイズ
 
 	// 親クラスの初期化
-	hr = CObjectBillboard::Init(pos, Vec2::ToSquareSize(fRadius));
+	hr = CObjectBillboard3D::Init(pos, VECTOR3_NULL, Vec2::ToSquareSize(fRadius), nLife);
 
 	// 引数を保存
 	m_move = move;
@@ -118,7 +117,7 @@ HRESULT CEffect::Init(const D3DXVECTOR3 &pos,
 //==================================================================================
 void CEffect::Uninit(void)
 { // 親クラスの終了処理
-	CObjectBillboard::Uninit();
+	CObjectBillboard3D::Uninit();
 }
 
 //==================================================================================
@@ -126,7 +125,7 @@ void CEffect::Uninit(void)
 //==================================================================================
 void CEffect::Update(void)
 {
-	D3DXVECTOR3 pos = CObjectBillboard::GetPosition();		// エフェクトの位置
+	Vector3 pos = *CObjectBillboard3D::GetPosition();		// エフェクトの位置
 
 	// エフェクトを移動
 	pos += m_move;
@@ -135,7 +134,7 @@ void CEffect::Update(void)
 	pos.y -= m_fGravity;
 
 	// 位置を適用
-	CObjectBillboard::SetPosition(pos);
+	CObjectBillboard3D::SetPosition(pos);
 
 	// 体力を減らす
 	m_nLife--;
@@ -148,7 +147,7 @@ void CEffect::Update(void)
 		m_fRadius -= m_fDecreaseRadius;
 
 		// 減少した半径を適用
-		CObjectBillboard::SetSize(Vec2::ToSquareSize(m_fRadius));
+		CObjectBillboard3D::SetSize(Vec2::ToSquareSize(m_fRadius));
 	}
 }
 
@@ -157,7 +156,7 @@ void CEffect::Update(void)
 //==================================================================================
 void CEffect::Draw(void)
 {
-	LPDIRECT3DDEVICE9 pDevice = CManager::GetDeviceByInstance();		// デバイスの取得
+	LPDIRECT3DDEVICE9 pDevice = CManager::GetInstance()->GetRenderer()->GetDevice();		// デバイスの取得
 
 	// ライティングを無効に設定
 	pDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
@@ -172,7 +171,7 @@ void CEffect::Draw(void)
 	pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
 
 	// 親クラスの描画処理
-	CObjectBillboard::Draw();
+	CObjectBillboard3D::Draw();
 
 	// 加算合成終了
 	pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);

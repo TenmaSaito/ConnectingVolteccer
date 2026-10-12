@@ -31,6 +31,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -74,6 +75,7 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x86;$(LibraryPath)</LibraryPath>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -96,6 +98,8 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -113,6 +117,8 @@
       <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -150,46 +156,68 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="billboard.cpp" />
+    <ClCompile Include="billboard3D.cpp" />
     <ClCompile Include="building.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="color.cpp" />
+    <ClCompile Include="combo.cpp" />
+    <ClCompile Include="connectingEvaluate.cpp" />
     <ClCompile Include="debugproc.cpp" />
     <ClCompile Include="directX.cpp" />
     <ClCompile Include="directXSubDrawer.cpp" />
+    <ClCompile Include="edit.cpp" />
     <ClCompile Include="efffect.cpp" />
     <ClCompile Include="electricalCable.cpp" />
     <ClCompile Include="electricCurrent.cpp" />
     <ClCompile Include="filestream.cpp" />
     <ClCompile Include="game.cpp" />
-    <ClCompile Include="gameclear.cpp" />
-    <ClCompile Include="gameover.cpp" />
+    <ClCompile Include="grassQuaternion.cpp" />
+    <ClCompile Include="happyNote.cpp" />
+    <ClCompile Include="objectBillboard3DScaling.cpp" />
+    <ClCompile Include="percent.cpp" />
+    <ClCompile Include="pause.cpp" />
+    <ClCompile Include="ranking.cpp" />
+    <ClCompile Include="rankingCamera.cpp" />
+    <ClCompile Include="rankingDrawer.cpp" />
+    <ClCompile Include="rankingManager.cpp" />
+    <ClCompile Include="resultmenu.cpp" />
+    <ClCompile Include="shock.cpp" />
+    <ClCompile Include="meshCylinder.cpp" />
+    <ClCompile Include="result.cpp" />
     <ClCompile Include="grass.cpp" />
     <ClCompile Include="grassland.cpp" />
     <ClCompile Include="input.cpp" />
     <ClCompile Include="joypad.cpp" />
     <ClCompile Include="lasso.cpp" />
     <ClCompile Include="light.cpp" />
+    <ClCompile Include="lightingPillar.cpp" />
+    <ClCompile Include="lineScaleUpTransition.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="manager.cpp" />
-    <ClCompile Include="map.cpp" />
+    <ClCompile Include="mapManager.cpp" />
     <ClCompile Include="matrix.cpp" />
     <ClCompile Include="memdbg.cpp" />
     <ClCompile Include="mesh.cpp" />
+    <ClCompile Include="mesh2D.cpp" />
     <ClCompile Include="mesh3D.cpp" />
     <ClCompile Include="meshField.cpp" />
+    <ClCompile Include="meshOrbit2D.cpp" />
     <ClCompile Include="meshOrbit3D.cpp" />
     <ClCompile Include="meshSphere.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="motion.cpp" />
+    <ClCompile Include="motionLoader.cpp" />
     <ClCompile Include="number.cpp" />
     <ClCompile Include="object.cpp" />
     <ClCompile Include="object2D.cpp" />
     <ClCompile Include="object3D.cpp" />
-    <ClCompile Include="objectBillboard.cpp" />
+    <ClCompile Include="objectBillboard3D.cpp" />
     <ClCompile Include="objectLine.cpp" />
     <ClCompile Include="objectX.cpp" />
     <ClCompile Include="objectXQuaternion.cpp" />
+    <ClCompile Include="particleQuaternion.cpp" />
+    <ClCompile Include="particleQuaternionBuilder.cpp" />
+    <ClCompile Include="partsLoader.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -198,15 +226,26 @@
     <ClCompile Include="player.cpp" />
     <ClCompile Include="playerCamera.cpp" />
     <ClCompile Include="polygon2D.cpp" />
+    <ClCompile Include="polygon3D.cpp" />
+    <ClCompile Include="powerPlant.cpp" />
     <ClCompile Include="rand.cpp" />
     <ClCompile Include="ray.cpp" />
     <ClCompile Include="renderer.cpp" />
+    <ClCompile Include="resultCamera.cpp" />
     <ClCompile Include="scene.cpp" />
     <ClCompile Include="sceneTransition.cpp" />
     <ClCompile Include="circleTransition.cpp" />
-    <ClCompile Include="textureRenderer.cpp" />
+    <ClCompile Include="skip.cpp" />
+    <ClCompile Include="state.cpp" />
+    <ClCompile Include="stateMachine.cpp" />
+    <ClCompile Include="stopwatch.cpp" />
+    <ClCompile Include="thunderCamera.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="title.cpp" />
+    <ClCompile Include="titleCamera.cpp" />
+    <ClCompile Include="titlemenu.cpp" />
+    <ClCompile Include="tutorial.cpp" />
+    <ClCompile Include="tutorialManager.cpp" />
     <ClCompile Include="util.cpp" />
     <ClCompile Include="windowCapture.cpp" />
     <ClCompile Include="sound.cpp" />
@@ -219,30 +258,55 @@
     <ClCompile Include="xfile.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="billboard.h" />
+    <ClInclude Include="billboard3D.h" />
     <ClInclude Include="building.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="color.h" />
+    <ClInclude Include="combo.h" />
+    <ClInclude Include="connectingEvaluate.h" />
     <ClInclude Include="cpu.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="debugproc.h" />
     <ClInclude Include="delegate_t.h" />
     <ClInclude Include="directX.h" />
     <ClInclude Include="directXSubDrawer.h" />
+    <ClInclude Include="edit.h" />
     <ClInclude Include="game.h" />
-    <ClInclude Include="gameclear.h" />
-    <ClInclude Include="gameover.h" />
+    <ClInclude Include="grassQuaternion.h" />
+    <ClInclude Include="happyNote.h" />
+    <ClInclude Include="objectBillboard3DScaling.h" />
+    <ClInclude Include="pause.h" />
+    <ClInclude Include="percent.h" />
+    <ClInclude Include="ranking.h" />
+    <ClInclude Include="rankingCamera.h" />
+    <ClInclude Include="rankingDrawer.h" />
+    <ClInclude Include="rankingManager.h" />
+    <ClInclude Include="resultmenu.h" />
+    <ClInclude Include="shock.h" />
+    <ClInclude Include="meshCylinder.h" />
+    <ClInclude Include="result.h" />
     <ClInclude Include="lasso.h" />
+    <ClInclude Include="lighingLevel.h" />
+    <ClInclude Include="lightingPillar.h" />
+    <ClInclude Include="lineScaleUpTransition.h" />
+    <ClInclude Include="mesh2D.h" />
+    <ClInclude Include="meshOrbit2D.h" />
     <ClInclude Include="meshSphere.h" />
+    <ClInclude Include="motionLoader.h" />
     <ClInclude Include="number.h" />
     <ClInclude Include="object2D.h" />
-    <ClInclude Include="instancingModel.h" />
     <ClInclude Include="objectLine.h" />
     <ClInclude Include="objectXQuaternion.h" />
+    <ClInclude Include="particleQuaternion.h" />
+    <ClInclude Include="particleQuaternionBuilder.h" />
+    <ClInclude Include="partsLoader.h" />
     <ClInclude Include="planet.h" />
     <ClInclude Include="effect.h" />
     <ClInclude Include="electricCurrent.h" />
-    <ClInclude Include="enemy.h" />
+    <ClInclude Include="skip.h" />
+    <ClInclude Include="state.h" />
+    <ClInclude Include="stateMachine.h" />
+    <ClInclude Include="tutorialManager.h" />
     <ClInclude Include="field.h" />
     <ClInclude Include="filestream.h" />
     <ClInclude Include="grass.h" />
@@ -252,7 +316,7 @@
     <ClInclude Include="light.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="manager.h" />
-    <ClInclude Include="map.h" />
+    <ClInclude Include="mapManager.h" />
     <ClInclude Include="matrix.h" />
     <ClInclude Include="memdbg.h" />
     <ClInclude Include="mesh.h" />
@@ -263,22 +327,28 @@
     <ClInclude Include="motion.h" />
     <ClInclude Include="object.h" />
     <ClInclude Include="object3D.h" />
-    <ClInclude Include="objectBillboard.h" />
+    <ClInclude Include="objectBillboard3D.h" />
     <ClInclude Include="objectX.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="playerCamera.h" />
     <ClInclude Include="polygon2D.h" />
+    <ClInclude Include="polygon3D.h" />
+    <ClInclude Include="powerPlant.h" />
     <ClInclude Include="rand.h" />
     <ClInclude Include="ray.h" />
     <ClInclude Include="renderer.h" />
+    <ClInclude Include="resultCamera.h" />
     <ClInclude Include="scene.h" />
     <ClInclude Include="sceneTransition.h" />
     <ClInclude Include="circleTransition.h" />
-    <ClInclude Include="textureRenderer.h" />
+    <ClInclude Include="stopwatch.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="title.h" />
     <ClInclude Include="titleCamera.h" />
+    <ClInclude Include="titlemenu.h" />
+    <ClInclude Include="tree.h" />
+    <ClInclude Include="tutorial.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="windowCapture.h" />
     <ClInclude Include="sound.h" />
@@ -293,8 +363,7 @@
     <ClInclude Include="xfile.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="vec2math.inl" />
-    <None Include="vec3math.inl" />
+    <None Include="data\2026-08-11-00-25-32.bin" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

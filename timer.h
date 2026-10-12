@@ -17,7 +17,7 @@
 //**********************************************************************************
 // *** 前方宣言 ***
 //**********************************************************************************
-class CNumber;		// 数値表示クラス
+class CNumber;	
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -34,12 +34,12 @@ public:
 	CTimer(const int nPriority = DEFAULT_TIMER_PRIORITY);
 	~CTimer();
 
-	static CTimer *Create(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int nNumNumber);
-	static CTimer *Create(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int nNumNumber, const int nScore);
+	static CTimer *Create(const Vector3 &pos, const Vector2 &size, const int nNumNumber);
+	static CTimer *Create(const Vector3 &pos, const Vector2 &size, const int nNumNumber, const int nScore);
 
 	HRESULT Init(void);
-	HRESULT Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int nNumNumber);
-	HRESULT Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int nNumNumber, const int nScore);
+	HRESULT Init(const Vector3 &pos, const Vector2 &size, const int nNumNumber);
+	HRESULT Init(const Vector3 &pos, const Vector2 &size, const int nNumNumber, const int nScore);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
@@ -50,7 +50,7 @@ public:
 	int GetTimer(void) const;
 
 private:
-	CNumber *m_apNumber[MAX_TIMERNUM];			// 数値表示オブジェクトへのポインタ
+	std::array<std::unique_ptr<CNumber>, MAX_TIMERNUM> m_apNumber;		// 数値表示オブジェクトへのポインタ
 	int m_nNumTime;		// タイマーの桁数
 	int m_nTime;		// 現在のタイマー
 	int m_nCounter;		// フレームカウンター

@@ -28,18 +28,18 @@ public:
 	CMeshSphere(const int nPriority = DEFAULT_OBJ_PRIORITY);
 	~CMeshSphere();
 
-	static CMeshSphere *Create(const D3DXVECTOR3 &pos,
+	static CMeshSphere *Create(const Vector3 &pos,
 		const float fRadius,
 		const int nNumXBlock = DEFAULT_MESHSPHERE_XBLOCK,
 		const int nNumZBlock = DEFAULT_MESHSPHERE_ZBLOCK,
-		const D3DXVECTOR3 &vecQua = VECTOR3_NULL,
+		const Vector3 &vecQua = VECTOR3_NULL,
 		const float fAngle = 0.0f);
 
-	HRESULT Init(const D3DXVECTOR3 &pos,
+	HRESULT Init(const Vector3 &pos,
 		const float fRadius,
 		const int nNumXBlock,
 		const int nNumZBlock,
-		const D3DXVECTOR3 &vecQua,
+		const Vector3 &vecQua,
 		const float fAngle);
 	void Uninit(void);
 	void Update(void);
@@ -56,11 +56,11 @@ private:
 	int m_nNumZBlock;			// Zの分割数
 	int m_nNumVtx;				// 頂点数
 	int m_nNumIdx;				// インデックス数
-	D3DXVECTOR3 m_pos;			// 位置
-	D3DXVECTOR3 m_vecQua;		// 任意軸
+	Vector3 m_pos;			// 位置
+	Vector3 m_vecQua;		// 任意軸
 	float m_fAngle;				// 回転度数
 	float m_fRadius;			// 半径
-	D3DXQUATERNION m_qua;		// クォータニオン
-	D3DXMATRIX m_mtxWorld;		// ワールドマトリックス
+	Quaternion m_qua;		// クォータニオン
+	Matrix m_mtxWorld;		// ワールドマトリックス
 };
 #endif

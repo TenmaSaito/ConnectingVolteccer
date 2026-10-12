@@ -19,17 +19,21 @@
 #include "matrix.h"
 #include "effect.h"
 #include "planet.h"
+#include "powerPlant.h"
+#include "color.h"
+#include "player.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define CABLE_HEIGHT		(10.0f)		// ケーブルの太さ
+#define CABLE_HEIGHT		(25.0f)		// ケーブルの太さ
 
 //==================================================================================
-// --- 生成処理 ---
+// --- 生成処理 (CObjectXQuaternion -> CObjectXQuaternion) ---
 //==================================================================================
-CElectricalCable *CElectricalCable::Create(const CUtilityPole *pStart,
-	const CUtilityPole *pEnd)
+CElectricalCable *CElectricalCable::Create(CObjectXQuaternion *pStart,
+	CObjectXQuaternion *pEnd,
+	const CPlanet *pPlanet)
 {
 	CElectricalCable *pCable = NULL;		// 生成したオブジェクトへのポインタ
 
@@ -41,7 +45,7 @@ CElectricalCable *CElectricalCable::Create(const CUtilityPole *pStart,
 	}
 
 	// 初期化処理
-	pCable->Init(pStart, pEnd);
+	pCable->Init(pStart, pEnd, pPlanet);
 
 	return pCable;
 }
@@ -49,12 +53,10 @@ CElectricalCable *CElectricalCable::Create(const CUtilityPole *pStart,
 //==================================================================================
 // --- コンストラクタ ---
 //==================================================================================
-CElectricalCable::CElectricalCable()
+CElectricalCable::CElectricalCable() : CObject(CABLE_PRIORITY)
 { // メンバ変数をクリア
 	m_pVtxBuff = nullptr;
 	m_nIdxTexture = -1;
-	m_pStart = nullptr;
-	m_pEnd = nullptr;
 	m_pMtxParent = nullptr;
 	m_pos = VECTOR3_NULL;
 #ifndef ENABLE_QUATERNION
@@ -64,6 +66,7 @@ CElectricalCable::CElectricalCable()
 	m_fAngle = 0.0f;
 	D3DXQuaternionIdentity(&m_qua);
 #endif
+	m_bElectric = false;
 
 	// タイプの指定
 	CObject::SetType(TYPE_CABLE);
@@ -79,29 +82,37 @@ CElectricalCable::~CElectricalCable()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CElectricalCable::Init(const CUtilityPole *pStart, 
-	const CUtilityPole *pEnd)
+HRESULT CElectricalCable::Init(CObjectXQuaternion *pStart,
+	CObjectXQuaternion *pEnd,
+	const CPlanet *pPlanet)
 {
 	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pManager->GetRenderer()->GetDevice();		// デバイスへのポインタ
-	D3DXVECTOR3 posStart = VECTOR3_NULL;		// 始点の座標
-	D3DXVECTOR3 posStart2 = VECTOR3_NULL;		// 始点の座標2
-	D3DXVECTOR3 posEnd = VECTOR3_NULL;			// 終点の座標
-	D3DXVECTOR3 posEnd2 = VECTOR3_NULL;			// 終点の座標2
+	Vector3 posStart = VECTOR3_NULL;		// 始点の座標
+	Vector3 posStart2 = VECTOR3_NULL;		// 始点の座標2
+	Vector3 posEnd = VECTOR3_NULL;			// 終点の座標
+	Vector3 posEnd2 = VECTOR3_NULL;			// 終点の座標2
+	Color col;				// 頂点カラー
 	float fLength;			// 電柱間の距離
 	HRESULT hr = S_OK;		// 初期化結果
 	VERTEX_3D *pVtx;		// 頂点へのポインタ
 
 	// 二点の位置をマトリックスから求める
-	posStart.y = pStart->GetVtxMax()->y;
-	posStart2.y = pStart->GetVtxMax()->y + 10.0f;
-	posEnd.y = pEnd->GetVtxMax()->y;
-	posEnd2.y = pEnd->GetVtxMax()->y + 10.0f;
+	posStart.y = pStart->GetVtxMax()->y - (CABLE_HEIGHT * 0.5f);
+	posStart2.y = pStart->GetVtxMax()->y + (CABLE_HEIGHT * 0.5f);
+	posEnd.y = pEnd->GetVtxMax()->y - (CABLE_HEIGHT * 0.5f);
+	posEnd2.y = pEnd->GetVtxMax()->y + (CABLE_HEIGHT * 0.5f);
 
-	D3DXVec3TransformCoord(&posStart, &posStart, pStart->GetMatrix());
+	D3DXVec3TransformCoord(&posStart, &posStart, pStart->CalcMatrix());
 	D3DXVec3TransformCoord(&posStart2, &posStart2, pStart->GetMatrix());
-	D3DXVec3TransformCoord(&posEnd, &posEnd, pEnd->GetMatrix());
+	D3DXVec3TransformCoord(&posEnd, &posEnd, pEnd->CalcMatrix());
 	D3DXVec3TransformCoord(&posEnd2, &posEnd2, pEnd->GetMatrix());
+
+	// 各頂点の座標を保存
+	m_aVtxPos.at(0) = posStart;
+	m_aVtxPos.at(1) = posStart2;
+	m_aVtxPos.at(2) = posEnd;
+	m_aVtxPos.at(3) = posEnd2;
 
 	// 二点間の距離を求める
 	fLength = Vec3::Length(posEnd, posStart);
@@ -124,28 +135,29 @@ HRESULT CElectricalCable::Init(const CUtilityPole *pStart,
 	pVtx[3].pos = posEnd2;
 
 	// 頂点の法線を設定
-	pVtx[0].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-	pVtx[1].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-	pVtx[2].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-	pVtx[3].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
+	pVtx[0].nor = Vector3(0.0f, 0.0f, -1.0f);
+	pVtx[1].nor = Vector3(0.0f, 0.0f, -1.0f);
+	pVtx[2].nor = Vector3(0.0f, 0.0f, -1.0f);
+	pVtx[3].nor = Vector3(0.0f, 0.0f, -1.0f);
 
 	// 頂点カラー設定
-	pVtx[0].col = D3DXCOLOR(0.0f, 1.0f, 0.0f, 1.0f);
-	pVtx[1].col = D3DXCOLOR(0.0f, 1.0f, 0.0f, 1.0f);
-	pVtx[2].col = D3DXCOLOR(0.0f, 1.0f, 0.0f, 1.0f);
-	pVtx[3].col = D3DXCOLOR(0.0f, 1.0f, 0.0f, 1.0f);
+	col = Colors::GetColor(Colors::C_GRAY);
+	pVtx[0].col = col;
+	pVtx[1].col = col;
+	pVtx[2].col = col;
+	pVtx[3].col = col;
 
 	// テクスチャ座標設定
-	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(1.0f, 0.0f);
-	pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
-	pVtx[3].tex = D3DXVECTOR2(1.0f, 1.0f);
+	pVtx[0].tex = Vector2(0.0f, 0.0f);
+	pVtx[1].tex = Vector2(1.0f, 0.0f);
+	pVtx[2].tex = Vector2(0.0f, 1.0f);
+	pVtx[3].tex = Vector2(1.0f, 1.0f);
 
 	// ロック解除
 	m_pVtxBuff->Unlock();
 
 	// 現在の惑星のクォータニオンから任意軸と角度を求める
-	const D3DXQUATERNION *pQuaPlanet = pManager->GetScene<CGame>()->GetPlanet()->GetQuaternion();
+	const Quaternion *pQuaPlanet = pPlanet->GetQuaternion();
 	D3DXQuaternionToAxisAngle(pQuaPlanet,
 		&m_vecQua,
 		&m_fAngle);
@@ -224,4 +236,27 @@ void CElectricalCable::Draw(void)
 	// カリングとライティングを有効に設定
 	pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
 	pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
+}
+
+//==================================================================================
+// --- 通電処理 ---
+//==================================================================================
+void CElectricalCable::Electric(void)
+{
+	VERTEX_3D *pVtx;		// 頂点へのポインタ
+	Color col = Colors::GetColor(Colors::C_YELLOW);		// 通電色
+
+	// 頂点バッファをロック
+	m_pVtxBuff->Lock(0, 0, (void **)&pVtx, 0);
+
+	// 頂点カラー設定
+	pVtx[0].col = col;
+	pVtx[1].col = col;
+	pVtx[2].col = col;
+	pVtx[3].col = col;
+
+	// ロック解除
+	m_pVtxBuff->Unlock();
+
+	m_bElectric = true;		// 通電フラグを立てる
 }

@@ -16,12 +16,16 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
+#define CABLE_PRIORITY			(DEFAULT_OBJ_PRIORITY)		// 電線の優先順位
 #define ENABLE_QUATERNION		// クォータニオンの有効化
 
 //**********************************************************************************
 // *** 前方宣言 ***
 //**********************************************************************************
+class CObjectXQuaternion;
 class CUtilityPole;
+class CPowerPlant;
+class CPlanet;
 
 //**********************************************************************************
 // *** オブジェクトXクラス ***
@@ -29,34 +33,36 @@ class CUtilityPole;
 class CElectricalCable : public CObject
 {
 public:
-	static CElectricalCable *Create(const CUtilityPole *pStart, 
-		const CUtilityPole *pEnd);
+	static CElectricalCable *Create(CObjectXQuaternion *pStart,
+		CObjectXQuaternion *pEnd,
+		const CPlanet *pPlanet);
 
 	CElectricalCable();
 	~CElectricalCable();
 
-	HRESULT Init(const CUtilityPole *pStart, 
-		const CUtilityPole *pEnd);
+	HRESULT Init(CObjectXQuaternion *pStart,
+		CObjectXQuaternion *pEnd,
+		const CPlanet *pPlanet);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
 	void BindTexture(const int nIdxTexture) { m_nIdxTexture = nIdxTexture; }
-	void SetParent(const D3DXMATRIX *pMtxParent) { m_pMtxParent = pMtxParent; }
+	void SetParent(const Matrix *pMtxParent) { m_pMtxParent = pMtxParent; }
+	void Electric(void);
+	const Matrix *GetMatrix(void) const { return &m_mtxWorld; }
+	std::array<Vector3, DEFAULT_VERTEX_NUM> const GetVtxPosition(void) { return m_aVtxPos; }
+	bool IsElectriced(void) const { return m_bElectric; }
 
 private:
 	LPDIRECT3DVERTEXBUFFER9 m_pVtxBuff;		// 頂点バッファへのポインタ
-	int m_nIdxTexture;			// テクスチャインデックス
-	CUtilityPole *m_pStart;		// 電線の始点電柱
-	CUtilityPole *m_pEnd;		// 電線の終点電柱
-	D3DXVECTOR3 m_pos;			// 位置
-#ifndef ENABLE_QUATERNION
-	D3DXVECTOR3 m_rot;			// 角度
-#else
-	D3DXVECTOR3 m_vecQua;		// 任意軸
-	float m_fAngle;				// 軸角度
-	D3DXQUATERNION m_qua;		// クォータニオン
-#endif
-	D3DXMATRIX m_mtxWorld;		// ワールドマトリックス
-	const D3DXMATRIX *m_pMtxParent;		// 親のワールドマトリックス
+	int m_nIdxTexture;		// テクスチャインデックス
+	Vector3 m_pos;			// 位置
+	Vector3 m_vecQua;		// 任意軸
+	float m_fAngle;			// 軸角度
+	Quaternion m_qua;		// クォータニオン
+	Matrix m_mtxWorld;		// ワールドマトリックス
+	const Matrix *m_pMtxParent;		// 親のワールドマトリックス
+	std::array<Vector3, DEFAULT_VERTEX_NUM> m_aVtxPos;		// 各頂点の座標
+	bool m_bElectric;		// プレイヤーが端に着き、電流が流れたか
 };
 #endif

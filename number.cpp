@@ -12,18 +12,34 @@
 #include "manager.h"
 #include "renderer.h"
 #include "texture.h"
+#include <string_view>
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
 #define INIT_WIDTH		(100)		// 初期の幅
 #define INIT_HEIGHT		(100)		// 初期の高さ
-#define TEX_PATH		"data/TEXTURE/Anim/number000.png"		// 数値のテクスチャ
+#define TEX_PATH		"data/TEXTURE/Anim/voltNumber000.png"		// 数値のテクスチャ
+
+//**********************************************************************************
+// *** 定数宣言 ***
+//**********************************************************************************
+namespace
+{
+	constexpr std::string_view c_asNumberPath[CNumber::TYPE_MAX] =	// 数字テクスチャのパス
+	{
+		"data/TEXTURE/Anim/voltNumber000.png",		// 白文字に黄色のインライン
+		"data/TEXTURE/Anim/voltNumber001.png",		// 黒文字に黄色のインライン
+		"data/TEXTURE/Anim/voltNumber002.png",		// 黒文字に黄色のインライン (非立体)
+		"data/TEXTURE/Anim/voltNumber003.png",		// 黒文字に黄色のインライン + 白のアウトライン
+		"data/TEXTURE/Anim/voltNumber004.png",		// ドット風
+	};
+}
 
 //==================================================================================
 // --- 数値オブジェクトの生成処理 (位置、サイズ、値指定) ---
 //==================================================================================
-CNumber *CNumber::Create(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int nValue)
+CNumber *CNumber::Create(const TYPE type, const Vector3 &pos, const Vector2 &size, const int nValue)
 {
 	CNumber *pNumber = nullptr;		// 生成したオブジェクトへのポインタ
 
@@ -35,7 +51,7 @@ CNumber *CNumber::Create(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const 
 	}
 
 	// 初期化処理
-	pNumber->Init(pos, size, nValue);
+	pNumber->Init(type, pos, size, nValue);
 
 	return pNumber;
 }
@@ -45,15 +61,6 @@ CNumber *CNumber::Create(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const 
 //==================================================================================
 CNumber::CNumber()
 {
-	// メンバ変数をクリア
-	m_pVtxBuff = nullptr;
-	m_pos = D3DXVECTOR3(0, 0, 0);
-	m_rot = D3DXVECTOR3(0, 0, 0);
-	m_size = D3DXVECTOR2(0, 0);
-	m_fLength = 0.0f;
-	m_fAngle = 0.0f;
-	m_nNumber = 0;
-	m_nIdxTexture = -1;
 }
 
 //==================================================================================
@@ -66,86 +73,7 @@ CNumber::~CNumber()
 //==================================================================================
 // --- 初期化処理 ---
 //==================================================================================
-HRESULT CNumber::Init(void)
-{
-	HRESULT hr;					// テクスチャ読み込みの判定
-	VERTEX_2D *pVtx = nullptr;		// 頂点情報へのポインタ
-	CRenderer *pRenderer = CManager::GetInstance()->GetRenderer();			// レンダラーへのポインタ
-	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
-
-	// サイズを初期化
-	m_size = D3DXVECTOR2(INIT_WIDTH, INIT_HEIGHT);
-	m_nNumber = 0;
-
-	// 頂点バッファ作成
-	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * 4,
-		D3DUSAGE_WRITEONLY,
-		FVF_VERTEX_2D,
-		D3DPOOL_MANAGED,
-		&m_pVtxBuff,
-		NULL);
-
-	if (FAILED(hr))
-	{ // 頂点バッファの生成に失敗した場合、エラーを返す
-		return hr;
-	}
-
-	// texload
-	m_nIdxTexture = CTexture::GetInstance()->Register(TEX_PATH);
-
-	// 対角線の長さと角度を求める
-	m_fLength = sqrtf(powf(INIT_WIDTH, 2) + powf(INIT_HEIGHT, 2)) * 0.5f;
-	m_fAngle = atan2f(INIT_WIDTH, INIT_HEIGHT);
-
-	// 頂点バッファをロック
-	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
-
-	// 頂点座標設定
-	pVtx[0].pos.x = m_pos.x + sinf(D3DX_PI + m_fAngle) * m_fLength;
-	pVtx[0].pos.y = m_pos.y + cosf(D3DX_PI + m_fAngle) * m_fLength;
-	pVtx[0].pos.z = 0.0f;
-
-	pVtx[1].pos.x = m_pos.x + sinf(D3DX_PI - m_fAngle) * m_fLength;
-	pVtx[1].pos.y = m_pos.y + cosf(D3DX_PI - m_fAngle) * m_fLength;
-	pVtx[1].pos.z = 0.0f;
-
-	pVtx[2].pos.x = m_pos.x + sinf(-m_fAngle) * m_fLength;
-	pVtx[2].pos.y = m_pos.y + cosf(-m_fAngle) * m_fLength;
-	pVtx[2].pos.z = 0.0f;
-
-	pVtx[3].pos.x = m_pos.x + sinf(m_fAngle) * m_fLength;
-	pVtx[3].pos.y = m_pos.y + cosf(m_fAngle) * m_fLength;
-	pVtx[3].pos.z = 0.0f;
-
-	// 座標変換用変数設定
-	pVtx[0].rhw = 1.0f;
-	pVtx[1].rhw = 1.0f;
-	pVtx[2].rhw = 1.0f;
-	pVtx[3].rhw = 1.0f;
-
-	// 頂点カラー設定
-	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-
-	// テクスチャ座標設定
-	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(0.1f, 0.0f);
-	pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
-	pVtx[3].tex = D3DXVECTOR2(0.1f, 1.0f);
-
-	// 頂点バッファをアンロック
-	m_pVtxBuff->Unlock();
-
-	// 初期化結果を返す
-	return hr;
-}
-
-//==================================================================================
-// --- 初期化処理 ---
-//==================================================================================
-HRESULT CNumber::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int nNumber)
+HRESULT CNumber::Init(const TYPE type, const Vector3 &pos, const Vector2 &size, const int nNumber)
 {
 	HRESULT hr;					// テクスチャ読み込みの判定
 	VERTEX_2D *pVtx = nullptr;		// 頂点情報へのポインタ
@@ -156,6 +84,7 @@ HRESULT CNumber::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int
 	m_pos = pos;
 	m_size = size;
 	m_nNumber = nNumber;
+	m_col = COLOR_ONE;
 
 	// 頂点バッファ作成
 	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * 4,
@@ -170,8 +99,8 @@ HRESULT CNumber::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int
 		return hr;
 	}
 
-	// texload
-	m_nIdxTexture = CTexture::GetInstance()->Register(TEX_PATH);
+	// TEXTUREをロード
+	m_nIdxTexture = CTexture::GetInstance()->Register(c_asNumberPath[type]);
 
 	// 対角線の長さと角度を求める
 	m_fLength = sqrtf(powf(size.x, 2) + powf(size.y, 2)) * 0.5f;
@@ -204,17 +133,17 @@ HRESULT CNumber::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int
 	pVtx[3].rhw = 1.0f;
 
 	// 頂点カラー設定
-	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[0].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[1].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[2].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[3].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
 	int nUV = m_nNumber % 10;
-	pVtx[0].tex = D3DXVECTOR2(0.1f * nUV, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(0.1f * nUV + 0.1f, 0.0f);
-	pVtx[2].tex = D3DXVECTOR2(0.1f * nUV, 1.0f);
-	pVtx[3].tex = D3DXVECTOR2(0.1f * nUV + 0.1f, 1.0f);
+	pVtx[0].tex = Vector2(0.1f * nUV, 0.0f);
+	pVtx[1].tex = Vector2(0.1f * nUV + 0.1f, 0.0f);
+	pVtx[2].tex = Vector2(0.1f * nUV, 1.0f);
+	pVtx[3].tex = Vector2(0.1f * nUV + 0.1f, 1.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuff->Unlock();
@@ -227,13 +156,8 @@ HRESULT CNumber::Init(const D3DXVECTOR3 &pos, const D3DXVECTOR2 &size, const int
 // --- 終了処理 ---
 //==================================================================================
 void CNumber::Uninit(void)
-{
-	// 頂点バッファの破棄
-	if (m_pVtxBuff != nullptr)
-	{ // 確保されていれば解放する
-		m_pVtxBuff->Release();
-		m_pVtxBuff = nullptr;
-	}
+{ // 頂点バッファの破棄
+	SafeRelease(m_pVtxBuff);
 }
 
 //==================================================================================
@@ -247,7 +171,9 @@ void CNumber::Update(void)
 // --- 描画処理 ---
 //==================================================================================
 void CNumber::Draw(void)
-{
+{ // 描画しない場合はスキップ
+	if (m_bDisp == false) return;
+
 	CRenderer *pRenderer = CManager::GetInstance()->GetRenderer();			// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
 
@@ -269,7 +195,7 @@ void CNumber::Draw(void)
 //==================================================================================
 // --- 位置設定処理 ---
 //==================================================================================
-void CNumber::SetPosition(const D3DXVECTOR3 &position)
+void CNumber::SetPosition(const Vector3 &position)
 {
 	VERTEX_2D *pVtx = nullptr;		// 頂点情報へのポインタ
 
@@ -303,7 +229,7 @@ void CNumber::SetPosition(const D3DXVECTOR3 &position)
 //==================================================================================
 // --- 角度設定処理 ---
 //==================================================================================
-void CNumber::SetRotation(const D3DXVECTOR3 &rotation)
+void CNumber::SetRotation(const Vector3 &rotation)
 {
 	VERTEX_2D *pVtx = nullptr;		// 頂点情報へのポインタ
 
@@ -337,7 +263,7 @@ void CNumber::SetRotation(const D3DXVECTOR3 &rotation)
 //==================================================================================
 // --- 位置+角度の設定処理 ---
 //==================================================================================
-void CNumber::SetPositionAndRotation(const D3DXVECTOR3 &position, const D3DXVECTOR3 &rotation)
+void CNumber::SetPositionAndRotation(const Vector3 &position, const Vector3 &rotation)
 {
 	VERTEX_2D *pVtx = nullptr;		// 頂点情報へのポインタ
 
@@ -372,7 +298,7 @@ void CNumber::SetPositionAndRotation(const D3DXVECTOR3 &position, const D3DXVECT
 //==================================================================================
 // --- サイズ設定処理 ---
 //==================================================================================
-void CNumber::SetSize(const D3DXVECTOR2 &size)
+void CNumber::SetSize(const Vector2 &size)
 {
 	VERTEX_2D *pVtx = nullptr;		// 頂点情報へのポインタ
 
@@ -380,8 +306,8 @@ void CNumber::SetSize(const D3DXVECTOR2 &size)
 	m_size = size;
 
 	// 対角線の長さと角度を求める
-	m_fLength = sqrtf(powf(size.x, 2) + powf(size.y, 2)) * 0.5f;
-	m_fAngle = atan2f(size.x, size.y);
+	m_fLength = sqrtf(powf(m_size.x, 2) + powf(m_size.y, 2)) * 0.5f;
+	m_fAngle = atan2f(m_size.x, m_size.y);
 
 	// 頂点バッファをロック
 	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
@@ -408,6 +334,28 @@ void CNumber::SetSize(const D3DXVECTOR2 &size)
 }
 
 //==================================================================================
+// --- 色設定処理 ---
+//==================================================================================
+void CNumber::SetColor(const Color &col)
+{
+	VERTEX_2D *pVtx = nullptr;		// 頂点情報へのポインタ
+
+	m_col = col;		// 色を保存
+
+	// 頂点バッファをロック
+	m_pVtxBuff->Lock(0, 0, (void **)&pVtx, 0);
+
+	// 色を設定
+	pVtx[0].col = m_col;
+	pVtx[1].col = m_col;
+	pVtx[2].col = m_col;
+	pVtx[3].col = m_col;
+
+	// 頂点バッファをアンロック
+	m_pVtxBuff->Unlock();
+}
+
+//==================================================================================
 // --- 値設定処理 ---
 //==================================================================================
 void CNumber::SetNumber(const int nValue)
@@ -422,10 +370,10 @@ void CNumber::SetNumber(const int nValue)
 
 	// テクスチャ座標設定
 	int nUV = m_nNumber % 10;
-	pVtx[0].tex = D3DXVECTOR2(0.1f * nUV, 0.0f);
-	pVtx[1].tex = D3DXVECTOR2(0.1f * nUV + 0.1f, 0.0f);
-	pVtx[2].tex = D3DXVECTOR2(0.1f * nUV, 1.0f);
-	pVtx[3].tex = D3DXVECTOR2(0.1f * nUV + 0.1f, 1.0f);
+	pVtx[0].tex = Vector2(0.1f * nUV, 0.0f);
+	pVtx[1].tex = Vector2(0.1f * nUV + 0.1f, 0.0f);
+	pVtx[2].tex = Vector2(0.1f * nUV, 1.0f);
+	pVtx[3].tex = Vector2(0.1f * nUV + 0.1f, 1.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuff->Unlock();

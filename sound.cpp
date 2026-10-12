@@ -39,7 +39,17 @@ private:
 //**********************************************************************************
 CSound::INFO const CSound::m_aInfo[CSound::LABEL_MAX] =		// サウンド情報
 {
-	{"data/SOUND/BGM/TITLE_BGM.wav", -1},		// タイトルBGM
+	{"data/SOUND/BGM/title.wav", -1},			// タイトル画面のBGM
+	{"data/SOUND/BGM/game.wav", -1},			// ゲーム画面のBGM
+	{"data/SOUND/BGM/result.wav", -1},			// 結果画面のBGM
+	{"data/SOUND/SE/select.wav", 0},			// 選択音
+	{"data/SOUND/SE/swing.wav", 0},				// 投擲音
+	{"data/SOUND/SE/electric.wav", 0},			// 通電音
+	{"data/SOUND/SE/electricLong.wav", 0},		// 通電音 (long ver)
+	{"data/SOUND/SE/electricShock.wav", 0},		// 感電音
+	{"data/SOUND/SE/walk.wav", -1},				// 歩行音
+	{"data/SOUND/SE/gaugeup.wav", -1},			// パーセント上昇音
+	{"data/SOUND/SE/electricLong.wav", -1},		// スキップ音
 };
 
 //**********************************************************************************
@@ -49,8 +59,7 @@ CSound::INFO const CSound::m_aInfo[CSound::LABEL_MAX] =		// サウンド情報
 // --- コンストラクタ ---
 //==================================================================================
 CSound::CSound()
-{
-	// メンバ変数のクリア
+{ // メンバ変数のクリア
 	m_pXAudio2 = nullptr;
 	m_pMasteringVoice = nullptr;
 	ZeroMemory(&m_apSourceVoice[0], sizeof(m_apSourceVoice));
@@ -351,19 +360,54 @@ void CSound::Stop(const LABEL label)
 // --- セグメント停止処理 (全て) ---
 //==================================================================================
 void CSound::Stop(void)
-{
-	// 一時停止
+{ // 停止
 	for (int nCntSound = 0; nCntSound < LABEL_MAX; nCntSound++)
 	{
-		if (m_apSourceVoice[nCntSound] != NULL)
-		{
-			// 一時停止
+		if (m_apSourceVoice[nCntSound] != nullptr)
+		{ // 一時停止
 			m_apSourceVoice[nCntSound]->Stop(0);
 
 			// オーディオバッファの削除
 			m_apSourceVoice[nCntSound]->FlushSourceBuffers();
 		}
 	}
+}
+
+//==================================================================================
+// --- セグメントの一時停止処理 (全て) ---
+//==================================================================================
+void CSound::Pause(const bool bPause, const LABEL label)
+{
+	if (m_apSourceVoice[label] != nullptr)
+	{ // 一時停止
+		if (bPause == true)
+		{ // 停止
+			m_apSourceVoice[label]->Stop(0);
+		}
+		else
+		{ // 再生
+			m_apSourceVoice[label]->Start(0);
+		}
+	}
+}
+
+//==================================================================================
+// --- セグメントの一時停止処理 ---
+//==================================================================================
+void CSound::Pause(const bool bPause)
+{ // 一時停止
+	for (int nCntSound = 0; nCntSound < LABEL_MAX; nCntSound++)
+	{
+		Pause(bPause, static_cast<LABEL>(nCntSound));
+	}
+}
+
+//==================================================================================
+// --- セグメントのピッチ変更処理 ---
+//==================================================================================
+void CSound::SetPitch(const LABEL label, const float fPitch)
+{
+	m_apSourceVoice[label]->SetFrequencyRatio(fPitch);
 }
 
 //==================================================================================

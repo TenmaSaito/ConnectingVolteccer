@@ -10,9 +10,11 @@
 //**********************************************************************************
 #include "scene.h"
 #include "title.h"
+#include "tutorial.h"
 #include "game.h"
-#include "gameover.h"
-#include "gameclear.h"
+#include "result.h"
+#include "ranking.h"
+#include "edit.h"
 
 //==================================================================================
 // --- モードの設定処理 ---
@@ -28,16 +30,24 @@ CScene *CScene::Create(const MODE mode)
 		pScene = new CTitle;
 		break;
 
+	case MODE_TUTORIAL:		// チュートリアルシーンを生成
+		pScene = new CTutorial;
+		break;
+
 	case MODE_GAME:			// ゲームシーンを生成
 		pScene = new CGame;
 		break;
 
-	case MODE_GAMEOVER:		// ゲームオーバーシーンを生成
-		pScene = new CGameOver;
+	case MODE_RESULT:		// リザルトシーンを生成
+		pScene = new CResult;
 		break;
 
-	case MODE_GAMECLEAR:		// ゲームクリアシーンを生成
-		pScene = new CGameClear;
+	case MODE_RANKING:		// ランキングシーンを生成
+		pScene = new CRanking;
+		break;
+
+	case MODE_EDIT:			// エディットシーンを生成
+		pScene = new CEdit;
 		break;
 	}
 
@@ -52,7 +62,7 @@ CScene *CScene::Create(const MODE mode)
 //==================================================================================
 // --- モードの設定処理 (pOutに代入後初期化) ---
 //==================================================================================
-CScene *CScene::Create(const MODE mode, CScene **ppOut)
+CScene *CScene::Create(const MODE mode, std::unique_ptr<CScene> &rpOut)
 {
 	CScene *pScene = nullptr;		// 生成したシーン
 
@@ -63,23 +73,29 @@ CScene *CScene::Create(const MODE mode, CScene **ppOut)
 		pScene = new CTitle;
 		break;
 
+	case MODE_TUTORIAL:		// チュートリアルシーンを生成
+		pScene = new CTutorial;
+		break;
+
 	case MODE_GAME:			// ゲームシーンを生成
 		pScene = new CGame;
 		break;
 
-	case MODE_GAMEOVER:		// ゲームオーバーシーンを生成
-		pScene = new CGameOver;
+	case MODE_RESULT:		// リザルトシーンを生成
+		pScene = new CResult;
 		break;
 
-	case MODE_GAMECLEAR:		// ゲームクリアシーンを生成
-		pScene = new CGameClear;
+	case MODE_RANKING:		// ランキングシーンを生成
+		pScene = new CRanking;
+		break;
+
+	case MODE_EDIT:			// エディットシーンを生成
+		pScene = new CEdit;
 		break;
 	}
 
-	if (ppOut != nullptr)
-	{ // nullptrでは無ければ代入
-		*ppOut = pScene;
-	}
+	// ポインタ設定
+	rpOut.reset(pScene);
 
 	if (pScene != nullptr)
 	{ // 生成成功時、シーンの初期化

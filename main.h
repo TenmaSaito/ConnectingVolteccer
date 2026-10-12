@@ -18,7 +18,6 @@
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define ENABLE_WINDOW		(TRUE)			// ウィンドウフラグ
 #define ENABLE_NULLPOINTER_ASSERT			// NULL時のアサートの有効化マクロ
 #ifdef ENABLE_NULLPOINTER_ASSERT
 #define NULLPOINTER_ASSERT(pointer)		assert(pointer != nullptr)		// NULLアサート
@@ -27,24 +26,23 @@
 #endif
 
 //**********************************************************************************
-// *** 定数宣言 ***
-//**********************************************************************************
-namespace Constant
-{
-	const D3DXVECTOR3 Middle = D3DXVECTOR3(SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f, 0.0f);		// スクリーンの中心座標
-	const D3DXCOLOR ZeroCol = D3DXCOLOR(0, 0, 0, 0);	// D3DXCOLORの0クリア
-	const D3DXCOLOR White = D3DXCOLOR(1, 1, 1, 1);		// D3DXCOLORの基本色(白)
-}
-
-//**********************************************************************************
 // *** プロトタイプ宣言 ***
 //**********************************************************************************
 template<class T> void SafeRelease(T *&pRelease)
 { // 安全なCOMオブジェクト解放処理
 	if (pRelease != nullptr)
-	{ // nullptr出なければ破棄
+	{ // nullptrでなければ解放
 		pRelease->Release();
 		pRelease = nullptr;
+	}
+}
+
+template<class T> void SafeUniqueUninit(std::unique_ptr<T> &ptr)
+{ // ユニークポインタのバッファ解放処理
+	if (ptr != nullptr)
+	{ // nullptrでなければ解放
+		ptr->Uninit();
+		ptr.reset();
 	}
 }
 #endif

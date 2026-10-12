@@ -12,7 +12,6 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "main.h"
-#include <list>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -25,7 +24,7 @@
 class CInstancingModel
 {
 public:
-	using Where = std::list<const D3DXMATRIX*>::const_iterator;
+	using Where = std::list<const Matrix*>::const_iterator;
 
 	// モデルデータ構造体
 	struct Data
@@ -34,10 +33,10 @@ public:
 		LPD3DXBUFFER pMat;		// マテリアルへのポインタ
 		DWORD dwNumMat;			// マテリアルの数
 		int *pIdx;				// テクスチャインデックスへのポインタ
-		std::list<const D3DXMATRIX*> apMtxWorld;		// 描画するオブジェクトのマトリックスへのポインタ
+		std::list<const Matrix*> apMtxWorld;		// 描画するオブジェクトのマトリックスへのポインタ
 	};
 
-	Where Resister(const D3DXMATRIX *pMtxWorld);
+	Where Resister(const Matrix *pMtxWorld);
 	void Remove(const Where iter);
 
 private:

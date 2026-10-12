@@ -17,12 +17,12 @@
 // *** 前方宣言 ***
 //**********************************************************************************
 class CTitleCamera;
-class CObject2D;
+class CTitleMenu;
 
 //**********************************************************************************
 // *** タイトルクラス ***
 //**********************************************************************************
-class CTitle : public CScene
+class CTitle : public CSceneBase<CTitle, CScene::MODE_TITLE>
 {
 public:
 	CTitle();
@@ -32,11 +32,11 @@ public:
 	void Uninit(void) override;
 	void Update(void) override;
 	void Draw(void) override;
-	CObject2D *GetLogo(void) const { return m_pLogo; }
+	CTitleMenu *GetMenu(void) const { return m_pMenu; }
 
 private:
 	void Start(void);
 
-	CObject2D *m_pLogo;		// ロゴ
+	CTitleMenu *m_pMenu;	// メニュー
 };
 #endif

@@ -14,59 +14,82 @@
 #include "object.h"
 
 //**********************************************************************************
+// *** マクロ定義 ***
+//**********************************************************************************
+#define DEFAULT_ALPHA				(-1.0f)					// α値適用の取り消し値
+#define DEFAULT_DARKNESS			(1.0f)					// マテリアルの濃さの基本値
+#define DEFAULT_OBJX_QUA_PRIORITY	DEFAULT_OBJ_PRIORITY	// objXQuaの基本優先順位
+
+//**********************************************************************************
 // *** Xモデル(クォータニオン仕様)クラス ***
 //**********************************************************************************
 class CObjectXQuaternion : public CObject
 {
 public:
 	static CObjectXQuaternion *Create(const char *pXFileName,
-		const D3DXVECTOR3 &pos,
-		const D3DXVECTOR3 &vecQua,
+		const Vector3 &pos,
+		const Vector3 &vecQua,
 		const float fAngle);
 
-	CObjectXQuaternion(const int nPriority = DEFAULT_OBJ_PRIORITY);
+	CObjectXQuaternion(const int nPriority = DEFAULT_OBJX_QUA_PRIORITY);
 	~CObjectXQuaternion();
 
-	HRESULT Init(const char *pXFileName, const D3DXVECTOR3 &pos, const D3DXVECTOR3 &vecQua, const float fAngle);
-	HRESULT Init(const char *pXFileName, const D3DXVECTOR3 &pos, const D3DXQUATERNION &qua);
+	HRESULT Init(const char *pXFileName, const Vector3 &pos, const Vector3 &vecQua, const float fAngle);
+	HRESULT Init(const char *pXFileName, const Vector3 &pos, const Quaternion &qua);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
-	void SetPosition(const D3DXVECTOR3 &position) { m_pos = position; }
-	const D3DXVECTOR3 *GetPosition(void) const { return &m_pos; }
-	D3DXVECTOR3 GetWorldPosition(void) const;
-	void SetVecQua(const D3DXVECTOR3 &vecQua) { m_vecQua = vecQua; }
-	const D3DXVECTOR3 *GetVecQua(void) const { return &m_vecQua; }
+	void SetPosition(const Vector3 &position) { m_pos = position; }
+	const Vector3 *GetPosition(void) const { return &m_pos; }
+	Vector3 GetWorldPosition(void);
+	void SetScale(const Vector3 &scale) { m_scale = scale; }
+	const Vector3 *GetScale(void) const { return &m_scale; }
+	void SetVecQua(const Vector3 &vecQua) { m_vecQua = vecQua; }
+	const Vector3 *GetVecQua(void) const { return &m_vecQua; }
 	void SetAngle(const float fAngle);
 	void AddAngle(const float fAngle);
 	float GetAngle(void) const { return m_fAngle; }
-	const D3DXVECTOR3 *GetVtxMin(void) const { return &m_vtxMin; }
-	const D3DXVECTOR3 *GetVtxMax(void) const { return &m_vtxMax; }
-	const D3DXMATRIX *GetMatrix(void) const { return &m_mtxWorld; }
-	void SetParent(const D3DXMATRIX *pParent) { m_pMtxParent = pParent; }
-	const D3DXMATRIX *GetParent(void) const { return m_pMtxParent; }
+	void SetMaterial(const size_t pos, const D3DMATERIAL9 &mat) { m_vMat.at(pos) = mat; }
+	const D3DMATERIAL9 *GetMaterial(const size_t pos) const { return &m_vMat.at(pos); }
+	void SetDarkness(const float fDarkness) { m_fDarkness = fDarkness; }
+	float GetDarkness(void) const { return m_fDarkness; }
+	void SetAlpha(const float fAlpha) { m_fAlpha = fAlpha; }
+	float GetAlpha(void) const { return m_fAlpha; }
+	const Vector3 *GetVtxMin(void) const { return &m_vtxMin; }
+	const Vector3 *GetVtxMax(void) const { return &m_vtxMax; }
+	const Matrix *GetMatrix(void) const { return &m_mtxWorld; }
+	const Matrix *CalcMatrix(void);
+	Matrix *CalcMatrixUnaffect(Matrix *pOut) const;
+	void SetParent(const Matrix *pParent) { m_pMtxParent = pParent; }
+	const Matrix *GetParent(void) const { return m_pMtxParent; }
 	const char *GetFileName(void) const { return m_aFileName; }
 	void CaluQuaternion(void);
-	const D3DXQUATERNION *GetQuaternion(void) const { return &m_qua; }
+	const Quaternion *GetQuaternion(void) const { return &m_qua; }
+	bool IsHitByRay(const Vector3 &start, const Vector3 &vec, const float fLength);
+	bool IsHitByPlayerCamRay(void);
 
 protected:
-	D3DXQUATERNION *GetQuaternionPtr(void) { return &m_qua; }
+	Quaternion *GetQuaternionPtr(void) { return &m_qua; }
 
 private:
 	HRESULT	LoadXFile(const char *pXFileName);
 
 	LPD3DXMESH m_pMesh;				// メッシュ(頂点情報)へのポインタ
 	LPD3DXBUFFER m_pBuffMat;		// マテリアルへのポインタ
-	int *m_pIdx;					// テクスチャインデックスの配列
+	std::vector<int> m_vIdx;		// テクスチャインデックスの配列
 	DWORD m_dwNumMat;				// マテリアルの数
-	D3DXVECTOR3 m_vtxMin, m_vtxMax;	// モデルの各最大最小頂点の位置
-	D3DXVECTOR3 m_pos;				// 位置
-	D3DXVECTOR3 m_vecQua;			// 任意軸
+	Vector3 m_vtxMin, m_vtxMax;		// モデルの各最大最小頂点の位置
+	Vector3 m_pos;					// 位置
+	Vector3 m_scale;				// サイズ
+	Vector3 m_vecQua;				// 任意軸
 	float m_fAngle;					// 軸回転
-	D3DXQUATERNION m_qua;			// クォータニオン
-	D3DXMATRIX m_mtxWorld;			// ワールドマトリックス
-	const D3DXMATRIX *m_pMtxParent;	// 親のワールドマトリックス
+	Quaternion m_qua;				// クォータニオン
+	Matrix m_mtxWorld;				// ワールドマトリックス
+	const Matrix *m_pMtxParent;		// 親のワールドマトリックス
+	std::vector<D3DMATERIAL9> m_vMat;	// モデルのマテリアル色
+	float m_fDarkness;				// マテリアルの濃さ
+	float m_fAlpha;					// α値
 	char m_aFileName[MAX_PATH];		// ファイル名
-	bool m_bHitByPlayerCamRay;		// プレイヤーカメラとのレイ判定
+	bool m_bCalcMatrix;				// マトリックスが一度でも計算されたかを示すフラグ
 };
 #endif

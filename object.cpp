@@ -62,6 +62,9 @@ CObject::CObject(const int nPriority)
 		}
 	}
 #endif
+
+	// タイプを設定
+	SetType(TYPE_NONE);
 }
 
 //==================================================================================
@@ -69,6 +72,21 @@ CObject::CObject(const int nPriority)
 //==================================================================================
 CObject::~CObject()
 {
+}
+
+//==================================================================================
+// --- 自身の観察者に対しての通知処理 ---
+//==================================================================================
+void CObject::NotifyAll(std::string_view message)
+{
+	std::vector<CObject*> vpSnapshot = m_vpObserver;	// Notify直前のポインタ配列のコピー
+	for (auto &pObserver : vpSnapshot)
+	{ // nullの場合スキップ
+		if (pObserver == nullptr) continue;
+
+		// 自身が死んだことを通知
+		pObserver->Notified(this, message);
+	}
 }
 
 //==================================================================================
@@ -121,6 +139,11 @@ void CObject::UpdateAll(void)
 		{ // nullptrになるまで繰り返す
 			CObject *pObjectNext = pObject->m_pNext;	// 次のオブジェクトへのポインタ
 
+#ifdef DEBUG_ASSERT_TYPE_NONE
+			// オブジェクトのタイプがNONEの場合、アサーション + ブレークポイント
+			assert(pObject->m_type != TYPE_NONE);
+			if (pObject->m_type == TYPE_NONE) __debugbreak();
+#endif
 			// オブジェクトの更新
 			pObject->Update();
 
@@ -211,6 +234,90 @@ void CObject::FlagCheckAll(void)
 }
 
 //==================================================================================
+// --- オブジェクトの検索処理 (タイプ指定 : 最初に見つかったポインタ) ---
+//==================================================================================
+CObject *CObject::FindAnyObjectByType(const TYPE type)
+{
+	CObject *pObject = nullptr;		// 見つかったオブジェクトへのポインタ
+
+	for (int nCntPriority = 0; nCntPriority < MAX_OBJPRIORITY; nCntPriority++)
+	{ // 全プライオリティを検索
+		pObject = FindAnyObjectByType(nCntPriority, type);
+
+		// ポインタがnullでなければ終了
+		if (pObject != nullptr) break;
+	}
+
+	// 検索結果を返す
+	return pObject;
+}
+
+//==================================================================================
+// --- オブジェクトの検索処理 (優先順位, タイプ指定 : 最初に見つかったポインタ) ---
+//==================================================================================
+CObject *CObject::FindAnyObjectByType(const int nPriority, const TYPE type)
+{
+	CObject *pObject = m_apTop[nPriority];		// オブジェクトへのポインタ
+
+	while (pObject != nullptr)
+	{ // オブジェクトへのポインタがnullではない間ループ
+		CObject *pObjectNext = pObject->GetNext();		// 次のオブジェクトへのポインタ
+
+		// タイプが同じだった場合、ループ終了
+		if (pObject->GetType() == type) break;
+
+		pObject = pObjectNext;		// ポインタを進める
+	}
+
+	// 検索結果を返す
+	return pObject;
+}
+
+//==================================================================================
+// --- オブジェクトの検索処理 (タイプ指定 : 見つかったポインタ全て) ---
+//==================================================================================
+std::deque<CObject*> CObject::FindObjectsByType(const TYPE type)
+{
+	std::deque<CObject*> vpObject;				// 見つかったオブジェクトへのポインタ
+
+	for (int nCntPriority = 0; nCntPriority < MAX_OBJPRIORITY; nCntPriority++)
+	{ // 全プライオリティを検索
+		std::deque<CObject*> vpFind;		// 今回のプライオリティで見つかった配列
+
+		// 検索
+		vpFind = std::move(FindObjectsByType(nCntPriority, type));
+
+		// 配列の要素を挿入
+		vpObject.insert(vpObject.end(), vpFind.begin(), vpFind.end());
+	}
+
+	// 検索結果を返す
+	return vpObject;
+}
+
+//==================================================================================
+// --- オブジェクトの検索処理 (優先順位, タイプ指定 : 見つかったポインタ全て) ---
+//==================================================================================
+std::deque<CObject*> CObject::FindObjectsByType(const int nPriority, const TYPE type)
+{
+	CObject *pObject = m_apTop[nPriority];		// オブジェクトへのポインタ
+	std::deque<CObject*> vpObject;				// 見つかったオブジェクトへのポインタ
+
+	while (pObject != nullptr)
+	{ // オブジェクトへのポインタがnullではない間ループ
+		CObject *pObjectNext = pObject->GetNext();		// 次のオブジェクトへのポインタ
+
+		// タイプが同じだった場合、ポインタを追加
+		if (pObject->GetType() == type) vpObject.push_back(pObject);
+
+		pObject = pObjectNext;		// ポインタを進める
+	}
+
+	// 検索結果を返す
+	return vpObject;
+}
+
+//==================================================================================
 // --- 自身の解放処理 ---
 //==================================================================================
 void CObject::Release(void)
@@ -230,6 +337,9 @@ void CObject::Release(void)
 
 	m_nNumAll--;		// 総数減少
 #endif
+
+	// 死亡したことを通知
+	NofifyAllWhenDeath();
 }
 
 //==================================================================================
@@ -280,4 +390,12 @@ void CObject::RemoveList(void)
 	{ // 最後尾が自分なら
 		rpCur = m_pPrev;		// 最後尾を前のオブジェクトに変更
 	}
+}
+
+//==================================================================================
+// --- 自身の死亡を観察者へ通知する処理 ---
+//==================================================================================
+void CObject::NofifyAllWhenDeath(void)
+{ // 自身が死んだことを通知
+	NotifyAll(NOTIFY_WHEN_DEATH);
 }

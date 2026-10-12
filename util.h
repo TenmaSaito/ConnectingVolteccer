@@ -24,65 +24,26 @@ namespace Util
 	float FixedRotation(const float fRadian);
 	float Lerp(const float fStart, const float fEnd, const float ft);
 	void SetStringSetting(const int nNumPrecision);
-	template<class T> std::string ToString(const T &value);
-#ifdef _DEBUG
-	template<class T> T *GetTemp(const T &value);
-#else
-	template<class T>
-	[[deprecated("is not safe function. please use local pointer.")]] T* GetTemp(const T& value);
-#endif
+
+	constexpr int GetNumInt(const int nValue)
+	{ // 引数の桁数取得処理
+		int nValueWork = nValue;		// 計算用変数
+		int nNumValue = 1;				// 引数の桁数
+
+		while (nValueWork / 10 > 0)
+		{ // 10で割った値が0以下の場合ループ終了
+			nNumValue++;
+			nValueWork /= 10;
+		}
+
+		return nNumValue;
+	}
+
+	template<class E> E AddEnum(const E &num, const int nValue)
+	{ // 列挙型の加減演算処理
+		int nValueWork = static_cast<int>(num);
+		nValueWork += nValue;
+		return static_cast<E>(nValueWork);
+	}
 }
-
-//==================================================================================
-// --- 文字列変換処理 ---
-//==================================================================================
-template<class T> std::string Util::ToString(const T &value)
-{
-	std::string str;				// 変換後文字列
-	std::stringstream ss;			// 文字列のストリーム
-	std::streambuf *pDefBuff;		// 元の出力ストリーム
-
-	// 出力ストリーム先を文字列へ変更
-	pDefBuff = std::cout.rdbuf(ss.rdbuf());
-
-	// 変数を入力
-	std::cout << value;
-
-	// 文字列を代入
-	str += ss.str();
-
-	// 出力ストリーム先を元に戻す
-	std::cout.rdbuf(pDefBuff);
-
-	// 変換後の文字列を返す
-	return str;
-}
-
-//==================================================================================
-// --- 一時アドレス取得処理 ---
-//==================================================================================
-#ifdef _DEBUG
-template<class T> T *Util::GetTemp(const T &value)
-{
-	static T tempValue;		// アドレス化用変数
-
-	// バッファをコピー
-	memcpy(&tempValue, &value, sizeof(T));
-
-	// 変数へのアドレスを返す
-	return &tempValue;
-}
-#else
-template<class T>
-[[deprecated("Is not safe function. Please use local pointer.")]] T* Util::GetTemp(const T& value)
-{
-	static T tempValue;		// アドレス化用変数
-
-	// バッファをコピー
-	memcpy(&tempValue, &value, sizeof(T));
-
-	// 変数へのアドレスを返す
-	return &tempValue;
-}
-#endif
 #endif

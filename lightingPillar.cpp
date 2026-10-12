@@ -1,0 +1,108 @@
+//==================================================================================
+// 
+// 光の柱クラスのソースファイル [lightingPillar.cpp]
+// Author : TENMA SAITO
+// Date   : 2026/8/28
+// 
+//==================================================================================
+//**********************************************************************************
+// *** インクルードファイル ***
+//**********************************************************************************
+#include "lightingPillar.h"
+
+//**********************************************************************************
+// *** マクロ定義 ***
+//**********************************************************************************
+#define HEIGHT_VALUE		(15.0f)			// 縦幅の増加係数
+//#define ENABLE_GOD_JUDGE		// バグで発生した神の裁き風演出
+
+//==================================================================================
+// --- 生成処理 ---
+//==================================================================================
+CLightingPillar *CLightingPillar::Create(const Vector3 &pos,
+	const Vector2 &scale,
+	const Color &color)
+{
+	CLightingPillar *pPillar = new CLightingPillar;		// 生成したインスタンスへのポインタ
+	if (pPillar != nullptr)
+	{ // 生成出来ていれば、初期化
+		pPillar->Init(pos, scale, color);
+	}
+
+	return pPillar;
+}
+
+//==================================================================================
+// --- コンストラクタ ---
+//==================================================================================
+CLightingPillar::CLightingPillar() : CObjectBillboard3D(DEFAULT_ADD_PRIORITY)
+{ // メンバ変数のクリア
+	m_fCurrentHeight = 0.0f;
+	m_fEndHeight = 0.0f;
+	m_bStartScaleUp = false;
+}
+
+//==================================================================================
+// --- デストラクタ ---
+//==================================================================================
+CLightingPillar::~CLightingPillar()
+{
+}
+
+//==================================================================================
+// --- 初期化処理 ---
+//==================================================================================
+HRESULT CLightingPillar::Init(const Vector3 &pos, const Vector2 &scale, const Color &color)
+{ // 親クラスの初期化
+	CObjectBillboard3D::Init(pos, VECTOR3_NULL, Vector2(scale.x, 0.0f), INT_MAX);
+
+	// 色を適用
+	SetColor(color);
+
+	// 最終的な高さ
+	m_fEndHeight = scale.y;
+	return S_OK;
+}
+
+//==================================================================================
+// --- 終了処理 ---
+//==================================================================================
+void CLightingPillar::Uninit(void)
+{ // 親クラスの終了
+	CObjectBillboard3D::Uninit();
+}
+
+//==================================================================================
+// --- 更新処理 ---
+//==================================================================================
+void CLightingPillar::Update(void)
+{ // 既に死んでいる場合、スキップ
+	if (IsDeath() == true) return;
+
+	if (m_fCurrentHeight < m_fEndHeight && m_bStartScaleUp == true)
+	{ // 縦幅を増加
+		m_fCurrentHeight += HEIGHT_VALUE;
+		if (m_fCurrentHeight >= m_fEndHeight)
+		{ // 最終的な縦幅を超えた場合、修正
+			m_fCurrentHeight = m_fEndHeight;
+		}
+
+		// サイズを適用 + 位置を調整
+		CObjectBillboard3D::SetSize(Vector2(CObjectBillboard3D::GetSize()->x, m_fCurrentHeight));
+#ifndef ENABLE_GOD_JUDGE		// 神の裁き風演出なら無し
+		const Vector3 *pPos = CObjectBillboard3D::GetPosition();		// 位置の取得
+		CObjectBillboard3D::SetPosition(Vector3(pPos->x, m_fCurrentHeight * 0.5f, pPos->z));
+#endif
+	}
+
+	// 親クラスの更新
+	CObjectBillboard3D::Update();
+}
+
+//==================================================================================
+// --- 描画処理 ---
+//==================================================================================
+void CLightingPillar::Draw(void)
+{ // 親クラスの描画
+	CObjectBillboard3D::Draw();
+}

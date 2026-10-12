@@ -12,26 +12,23 @@
 #include "object.h"
 #include "manager.h"
 #include "renderer.h"
+#include "sound.h"
 #include "camera.h"
 #include "input.h"
 #include "joypad.h"
 #include "texture.h"
 #include "object2D.h"
-#include "camera.h"
-
-//**********************************************************************************
-// *** マクロ定義 ***
-//**********************************************************************************
-#define LOGO_POSITION		D3DXVECTOR3(WINDOW_MIDDLE.x, 200.0f, 0.0f)		// ロゴの位置
-#define LOGO_SIZE			D3DXVECTOR2(800.0f, 200.0f)		// ロゴのサイズ
-#define LOGO_FILEPATH		"data/TEXTURE/titlelogo.png"	// ロゴテクスチャへのパス
+#include "titleCamera.h"
+#include "titlemenu.h"
+#include "mapManager.h"
+#include "planet.h"
 
 //==================================================================================
 // --- コンストラクタ ---
 //==================================================================================
-CTitle::CTitle() : CScene(MODE_TITLE)
+CTitle::CTitle()
 { // 親クラスのコンストラクタ呼び出し
-	m_pLogo = nullptr;
+	m_pMenu = nullptr;
 }
 
 //==================================================================================
@@ -45,8 +42,7 @@ CTitle::~CTitle()
 // --- 初期化処理 ---
 //==================================================================================
 HRESULT CTitle::Init(void)
-{
-	// 開始処理
+{ // 開始処理
 	Start();
 
 	return S_OK;
@@ -64,14 +60,20 @@ void CTitle::Uninit(void)
 //==================================================================================
 void CTitle::Update(void)
 {
-	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
-	CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();		// キーボードへのポインタ
-	CJoypad *pJoypad = pManager->GetJoypad();			// ジョイパッドへのポインタ
+	// 惑星を回転
+	CMapManager *pMap = CMapManager::GetInstance();		// マップマネージャへのポインタ
+	Vector3 vecQua = Vector3(0.0f, D3DX_PI, 0.0f);		// 軸
+	float fAngle = 0.005f;	// 回転度数
+	Quaternion qua;			// かけ合わせるクォータニオン
 
-	if (pKeyboard->GetTrigger(DIK_RETURN) || pJoypad->GetTrigger(CJoypad::KEY_A))
-	{ // シーン遷移
-		pManager->SetTransition(CScene::MODE_GAME);
-	}
+	// クォータニオンを計算
+	D3DXQuaternionIdentity(&qua);
+	D3DXQuaternionRotationAxis(&qua,
+		&vecQua,
+		fAngle);
+
+	// 惑星に掛ける
+	pMap->GetPlanet()->MultiplyQuaternion(qua);
 
 	// 全カメラの更新処理
 	CCamera::UpdateAll();
@@ -89,13 +91,30 @@ void CTitle::Draw(void)
 //==================================================================================
 void CTitle::Start(void)
 {
-	// ロゴ生成
-	m_pLogo = CObject2D::Create(LOGO_POSITION, LOGO_SIZE);
-	m_pLogo->BindTexture(CTexture::GetInstance()->Register(LOGO_FILEPATH));
-
 	// 仮置きでカメラを生成 (自動解放)
 	// TODO : ここのカメラはタイトル用のカメラを作って置き換える事！
-	CCamera *pCamera = new CCamera(CCamera::TYPE_TITLE);
-	pCamera->Init(D3DXVECTOR3(0.0f, 0.0f, -100.0f));
+	float x = 2100.0f;
+	float y = 0.0f;
+	CTitleCamera *pCamera = CTitleCamera::Create(Vector3(x, y, -2800.0f), Vector3(x, y, 0.0f));
 	pCamera->SetFocus();
+
+	// タイトル画面のメニューを生成
+	m_pMenu = CTitleMenu::Create();
+
+	CMapManager *pMap = CMapManager::GetInstance();		// マップマネージャへのポインタ
+	CPlanet *pPlanet = nullptr;		// 惑星へのポインタ
+
+	// マップを読み込み
+	pMap->LoadLatest();
+
+	Quaternion quaInv;				// 反転したクォータニオン
+
+	// 惑星へのポインタを取得して、逆向きのクォータニオンをかけ合わせる
+	pPlanet = pMap->GetPlanet();
+	pPlanet->MultiplyQuaternion(*D3DXQuaternionInverse(&quaInv, pPlanet->GetQuaternion()));
+
+	CSound *pSound = CManager::GetInstance()->GetSound();		// サウンドへのポインタ
+
+	// タイトル画面のBGMを流す
+	pSound->Play(CSound::LABEL_BGM_TITLE);
 }

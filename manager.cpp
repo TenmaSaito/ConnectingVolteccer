@@ -13,13 +13,14 @@
 #include "windowCapture.h"
 #include "input.h"
 #include "joypad.h"
+#include "pause.h"
 #include "debugproc.h"
 #include "sound.h"
 #include "circleTransition.h"
 #include "object.h"
 #include "object2D.h"
 #include "object3D.h"
-#include "objectBillboard.h"
+#include "objectBillboard3D.h"
 #include "objectX.h"
 #include "camera.h"
 #include "playerCamera.h"
@@ -31,25 +32,25 @@
 #include "electricCurrent.h"
 #include "effect.h"
 #include "meshField.h"
-#include "planet.h"
-#include "map.h"
 #include "util.h"
 #include "scene.h"
 #include "meshSphere.h"
+#include "motionLoader.h"
+#include "partsLoader.h"
+#include "mapManager.h"
 
 //**********************************************************************************
 // *** マクロ定義 ***
 //**********************************************************************************
-#define CAPTURE_DIRECTLY		"data/SCREENSHOT"		// 画面キャプチャの画像のディレクトリパス
+#define CAPTURE_DIRECTLY		"data/SCREENSHOT"			// 画面キャプチャの画像のディレクトリパス
+#define TRANSITION_FRAME		(CManager::SecToFrame(2))	// シーン遷移の移行時間
 
 //==================================================================================
 // --- マネージャの取得処理 ---
 //==================================================================================
 CManager *CManager::GetInstance(void)
 {
-	static CManager manager;		// マネージャのオブジェクト (始めた呼ばれたときのみ生成)
-
-	// マネージャへのポインタを返す
+	static CManager manager;		// インスタンス
 	return &manager;
 }
 
@@ -69,11 +70,9 @@ CManager::CManager()
 	m_pLight = nullptr;
 	m_pTransition = nullptr;
 	m_pScene = nullptr;
-	m_nFrameRate = DEFAULT_APPLICATION_FRAMERATE;
+	m_modeOld = CScene::MODE_NONE;
 	m_nCountFPS = 0;
 	m_nCounterFrame = 0;
-	m_nNumPole = 0;
-	m_bPause = false;
 }
 
 //==================================================================================
@@ -102,7 +101,7 @@ HRESULT CManager::Init(const HINSTANCE hInstance, const HWND hWnd, const BOOL bW
 	if (m_pRenderer == nullptr)
 	{ // レンダラーがNULLの場合
 		// レンダラーを生成
-		m_pRenderer = new CRenderer;
+		m_pRenderer = std::make_unique<CRenderer>();
 		if (m_pRenderer == nullptr)
 		{ // 生成失敗
 			MessageBox(hWnd, "レンダラーの生成に失敗しました！", "Failed", MB_ICONERROR);
@@ -122,7 +121,7 @@ HRESULT CManager::Init(const HINSTANCE hInstance, const HWND hWnd, const BOOL bW
 	if (m_pCapture == nullptr)
 	{ // もしまだ生成されていないなら
 		// キャプチャオブジェクトを生成
-		m_pCapture = new CWindowCapture;
+		m_pCapture = std::make_unique<CWindowCapture>();
 		if (m_pCapture == nullptr)
 		{ // 生成失敗
 			MessageBox(hWnd, "キャプチャオブジェクトの生成に失敗しました！", "Failed", MB_ICONERROR);
@@ -142,7 +141,7 @@ HRESULT CManager::Init(const HINSTANCE hInstance, const HWND hWnd, const BOOL bW
 	if (m_pInputKeyboard == nullptr)
 	{ // もしまだ生成されていないなら
 		// キーボードを生成
-		m_pInputKeyboard = new CInputKeyboard;
+		m_pInputKeyboard = std::make_unique<CInputKeyboard>();
 		if (m_pInputKeyboard == nullptr)
 		{ // 生成失敗
 			MessageBox(hWnd, "キーボードの生成に失敗しました！", "Failed", MB_ICONERROR);
@@ -162,7 +161,7 @@ HRESULT CManager::Init(const HINSTANCE hInstance, const HWND hWnd, const BOOL bW
 	if (m_pInputMouse == nullptr)
 	{ // もしまだ生成されていないなら
 		// マウスを生成
-		m_pInputMouse = new CInputMouse;
+		m_pInputMouse = std::make_unique<CInputMouse>();
 		if (m_pInputMouse == nullptr)
 		{ // 生成失敗
 			MessageBox(hWnd, "マウスの生成に失敗しました！", "Failed", MB_ICONERROR);
@@ -182,7 +181,7 @@ HRESULT CManager::Init(const HINSTANCE hInstance, const HWND hWnd, const BOOL bW
 	if (m_pJoypad == nullptr)
 	{ // もしまだ生成されていないなら
 		// ジョイパッドを生成
-		m_pJoypad = new CJoypad;
+		m_pJoypad = std::make_unique<CJoypad>();
 		if (m_pJoypad == nullptr)
 		{ // 生成失敗
 			MessageBox(hWnd, "ジョイパッドの生成に失敗しました！", "Failed", MB_ICONERROR);
@@ -197,7 +196,7 @@ HRESULT CManager::Init(const HINSTANCE hInstance, const HWND hWnd, const BOOL bW
 	if (m_pDebugProc == nullptr)
 	{ // もしまだ生成されていないなら
 		// デバッグ表示を生成
-		m_pDebugProc = new CDebugProc;
+		m_pDebugProc = std::make_unique<CDebugProc>();
 		if (m_pDebugProc == nullptr)
 		{ // 生成失敗
 			MessageBox(hWnd, "デバッグ表示の生成に失敗しました！", "Failed", MB_ICONERROR);
@@ -217,7 +216,7 @@ HRESULT CManager::Init(const HINSTANCE hInstance, const HWND hWnd, const BOOL bW
 	if (m_pSound == nullptr)
 	{ // もしまだ生成されていないなら
 		// サウンドを生成
-		m_pSound = new CSound;
+		m_pSound = std::make_unique<CSound>();
 		if (m_pSound == nullptr)
 		{ // 生成失敗
 			MessageBox(hWnd, "サウンドの生成に失敗しました！", "Failed", MB_ICONERROR);
@@ -233,16 +232,18 @@ HRESULT CManager::Init(const HINSTANCE hInstance, const HWND hWnd, const BOOL bW
 		}
 	}
 
+	// テクスチャの読み込み
+	CTexture::GetInstance()->Load();
+
+	// ポーズ画面の作成
+	m_pPause.reset(CPause::Create());
+
 	// ライトの生成
-	m_pLight = new CLight;
+	m_pLight = std::make_unique<CLight>();
 	m_pLight->Init();
 
 	// 遷移演出の作成
-	m_pTransition = new CCircleTransition;
-	m_pTransition->Init();
-
-	// テクスチャの読み込み
-	CTexture::GetInstance()->Load();
+	m_pTransition.reset(CSceneTransition::Create(CSceneTransition::TYPE_LINE_SCALE_UP));
 
 	// 新規シーンの作成
 	SetMode(CScene::MODE_TITLE);
@@ -268,85 +269,44 @@ void CManager::Uninit(void)
 	// Xファイルの破棄
 	CXFile::GetInstance()->Unload();
 	
+	// モーション情報の破棄
+	CMotionLoader::GetInstance()->Unload();
+
+	// パーツ状態の破棄
+	CPartsLoader::GetInstance()->Unload();
+
+	// ポーズオブジェクトの破棄
+	SafeUniqueUninit(m_pPause);
+
 	// シーンオブジェクトの破棄
-	if (m_pScene != nullptr)
-	{ // NULLではなかった場合破棄
-		m_pScene->Uninit();
-		delete m_pScene;
-		m_pScene = nullptr;
-	}
+	SafeUniqueUninit(m_pScene);
 
 	// 遷移オブジェクトの破棄
-	if (m_pTransition != nullptr)
-	{ // NULLではなかった場合破棄
-		m_pTransition->Uninit();
-		delete m_pTransition;
-		m_pTransition = nullptr;
-	}
+	SafeUniqueUninit(m_pTransition);
 
 	// ライトオブジェクトの破棄
-	if (m_pLight != nullptr)
-	{ // NULLではなかった場合破棄
-		m_pLight->Uninit();
-		delete m_pLight;
-		m_pLight = nullptr;
-	}
+	SafeUniqueUninit(m_pLight);
 
 	// サウンドオブジェクトの破棄
-	if (m_pSound != nullptr)
-	{ // NULLではなかった場合破棄
-		m_pSound->Uninit();
-		delete m_pSound;
-		m_pSound = nullptr;
-	}
+	SafeUniqueUninit(m_pSound);
 
 	// デバッグ表示オブジェクトの破棄
-	if (m_pDebugProc != nullptr)
-	{ // NULLではなかった場合破棄
-		m_pDebugProc->Uninit();
-		delete m_pDebugProc;
-		m_pDebugProc = nullptr;
-	}
-
+	SafeUniqueUninit(m_pDebugProc);
+	
 	// ジョイパッドオブジェクトの破棄
-	if (m_pJoypad != nullptr)
-	{ // NULLではなかった場合破棄
-		m_pJoypad->Uninit();
-		delete m_pJoypad;
-		m_pJoypad = nullptr;
-	}
+	SafeUniqueUninit(m_pJoypad);
 
 	// マウスオブジェクトの破棄
-	if (m_pInputMouse != nullptr)
-	{ // NULLではなかった場合破棄
-		m_pInputMouse->Uninit();
-		delete m_pInputMouse;
-		m_pInputMouse = nullptr;
-	}
+	SafeUniqueUninit(m_pInputMouse);
 
 	// キーボードオブジェクトの破棄
-	if (m_pInputKeyboard != nullptr)
-	{ // NULLではなかった場合破棄
-		m_pInputKeyboard->Uninit();
-		delete m_pInputKeyboard;
-		m_pInputKeyboard = nullptr;
-	}
+	SafeUniqueUninit(m_pInputKeyboard);
 
 	// キャプチャオブジェクトの破棄
-	if (m_pCapture != nullptr)
-	{ // NULLではなかった場合破棄
-		m_pCapture->Uninit();
-		delete m_pCapture;
-		m_pCapture = nullptr;
-	}
+	SafeUniqueUninit(m_pCapture);
 
 	// レンダラーオブジェクトの破棄
-	if (m_pRenderer != nullptr)
-	{ // NULLではなかった場合破棄
-		m_pRenderer->Uninit();
-		delete m_pRenderer;
-		m_pRenderer = nullptr;
-	}
+	SafeUniqueUninit(m_pRenderer);
 }
 
 //==================================================================================
@@ -370,7 +330,7 @@ void CManager::Update(void)
 	m_pLight->Update();
 
 	// FPS表示
-	m_pDebugProc->Print("FPS : %d\n", m_nCountFPS);
+	m_pDebugProc->Print("FPS : {}\n", m_nCountFPS);
 
 	if (m_pInputKeyboard->GetTrigger(DIK_O))
 	{ // スクリーンショット
@@ -384,9 +344,16 @@ void CManager::Update(void)
 	// トランジション更新
 	m_pTransition->Update();
 
-	if (m_bPause != true)
+	// ポーズの更新
+	m_pPause->Update();
+
+	if (m_pPause->GetDisp() != true)
 	{ // レンダラーの更新処理
 		m_pRenderer->Update();
+	}
+	else
+	{ // ポーズ中なら、デバッグ表示
+		m_pDebugProc->Print("[現在ポーズ中！]\n");
 	}
 
 	// フレームカウンターを増加
@@ -397,12 +364,24 @@ void CManager::Update(void)
 // --- 描画処理 ---
 //==================================================================================
 void CManager::Draw(void)
-{
-	// シーンの描画
-	m_pScene->Draw();
-
-	// レンダラーの描画
+{ // レンダラーの描画
 	m_pRenderer->Draw();
+}
+
+//==================================================================================
+// --- ポーズ状態設定処理 ---
+//==================================================================================
+void CManager::SetEnablePause(const bool bEnable)
+{
+	m_pPause->SetDisp(bEnable);
+}
+
+//==================================================================================
+// --- ポーズ状態取得処理 ---
+//==================================================================================
+bool CManager::GetEnablePause(void)
+{
+	return m_pPause->GetDisp();
 }
 
 //==================================================================================
@@ -414,10 +393,12 @@ HRESULT CManager::SetMode(const CScene::MODE modeNext)
 	m_pSound->Stop();
 
 	if (m_pScene != nullptr)
-	{ // シーンが生成されていれば、終了処理
+	{ // シーンが生成されていれば
+		m_modeOld = m_pScene->GetMode();		// 前回のモードとして保存
+
+		// 終了処理
 		m_pScene->Uninit();
-		delete m_pScene;
-		m_pScene = nullptr;
+		m_pScene.reset();
 	}
 
 	// 全オブジェクトの破棄
@@ -426,9 +407,14 @@ HRESULT CManager::SetMode(const CScene::MODE modeNext)
 	// カメラの破棄
 	CCamera::ReleaseAll();
 
+	// マップの破棄
+	CMapManager::GetInstance()->Unload();
+
+	// ポーズの解除
+	m_pPause->SetDisp(false);
+
 	// シーンの生成
-	CScene::Create(modeNext, &m_pScene);
-	NULLPOINTER_ASSERT(m_pScene);
+	CScene::Create(modeNext, m_pScene);
 
 	return (m_pScene == nullptr) ? E_FAIL : S_OK;
 }
@@ -438,13 +424,5 @@ HRESULT CManager::SetMode(const CScene::MODE modeNext)
 //==================================================================================
 void CManager::SetTransition(const CScene::MODE modeNext)
 {
-	m_pTransition->StartTransition(60, modeNext);
-}
-
-//==================================================================================
-// --- デバイス取得省略処理 ---
-//==================================================================================
-LPDIRECT3DDEVICE9 CManager::GetDeviceByInstance(void)
-{ 
-	return CManager::GetInstance()->GetRenderer()->GetDevice();
+	m_pTransition->StartTransition(TRANSITION_FRAME, modeNext);
 }

@@ -26,7 +26,7 @@
 void CDirectXSubDrawer::DirectXSubDrawerProc(void)
 {
 	CManager *pManager = nullptr;		// マネージャへのポインタ
-	DWORD dwCurrentTime;		// 現在時刻
+	DWORD dwCurrentTime;			// 現在時刻
 	DWORD dwExecLastTimeUpdate;		// 最後に処理した時刻
 	DWORD dwExecLastTimeDraw;		// 最後に処理した時刻
 	DWORD dwFrameCount;				// フレームカウント
@@ -65,7 +65,7 @@ void CDirectXSubDrawer::DirectXSubDrawerProc(void)
 				dwFrameCount = 0;						// フレームカウントをクリア
 			}
 
-			if ((dwCurrentTime - dwExecLastTimeUpdate) >= (1000 / 60))
+			if ((dwCurrentTime - dwExecLastTimeUpdate) >= (1000 / DEFAULT_APPLICATION_UPDATE_PER_SECOND))
 			{ // 60分の1秒経過
 				dwExecLastTimeUpdate = dwCurrentTime;			// 処理開始時刻[現在時刻]を保存
 
@@ -73,7 +73,7 @@ void CDirectXSubDrawer::DirectXSubDrawerProc(void)
 				Update();
 			}
 
-			if ((dwCurrentTime - dwExecLastTimeDraw) >= static_cast<DWORD>(1000 / pManager->GetFrameRate()))
+			if ((dwCurrentTime - dwExecLastTimeDraw) >= static_cast<DWORD>(1000 / DEFAULT_APPLICATION_DRAW_PER_SECOND))
 			{ // 1 / フレームレート秒経過
 				dwExecLastTimeDraw = dwCurrentTime;			// 処理開始時刻[現在時刻]を保存
 
@@ -130,8 +130,6 @@ void CDirectXSubDrawer::Quit(void)
 //==================================================================================
 HRESULT CDirectXSubDrawer::Init(void)
 {
-	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
-
 	if (m_aCallFunction[FUNCTION_INIT])
 	{
 		m_aFunc[FUNCTION_INIT].InvokeAll();

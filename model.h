@@ -14,45 +14,58 @@
 #include "main.h"
 
 //**********************************************************************************
+// *** マクロ定義 ***
+//**********************************************************************************
+#define INVALID_MAT		D3DMATERIAL9{0}
+
+//**********************************************************************************
 // *** モデルクラス ***
 //**********************************************************************************
 class CModel
 {
 public:
 	static CModel *Create(const char *pXFileName,
-		const D3DXVECTOR3 &pos,
-		const D3DXVECTOR3 &rot);
+		const Vector3 &pos,
+		const Vector3 &rot);
 
 	CModel();
 	~CModel();
 
 	HRESULT Init(const char *pXFileName,
-		const D3DXVECTOR3 &pos,
-		const D3DXVECTOR3 &rot);
+		const Vector3 &pos,
+		const Vector3 &rot);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
 	void SetParent(CModel *pParent) { m_pParent = pParent; }
-	D3DXMATRIX GetMtxWorld(void) const { return m_mtxWorld; }
-	void SetPosition(const D3DXVECTOR3 &position) { m_pos = position; }
-	D3DXVECTOR3 GetPosition(void) const { return m_pos; }
-	void SetRotation(const D3DXVECTOR3 &rotation) { m_rot = rotation; }
-	D3DXVECTOR3 GetRotation(void) const { return m_rot; }
-	void SetPositionLocal(const D3DXVECTOR3& position) { m_posLocal = position; }
-	D3DXVECTOR3 GetPositionLocal(void) const { return m_posLocal; }
-	void SetRotationLocal(const D3DXVECTOR3& rotation) { m_rotLocal = rotation; }
-	D3DXVECTOR3 GetRotationLocal(void) const { return m_rotLocal; }
+	const CModel *GetParent(void) const { return m_pParent; }
+	const Matrix *GetMtxWorld(void) const { return &m_mtxWorld; }
+	void SetPosition(const Vector3 &position) { m_pos = position; }
+	const Vector3 *GetPosition(void) const { return &m_pos; }
+	void SetRotation(const Vector3 &rotation) { m_rot = rotation; }
+	const Vector3 *GetRotation(void) const { return &m_rot; }
+	void SetPositionLocal(const Vector3& position) { m_posLocal = position; }
+	const Vector3 *GetPositionLocal(void) const { return &m_posLocal; }
+	void SetRotationLocal(const Vector3& rotation) { m_rotLocal = rotation; }
+	const Vector3 *GetRotationLocal(void) const { return &m_rotLocal; }
+	const char *GetFileName(void) const { return m_sFileName.c_str(); }
+	void SetCustomMat(const D3DMATERIAL9 &customMat = INVALID_MAT) { m_customMat = customMat; }
+	void BindTexture(const int nIdxTexture) { m_nIdxTexture = nIdxTexture; }
+	CModel *CreateCopy(void) const;
 
 private:
 	LPD3DXMESH m_pMesh;			// メッシュ(頂点情報)へのポインタ
 	LPD3DXBUFFER m_pBuffMat;	// マテリアルへのポインタ
-	int *m_pIdx;			// テクスチャインデックスの配列
+	std::string m_sFileName;	// ファイル名
+	std::vector<int> m_vIdx;	// テクスチャインデックスの配列
 	DWORD m_dwNumMat;		// マテリアルの数
-	D3DXVECTOR3 m_pos;		// 位置
-	D3DXVECTOR3 m_posLocal;	// オフセット座標
-	D3DXVECTOR3 m_rot;		// 角度
-	D3DXVECTOR3 m_rotLocal;	// オフセット角度
-	D3DXMATRIX m_mtxWorld;	// ワールドマトリックス
+	Vector3 m_pos;			// 位置
+	Vector3 m_posLocal;		// オフセット座標
+	Vector3 m_rot;			// 角度
+	Vector3 m_rotLocal;		// オフセット角度
+	Matrix m_mtxWorld;		// ワールドマトリックス
 	CModel *m_pParent;		// 親モデルへのポインタ
+	D3DMATERIAL9 m_customMat;	// カスタムマテリアル
+	int m_nIdxTexture;		// 指定したテクスチャインデックス
 };
 #endif

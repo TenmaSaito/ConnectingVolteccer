@@ -21,7 +21,6 @@
 CDirectX::CDirectX()
 { // メンバ変数をクリア
 	m_bThreadLoop = false;
-	m_bComplete = false;
 }
 
 //==================================================================================
@@ -34,12 +33,12 @@ CDirectX::~CDirectX()
 //==================================================================================
 // --- DirectXのプロシージャ処理 ---
 //==================================================================================
-void CDirectX::DirectXProc(HINSTANCE hInstance, HWND hWnd, BOOL bWindowed)
+void CDirectX::DirectXProc(HINSTANCE hInstance, HWND hWnd, BOOL bWindowed, int nCmdShow)
 {
 	CManager *pManager = nullptr;		// マネージャへのポインタ
 	DWORD dwCurrentTime;			// 現在時刻
-	DWORD dwExecLastTimeUpdate;		// 最後に処理した時刻
-	DWORD dwExecLastTimeDraw;		// 最後に処理した時刻
+	DWORD dwExecLastTimeUpdate;		// 最後にUpdateした時刻
+	DWORD dwExecLastTimeDraw;		// 最後にDrawした時刻
 	DWORD dwFrameCount;				// フレームカウント
 	DWORD dwFPSLastTime;			// 最後にFPSを計測した時刻
 
@@ -52,6 +51,9 @@ void CDirectX::DirectXProc(HINSTANCE hInstance, HWND hWnd, BOOL bWindowed)
 	// マネージャーを初期化
 	if (SUCCEEDED(pManager->Init(hInstance, hWnd, bWindowed)))
 	{ // 成功時
+		// 初期化成功メッセージを送信 (ウィンドウの表示を待機)
+		SendMessage(hWnd, WM_SUCCEEDED_INIT, nCmdShow, 0);
+
 		// FPS計測用変数を初期化
 		dwCurrentTime = 0;							// 初期化
 		dwExecLastTimeUpdate = timeGetTime();		// 現在時刻を取得
@@ -76,22 +78,22 @@ void CDirectX::DirectXProc(HINSTANCE hInstance, HWND hWnd, BOOL bWindowed)
 					dwFrameCount = 0;						// フレームカウントをクリア
 				}
 
-				if ((dwCurrentTime - dwExecLastTimeUpdate) >= (1000 / UPDATE_FRAMERATE))
+				if ((dwCurrentTime - dwExecLastTimeUpdate) >= static_cast<DWORD>(1000 / DEFAULT_APPLICATION_UPDATE_PER_SECOND))
 				{ // 60分の1秒経過
-					dwExecLastTimeUpdate = dwCurrentTime;			// 処理開始時刻[現在時刻]を保存
+					dwExecLastTimeUpdate = dwCurrentTime;		// 処理開始時刻[現在時刻]を保存
 
 					// マネージャの更新処理
 					pManager->Update();
 				}
 
-				if ((dwCurrentTime - dwExecLastTimeDraw) >= static_cast<DWORD>(1000 / pManager->GetFrameRate()))
+				if ((dwCurrentTime - dwExecLastTimeDraw) >= static_cast<DWORD>(1000 / DEFAULT_APPLICATION_DRAW_PER_SECOND))
 				{ // 1 / フレームレート秒経過
 					dwExecLastTimeDraw = dwCurrentTime;			// 処理開始時刻[現在時刻]を保存
 
 					// マネージャの描画処理
 					pManager->Draw();
 
-					dwFrameCount++;							// フレームカウントを加算
+					dwFrameCount++;								// フレームカウントを加算
 				}
 			}
 		}
@@ -102,13 +104,13 @@ void CDirectX::DirectXProc(HINSTANCE hInstance, HWND hWnd, BOOL bWindowed)
 	else
 	{ // 初期化失敗時
 		MessageBox(hWnd, "DirectXの初期化に失敗しました...", "DirectX Initialize Failed", MB_ICONERROR);
+
+		// 失敗メッセージを送信
+		PostMessage(hWnd, WM_FAILED_INIT, 0, 0);
 	}
 
 	// マネージャの終了処理
 	pManager->Uninit();
-
-	// スレッド完了フラグを立てる
-	m_bComplete.store(true, std::memory_order_release);
 }
 
 //==================================================================================

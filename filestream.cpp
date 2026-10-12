@@ -8,34 +8,70 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "filestream.h"
-#include <iostream>
+#include <filesystem>
 
 //==================================================================================
 // --- コンストラクタ ---
 //==================================================================================
-CFileStream::CFileStream()
-{
-	// メンバ変数をクリア
+CFileStream::CFileStream() noexcept
+{ // メンバ変数をクリア
 	m_size = 0;
 	m_bBinary = false;
 	m_bInStream = false;
 }
 
 //==================================================================================
+// --- ファイルオープンコンストラクタ ---
+//==================================================================================
+CFileStream::CFileStream(std::string_view sFilename, const bool bBinary)
+{ // メンバ変数をクリア
+	m_size = 0;
+	m_bBinary = false;
+	m_bInStream = false;
+
+	// ファイルオープン
+	OpenFile(sFilename, bBinary);
+}
+
+//==================================================================================
+// --- ファイル作成コンストラクタ ---
+//==================================================================================
+CFileStream::CFileStream(std::string_view sFilename, const bool bBinary, const FLAG flag)
+{ // メンバ変数をクリア
+	m_size = 0;
+	m_bBinary = false;
+	m_bInStream = false;
+
+	// ファイル作成
+	CreateFile(sFilename, bBinary, flag);
+}
+
+//==================================================================================
+// --- ムーブコンストラクタ ---
+//==================================================================================
+CFileStream::CFileStream(CFileStream &&other) noexcept
+{ // メンバ変数をムーブ
+	this->m_bBinary = std::move(other.m_bBinary);
+	this->m_bInStream = std::move(other.m_bInStream);
+	this->m_filename = std::move(other.m_filename);
+	this->m_size = std::move(other.m_size);
+	this->m_Infile = std::move(other.m_Infile);
+	this->m_Outfile = std::move(other.m_Outfile);
+}
+
+//==================================================================================
 // --- デストラクタ ---
 //==================================================================================
 CFileStream::~CFileStream()
-{
-	// ファイルクローズ
+{ // ファイルクローズ
 	CloseFile();
 }
 
 //==================================================================================
 // --- ファイルオープン処理 ---
 //==================================================================================
-bool CFileStream::OpenFile(const char *pFilename, const bool bBinary)
-{
-	// ファイルを閉じる
+bool CFileStream::OpenFile(std::string_view sFilename, const bool bBinary)
+{ // ファイルを閉じる
 	CloseFile();
 
 	// ファイルを入力ストリームに設定
@@ -44,14 +80,14 @@ bool CFileStream::OpenFile(const char *pFilename, const bool bBinary)
 	// バイナリフラグによってオープンの仕方を変える
 	if (bBinary)
 	{ // バイナリファイルのオープン
-		m_Infile.open(pFilename, std::ios::binary);
+		m_Infile.open(sFilename, std::ios::binary);
 		
 		// バイナリフラグを立てる
 		m_bBinary = true;
 	}
 	else
 	{ // テキストファイルのオープン
-		m_Infile.open(pFilename);
+		m_Infile.open(sFilename);
 
 		// バイナリフラグを下す
 		m_bBinary = false;
@@ -66,7 +102,7 @@ bool CFileStream::OpenFile(const char *pFilename, const bool bBinary)
 	ScanSizeInStream();
 
 	// ファイル名を保存
-	m_filename = pFilename;
+	m_filename = sFilename;
 
 	// 成功
 	return true;
@@ -75,10 +111,9 @@ bool CFileStream::OpenFile(const char *pFilename, const bool bBinary)
 //==================================================================================
 // --- ファイル作成処理 ---
 //==================================================================================
-bool CFileStream::CreateFile(const char* pFilename, const bool bBinary, const FLAG flag)
+bool CFileStream::CreateFile(std::string_view sFilename, const bool bBinary, const FLAG flag)
 {
 	std::ios::openmode mode = std::ios::out;	// openフラグ
-	size_t size = 0;							// ファイルサイズの一時保存先
 
 	// ファイルを閉じる
 	CloseFile();
@@ -89,48 +124,32 @@ bool CFileStream::CreateFile(const char* pFilename, const bool bBinary, const FL
 	// FLAGによってmodeにフラグを追加
 	switch (flag)
 	{
-	// 上書きの場合
-	case FLAG_OVERWRITE:
-
+	case FLAG_OVERWRITE:		// 上書きの場合
 		// 上書きフラグ追加
 		mode |= std::ios::trunc;
-
 		break;
 
-	// 追記の場合
-	case FLAG_CONTINUE:
-
-		// 一度ファイルを入力ストリームで開いて、存在するか確認
-		if (OpenFile(pFilename, bBinary) == true)
+	case FLAG_CONTINUE:			// 追記の場合
+		if (std::filesystem::exists(sFilename))
 		{ // ファイルが開けた場合(ファイルが存在する場合)
-			// ファイルのサイズを取得して、保存
-			size = GetSize();
-
-			// ファイルを閉じる
-			CloseFile();
+			// ファイルサイズを取得
+			m_size = std::filesystem::file_size(sFilename);
 		}
-
-		// 保存していたファイルサイズを代入
-		m_size = size;
 
 		// 追記フラグ追加
 		mode |= std::ios::app;
-
 		break;
 
-	// 取り消しの場合
-	case FLAG_CANCEL:
-
+	case FLAG_CANCEL:			// 取り消しの場合
 		// 一度ファイルを入力ストリームで開いて、存在するか確認
-		if (OpenFile(pFilename, bBinary) == true)
+		if (std::filesystem::exists(sFilename))
 		{ // ファイルが開けた場合(ファイルが存在する場合)
-			// ファイルを閉じる
-			CloseFile();
-
 			// 処理を中断する
 			return false;
 		}
 
+		// 上書きフラグ追加
+		mode |= std::ios::trunc;
 		break;
 
 	default:
@@ -156,7 +175,7 @@ bool CFileStream::CreateFile(const char* pFilename, const bool bBinary, const FL
 	}
 
 	// ファイル作成
-	m_Outfile.open(pFilename, mode);
+	m_Outfile.open(sFilename, mode);
 
 	if (IsOpen() == false)
 	{ // ファイルの作成に失敗
@@ -164,7 +183,7 @@ bool CFileStream::CreateFile(const char* pFilename, const bool bBinary, const FL
 	}
 
 	// ファイル名を保存
-	m_filename = pFilename;
+	m_filename = sFilename;
 
 	// 成功
 	return true;
@@ -174,8 +193,7 @@ bool CFileStream::CreateFile(const char* pFilename, const bool bBinary, const FL
 // --- ファイルクローズ処理 ---
 //==================================================================================
 void CFileStream::CloseFile(void)
-{
-	// ファイルのチェック
+{ // ファイルのチェック
 	if (IsOpen() == true)
 	{ // ファイルが開かれていれば
 		// ストリームの種類で分岐
@@ -199,9 +217,8 @@ void CFileStream::CloseFile(void)
 //==================================================================================
 // --- ファイルのオープン確認処理 ---
 //==================================================================================
-bool CFileStream::IsOpen(void) const
-{
-	// ストリームの種類で分岐
+bool CFileStream::IsOpen(void) const 
+{ // ストリームの種類で分岐
 	if (m_bInStream == true)
 	{ // 入力ストリームの場合、ifStreamのファイル確認処理を呼ぶ
 		return IsOpenInStream();
@@ -216,25 +233,14 @@ bool CFileStream::IsOpen(void) const
 // --- ファイル状態の確認処理 ---
 //==================================================================================
 bool CFileStream::CheckFile(void) const
-{
-	try
-	{
-		bool bCheck = false;		// 勝っク人の結果
-		// ストリームの種類で分岐
-		if (m_bInStream == true)
-		{ // 入力ストリームの場合、ifStreamのファイル状態確認処理を呼ぶ
-			bCheck = CheckFileInStream();
-		}
-		else
-		{ // 出力ストリームの場合、ofStreamのファイル状態確認処理を呼ぶ
-			bCheck = CheckFileOutStream();
-		}
-
-		return bCheck;
+{ // ストリームの種類で分岐
+	if (m_bInStream == true)
+	{ // 入力ストリームの場合、ifStreamのファイル状態確認処理を呼ぶ
+		return CheckFileInStream();
 	}
-	catch (const std::runtime_error &error)
-	{ // 受け取った例外を関数外へスロー
-		throw error;
+	else
+	{ // 出力ストリームの場合、ofStreamのファイル状態確認処理を呼ぶ
+		return CheckFileOutStream();
 	}
 }
 
@@ -250,8 +256,7 @@ bool CFileStream::IsInStream(void) const
 // --- EOFの確認処理 ---
 //==================================================================================
 bool CFileStream::IsEoF(void) const
-{
-	// ファイルのオープン確認
+{ // ファイルのオープン確認
 	if (IsOpen() == false)
 	{ // ファイルが開かれていなければ、EOF扱い
 		return true;
@@ -278,9 +283,37 @@ const char *CFileStream::GetFileName(void) const
 }
 
 //==================================================================================
+// --- 自作読み込み処理 ---
+//==================================================================================
+bool CFileStream::ReadByFunc(std::function<void(std::ifstream&)> readFunc)
+{
+	// ファイルが開かれているか確認
+	if (IsOpen() == false)
+	{ // 開かれていない場合、失敗
+		return false;
+	}
+
+	// 入力ストリームかどうか確認
+	if (m_bInStream == false)
+	{ // 出力ストリームだった場合、失敗
+		return false;
+	}
+
+	if (readFunc)
+	{ // 呼び出し可能なら、引数の関数を呼び出し
+		readFunc(m_Infile);
+		return true;
+	}
+	else
+	{ // 呼び出し不能なら、失敗
+		return false;
+	}
+}
+
+//==================================================================================
 // --- 1行読み込み処理 ---
 //==================================================================================
-bool CFileStream::Read(std::string &string)
+bool CFileStream::ReadString(std::string &string)
 {
 	// EOFの確認
 	if (IsEoF() == true)
@@ -289,7 +322,7 @@ bool CFileStream::Read(std::string &string)
 	}
 
 	// 入力ストリームかどうか確認
-	if (IsInStream() == false)
+	if (m_bInStream == false)
 	{ // 出力ストリームだった場合、失敗
 		return false;
 	}
@@ -300,25 +333,11 @@ bool CFileStream::Read(std::string &string)
 	// 1行読み取り
 	std::getline(m_Infile, string);
 
-	try
-	{ // CheckFileの例外スロー用
-		// ファイル読み込みのチェック
-		bool bCheck = CheckFile();
-		if (bCheck == false)
-		{ // 読み込み時に問題が発生したため、falseを返す
-			return false;
-		}
-	}
-	catch (const std::runtime_error &error)
-	{ // 例外がスローされた場合
-		// スローされた文を表示
-		std::cerr << error.what() << std::endl;
-
-		// ファイルを閉じる
-		CloseFile();
-
-		// 読み込み関数の外部にも例外をスロー
-		throw;
+	// ファイル読み込みのチェック
+	bool bCheck = CheckFile();
+	if (bCheck == false)
+	{ // 読み込み時に問題が発生したため、falseを返す
+		return false;
 	}
 
 	// 成功
@@ -326,9 +345,107 @@ bool CFileStream::Read(std::string &string)
 }
 
 //==================================================================================
+// --- 文字列から文字列を検索する処理 ---
+// 
+// pOut		: 検索した文字列の最初のインデックス
+// bSkip	: 検索した文字列の一番最後のインデックスを返すフラグ
+//==================================================================================
+bool CFileStream::FindString(std::string_view source,
+	std::string_view s,
+	size_t *pOut,
+	const bool bSkip)
+{ // 文字列検索
+	size_t pos = source.find(s);		// 見つかったインデックス
+
+	// nullじゃなければ、見つかったインデックスを返す
+	if (pOut) *pOut = (bSkip) ? pos + s.length() : pos;
+
+	// 文字列が見つかったかの判定を返す
+	return pos != std::string::npos;
+}
+
+//==================================================================================
+// --- 文字列からのVector2読み込み処理 ---
+//==================================================================================
+Vector2 CFileStream::ToVector2(const char *pStr, char **ppEnd, const bool bInt)
+{
+	char *pNext = nullptr;		// 次の開始位置へのポインタ
+	Vector2 ret;				// 結果
+
+	if (bInt)
+	{ // Intとして読み込み
+		ret.x = static_cast<float>(ToInt(pStr, &pNext));
+		ret.y = static_cast<float>(ToInt(pNext, &pNext));
+		if (ppEnd) *ppEnd = pNext;
+		return ret;
+	}
+	else
+	{ // Floatとして読み込み
+		ret.x = static_cast<float>(ToFloat(pStr, &pNext));
+		ret.y = static_cast<float>(ToFloat(pNext, &pNext));
+		if (ppEnd) *ppEnd = pNext;
+		return ret;
+	}
+}
+
+//==================================================================================
+// --- 文字列からのVector3読み込み処理 ---
+//==================================================================================
+Vector3 CFileStream::ToVector3(const char *pStr, char **ppEnd, const bool bInt)
+{
+	char *pNext = nullptr;		// 次の開始位置へのポインタ
+	Vector3 ret;				// 結果
+
+	if (bInt)
+	{ // Intとして読み込み
+		ret.x = static_cast<float>(ToInt(pStr, &pNext));
+		ret.y = static_cast<float>(ToInt(pNext, &pNext));
+		ret.z = static_cast<float>(ToInt(pNext, &pNext));
+		if (ppEnd) *ppEnd = pNext;
+		return ret;
+	}
+	else
+	{ // Floatとして読み込み
+		ret.x = static_cast<float>(ToFloat(pStr, &pNext));
+		ret.y = static_cast<float>(ToFloat(pNext, &pNext));
+		ret.z = static_cast<float>(ToFloat(pNext, &pNext));
+		if (ppEnd) *ppEnd = pNext;
+		return ret;
+	}
+}
+
+//==================================================================================
+// --- 自作読み込み処理 ---
+//==================================================================================
+bool CFileStream::WriteByFunc(std::function<void(std::ofstream &)> writeFunc)
+{
+	// ファイルが開かれているか確認
+	if (IsOpen() == false)
+	{ // 開かれていない場合、失敗
+		return false;
+	}
+
+	// 出力ストリームかどうか確認
+	if (m_bInStream == true)
+	{ // 入力ストリームだった場合、失敗
+		return false;
+	}
+
+	if (writeFunc)
+	{ // 呼び出し可能なら、引数の関数を呼び出し
+		writeFunc(m_Outfile);
+		return true;
+	}
+	else
+	{ // 呼び出し不能なら、失敗
+		return false;
+	}
+}
+
+//==================================================================================
 // --- 1行書き出し処理 ---
 //==================================================================================
-bool CFileStream::Write(const std::string& string)
+bool CFileStream::WriteString(const std::string_view &string)
 {
 	// ファイルが開かれているか確認
 	if (IsOpen() == false)
@@ -356,25 +473,11 @@ bool CFileStream::Write(const std::string& string)
 	// データの書き出し
 	m_Outfile.flush();
 
-	try
-	{ // CheckFileの例外スロー用
-		// ファイル書き出しのチェック
-		bool bCheck = CheckFile();
-		if (bCheck == false)
-		{ // 書き込み時に問題が発生したため、falseを返す
-			return false;
-		}
-	}
-	catch (const std::runtime_error& error)
-	{ // 例外がスローされた場合
-		// スローされた文を表示
-		std::cerr << error.what() << std::endl;
-
-		// ファイルを閉じる
-		CloseFile();
-
-		// 書き込み関数の外部にも例外をスロー
-		throw;
+	// ファイル書き出しのチェック
+	bool bCheck = CheckFile();
+	if (bCheck == false)
+	{ // 書き込み時に問題が発生したため、falseを返す
+		return false;
 	}
 
 	// 書き出したサイズ分加算
@@ -387,8 +490,7 @@ bool CFileStream::Write(const std::string& string)
 // --- ファイルクローズ処理 (ifStream) ---
 //==================================================================================
 void CFileStream::CloseFileInStream(void)
-{
-	// ファイルをクローズ
+{ // ファイルをクローズ
 	m_Infile.close();
 }
 
@@ -396,8 +498,7 @@ void CFileStream::CloseFileInStream(void)
 // --- ファイルクローズ処理 (ofStream) ---
 //==================================================================================
 void CFileStream::CloseFileOutStream(void)
-{
-	// ファイルをクローズ
+{ // ファイルをクローズ
 	m_Outfile.close();
 }
 
@@ -422,22 +523,14 @@ bool CFileStream::IsOpenOutStream(void) const
 //==================================================================================
 bool CFileStream::CheckFileInStream(void) const
 {
-	if (IsOpen() == false)
+	if (IsOpenInStream() == false)
 	{ // ファイルが開かれていなければ、失敗
 		return false;
 	}
 
 	// ファイル読み込み状況のチェック
-	if (m_Infile.bad() == true)
-	{ // ファイル読み込み時に致命的なエラーが発生した場合
-#ifndef _NO_THROW_STREAM_ERROR		// CheckFileによる例外スローを無効にする
-		throw std::runtime_error("ファイル読み込み時に致命的なエラーが発生しました！");
-#else
-		return false;
-#endif
-	}
-	else if (m_Infile.fail() == true)
-	{ // ファイル読み込み時に失敗した場合
+	if (m_Infile.bad() || m_Infile.fail())
+	{ // ファイル読み込み時にエラーが発生した場合
 		return false;
 	}
 	else
@@ -451,31 +544,19 @@ bool CFileStream::CheckFileInStream(void) const
 //==================================================================================
 bool CFileStream::CheckFileOutStream(void) const
 {
-	if (IsOpen() == false)
+	if (IsOpenOutStream() == false)
 	{ // ファイルが開かれていなければ、失敗
 		return false;
 	}
 
 	// ファイル書き込み状況のチェック
-	if (m_Outfile.bad() == true)
-	{ // ファイル書き込み時に致命的なエラーが発生した場合
-#ifndef _NO_THROW_STREAM_ERROR		// CheckFileによる例外スローを無効にする
-		throw std::runtime_error("ファイル書き込み時に致命的なエラーが発生しました！");
-#else
+	if (m_Outfile.bad() || m_Outfile.fail())
+	{ // ファイル書き込み時にエラーが発生した場合
 		return false;
-#endif
-	}
-	else if (m_Outfile.fail() == true)
-	{ // ファイル書き込み時に失敗した場合
-		return false;
-	}
-	else if (m_Outfile.good() == true)
-	{ // 問題ないなら成功
-		return true;
 	}
 	else
-	{ // 理由不明な失敗
-		return false;
+	{ // 問題ないなら成功
+		return true;
 	}
 }
 
@@ -483,8 +564,7 @@ bool CFileStream::CheckFileOutStream(void) const
 // --- 読み込み時ファイルサイズ取得処理 ---
 //==================================================================================
 void CFileStream::ScanSizeInStream(void)
-{
-	// ファイルのオープン確認
+{ // ファイルのオープン確認
 	if (IsOpen() == false)
 	{ // ファイルが開かれていなければ、サイズをリセット
 		m_size = 0;
@@ -501,6 +581,24 @@ void CFileStream::ScanSizeInStream(void)
 
 	// ファイルの位置を戻す
 	m_Infile.seekg(filePos);
+}
+
+//==================================================================================
+// --- 演算子のオーバーロード (ムーブ) ---
+//==================================================================================
+CFileStream &CFileStream::operator=(CFileStream &&other) noexcept
+{
+	if (this == &other) return *this;
+
+	// メンバ変数をムーブ
+	this->m_bBinary = std::move(other.m_bBinary);
+	this->m_bInStream = std::move(other.m_bInStream);
+	this->m_filename = std::move(other.m_filename);
+	this->m_size = std::move(other.m_size);
+	this->m_Infile = std::move(other.m_Infile);
+	this->m_Outfile = std::move(other.m_Outfile);
+
+	return *this;
 }
 
 //==================================================================================

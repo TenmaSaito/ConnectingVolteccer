@@ -12,6 +12,7 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "main.h"
+#include <deque>
 
 //**********************************************************************************
 // *** マクロ定義 ***
@@ -21,10 +22,12 @@
 #define DEFAULT_BG_PRIORITY		(0)			// 背景の優先順位
 #define DEFAULT_OBJ_PRIORITY	(3)			// オブジェクトの優先順位
 #define DEFAULT_EFFECT_PRIORITY	(4)			// エフェクト関連の優先順位
+#define DEFAULT_ADD_PRIORITY	(5)			// 加算合成関連の優先順位
 #define DEFAULT_UI_PRIORITY		(6)			// UIの基本優先順位
-#define ENABLE_OBJECT_LIST		TRUE		// リスト構造での管理の有効化
-#define OBJTYPE_TO_BITFLAG(type)	(1 << (type))								// ビットフラグ化
-#define FIND_BITFLAG_BY_OBJTYPE(flag, type)		((flag) & (1i64 << (type)))		// ビットフラグの確認
+#define FINALLY_PRIORITY		(7)			// 全てのオブジェクトが描画された後の最終優先順位
+#define ENABLE_OBJECT_LIST		(TRUE)		// リスト構造での管理の有効化
+#define DEBUG_ASSERT_TYPE_NONE				// オブジェクトにタイプが指定されていなかった場合、アサーション
+#define NOTIFY_WHEN_DEATH		"Death"		// 死んだ際に通知される文字列
 
 //**********************************************************************************
 // *** オブジェクトクラス ***
@@ -35,21 +38,42 @@ public:
 	// オブジェクトの種類
 	typedef enum
 	{
-		TYPE_NONE = 0,		// 無し
+		TYPE_NONE = 0,		// 指定無し (アサーション対象)
+		TYPE_OBJ_2D,		// Object2D
+		TYPE_OBJ_3D,		// Object3D
+		TYPE_OBJ_BILLBOARD_2D,	// ObjectBillboard2D
+		TYPE_OBJ_BILLBOARD_3D,	// ObjectBillboard3D
+		TYPE_OBJ_LINE,		// ObjectLine
+		TYPE_OBJ_X,			// ObjectX
+		TYPE_OBJ_X_QUA,		// ObjectXQuaternion
+		TYPE_PARTICLE,		// パーティクル
 		TYPE_PLAYER,		// プレイヤー
-		TYPE_ENEMY,			// 敵
-		TYPE_BULLET,		// 弾
+		TYPE_PLANET,		// 惑星
 		TYPE_SCORE,			// スコア
+		TYPE_PERCENT,		// パーセント表示
+		TYPE_TIMER,			// タイマー
+		TYPE_TITLEMENU,		// タイトルメニュー
+		TYPE_RESULTMENU,	// リザルトメニュー
+		TYPE_COMBO,			// コンボ表示
+		TYPE_SHOCK,			// 感電エフェクト
+		TYPE_EVALUATE,		// 評価表示
 		TYPE_EFFECT,		// エフェクト
+		TYPE_HAPPYNOTE,		// 喜び音符
 		TYPE_POLE,			// 電柱
 		TYPE_CABLE,			// 電線
 		TYPE_THUNDER,		// 雷エフェクト
 		TYPE_SPARK,			// スパークエフェクト
 		TYPE_ELECTRICCURRENT,		// 電流
-		TYPE_ORBIT3D,		// メッシュオービット
+		TYPE_MESH2D,		// メッシュ2D
+		TYPE_ORBIT2D,		// メッシュオービット3D
+		TYPE_ORBIT3D,		// メッシュオービット3D
 		TYPE_MESHFIELD,		// メッシュフィールド
 		TYPE_MESHSPHERE,	// メッシュスフィア
-		TYPE_XMODEL,		// Xモデル
+		TYPE_BUILDING,		// 建物
+		TYPE_POWERPLANT,	// 発電所
+		TYPE_GRASSLAND,		// 草原
+		TYPE_RANKING_MANAGER,		// ランキングマネージャ
+		TYPE_SKIP,			// スキップ表示
 		TYPE_MAX
 	} TYPE;
 
@@ -60,9 +84,14 @@ public:
 	virtual void Uninit(void) {}
 	virtual void Update(void) {}
 	virtual void Draw(void) {}
+	virtual void Notified(CObject *pObject, std::string_view message) {}
 
+	void NotifyAll(std::string_view message);
 	void SetType(const TYPE type) { m_type = type; }
 	TYPE GetType(void) const { return m_type; }
+	bool IsDeath(void) const { return m_bDeath; }
+	void AddObserver(CObject *pObserve) { m_vpObserver.push_back(pObserve); }
+	void RemoveObserver(CObject *pObserve) { m_vpObserver.erase(std::remove(m_vpObserver.begin(), m_vpObserver.end(), pObserve), m_vpObserver.end()); }
 	static CObject* GetTop(const int nPriority) { return m_apTop[nPriority]; }
 	CObject *GetNext(void) const { return m_pNext; }
 	static int GetNumAll(void) { return m_nNumAll; }
@@ -70,18 +99,22 @@ public:
 	static void UpdateAll(void);
 	static void DrawAll(void);
 	static void FlagCheckAll(void);
+	static CObject *FindAnyObjectByType(const TYPE type);
+	static CObject *FindAnyObjectByType(const int nPriority, const TYPE type);
+	static std::deque<CObject*> FindObjectsByType(const TYPE type);
+	static std::deque<CObject*> FindObjectsByType(const int nPriority, const TYPE type);
 #if ENABLE_OBJECT_LIST
 #else
 	static CObject *GetObject(const int nPriority, const int nIdx) { return m_apObject[nPriority][nIdx]; }
 #endif
 protected:
 	void Release(void);
-	bool IsDeath(void) const { return m_bDeath; }
 
 private:
 #if ENABLE_OBJECT_LIST
 	void AddList(void);
 	void RemoveList(void);
+	void NofifyAllWhenDeath(void);
 
 	static CObject *m_apTop[MAX_OBJPRIORITY];		// 先頭オブジェクトへのポインタ
 	static CObject *m_apCur[MAX_OBJPRIORITY];		// 最後尾オブジェクトへのポインタ
@@ -95,5 +128,6 @@ private:
 	int m_nPriority;	// 優先順位の位置
 	TYPE m_type;		// オブジェクトタイプ
 	bool m_bDeath;		// 死亡フラグ
+	std::vector<CObject*> m_vpObserver;	// 自身を管理しているオブジェクトへのポインタ
 };
 #endif

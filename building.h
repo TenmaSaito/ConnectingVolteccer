@@ -17,6 +17,10 @@
 // *** 前方宣言 ***
 //**********************************************************************************
 class CUtilityPole;
+class CBillboard3D;
+class CLightingPillar;
+class CHappyNote;
+class CConnectingEvaluate;
 
 //**********************************************************************************
 // *** 建造物クラス ***
@@ -31,27 +35,51 @@ public:
 		TYPE_1,			// 建物1
 		TYPE_2,			// 建物2
 		TYPE_3,			// 建物3
+		TYPE_TOWER,			// スカイツリー
+		TYPE_CLOCKTOWER,	// 時計台
+		TYPE_SHOPPINGMALL,	// ショッピングモール
+		TYPE_SCHOOL,		// 学校
+		TYPE_CIRCUSTENT,	// サーカステント
 		TYPE_MAX
 	} TYPE;
 
-	static CBuilding *Create(const TYPE type, const D3DXVECTOR3 &position = VECTOR3_NULL,
-		const D3DXVECTOR3 &vecQua = VECTOR3_NULL,
-		const float fAngle = 0.0f);
+	static CBuilding *Create(const TYPE type,
+		const Vector3 &position,
+		const Vector3 &vecQua,
+		const float fAngle);
 
-	CBuilding();
+	static CBuilding *Create(const TYPE type,
+		const Vector3 &position);
+
+	CBuilding(const TYPE type, const int nPriority = DEFAULT_OBJ_PRIORITY);
 	~CBuilding();
 
-	HRESULT Init(const D3DXVECTOR3 &position,
-		const D3DXVECTOR3 &vecQua,
-		const float fAngle, 
-		const D3DXMATRIX *pMtxParent);
+	HRESULT Init(const Vector3 &position,
+		const Vector3 &vecQua,
+		const float fAngle);
+	HRESULT Init(const Vector3 &position);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
+	void BindConnectingEvaluate(CConnectingEvaluate *pEvaluate) { m_pEvaluate = pEvaluate; }
+	TYPE GetType(void) const { return m_buildingType; }
+	bool IsDisp(void) const { return m_bDisp; }
+
+	static bool IsLandmark(const TYPE type);
 
 private:
-	//static const char *m_apBulidingPath[TYPE_MAX];		// 各建物のパス
-	const CUtilityPole *m_pNearPole;		// 最も近い電柱
-	bool m_bHitByPlayerCamRay;				// プレイヤーカメラとのレイ判定
+	void FindUtilityPole(void);
+
+	const CUtilityPole *m_pNearPole;	// 最も近い電柱
+	CLightingPillar *m_pPillar;			// 光の柱へのポインタ
+	CHappyNote *m_pHappyNote;			// 音符発生インスタンスへのポインタ
+	CConnectingEvaluate *m_pEvaluate;	// 評価表示へのポインタ
+	bool m_bFound;				// 最も近い電柱の検索済みフラグ
+	bool m_bLighting;			// 電流が流れたか
+	float m_fLerp;				// 線形補間用変数
+	float m_fValue;				// 補間時の変化量
+	TYPE m_buildingType;		// 建物の種類
+	bool m_bHitByPlayerCamRay;	// プレイヤーカメラとプレイヤの間にいるか
+	bool m_bDisp;				// 描画フラグ
 };
 #endif

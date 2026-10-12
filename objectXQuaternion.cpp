@@ -11,6 +11,7 @@
 #include "objectXQuaternion.h"
 #include "manager.h"
 #include "renderer.h"
+#include "game.h"
 #include "texture.h"
 #include "input.h"
 #include "vec3math.h"
@@ -23,8 +24,8 @@
 // --- オブジェクト3Dの生成処理 ---
 //==================================================================================
 CObjectXQuaternion *CObjectXQuaternion::Create(const char *pXFileName,
-	const D3DXVECTOR3 &pos, 
-	const D3DXVECTOR3 &vecQua, 
+	const Vector3 &pos, 
+	const Vector3 &vecQua, 
 	const float fAngle)
 {
 	CObjectXQuaternion *pObjectXQuaternion = NULL;		// 生成したオブジェクトへのポインタ
@@ -46,24 +47,26 @@ CObjectXQuaternion *CObjectXQuaternion::Create(const char *pXFileName,
 // --- コンストラクタ ---
 //==================================================================================
 CObjectXQuaternion::CObjectXQuaternion(const int nPriority) : CObject(nPriority)
-{
-	// メンバ変数をクリア
+{ // メンバ変数をクリア
 	m_pMesh = nullptr;
 	m_pBuffMat = nullptr;
-	m_pIdx = nullptr;
 	m_pMtxParent = nullptr;
 	m_dwNumMat = 0;
 	m_pos = VECTOR3_NULL;
+	m_scale = VECTOR3_ONE;
 	m_vecQua = VECTOR3_NULL;
 	m_fAngle = 0.0f;
+	m_fAlpha = DEFAULT_ALPHA;
 	m_vtxMin = VECTOR3_NULL;
 	m_vtxMax = VECTOR3_NULL;
-	m_bHitByPlayerCamRay = false;
+	m_fDarkness = DEFAULT_DARKNESS;
+	m_bCalcMatrix = false;
+	D3DXMatrixIdentity(&m_mtxWorld);
 	D3DXQuaternionIdentity(&m_qua);
 	strcpy(m_aFileName, "");
 
 	// タイプの設定
-	SetType(TYPE_XMODEL);
+	SetType(TYPE_OBJ_X_QUA);
 }
 
 //==================================================================================
@@ -77,8 +80,8 @@ CObjectXQuaternion::~CObjectXQuaternion()
 // --- 初期化処理 ---
 //==================================================================================
 HRESULT CObjectXQuaternion::Init(const char* pXFileName, 
-	const D3DXVECTOR3 &pos, 
-	const D3DXVECTOR3 &vecQua, 
+	const Vector3 &pos, 
+	const Vector3 &vecQua, 
 	const float fAngle)
 { // Xファイル読み込み
 	LoadXFile(pXFileName);
@@ -104,8 +107,8 @@ HRESULT CObjectXQuaternion::Init(const char* pXFileName,
 // --- 初期化処理 (クォータニオン指定) ---
 //==================================================================================
 HRESULT CObjectXQuaternion::Init(const char *pXFileName, 
-	const D3DXVECTOR3 &pos,
-	const D3DXQUATERNION &qua)
+	const Vector3 &pos,
+	const Quaternion &qua)
 { // Xファイル読み込み
 	LoadXFile(pXFileName);
 
@@ -121,23 +124,14 @@ HRESULT CObjectXQuaternion::Init(const char *pXFileName,
 //==================================================================================
 void CObjectXQuaternion::Uninit(void)
 {
-	if (m_pMesh != nullptr)
-	{ // メッシュを解放
-		m_pMesh->Release();
-		m_pMesh = nullptr;
-	}
+	// メッシュを解放
+	SafeRelease(m_pMesh);
 
-	if (m_pBuffMat != nullptr)
-	{ // マテリアルを解放
-		m_pBuffMat->Release();
-		m_pBuffMat = nullptr;
-	}
+	// マテリアルを解放
+	SafeRelease(m_pBuffMat);
 
-	if (m_pIdx != nullptr)
-	{ // インデックスを解放
-		delete[] m_pIdx;
-		m_pIdx = nullptr;
-	}
+	// インデックスをリセット
+	m_vIdx.clear();
 
 	// 自分自身を破棄
 	CObject::Release();
@@ -148,43 +142,6 @@ void CObjectXQuaternion::Uninit(void)
 //==================================================================================
 void CObjectXQuaternion::Update(void)
 {
-	auto pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);
-	D3DXVECTOR3 posV = *pPlayerCam->GetPosV();
-	D3DXVECTOR3 posLocalV;
-	D3DXVECTOR3 ray = pPlayerCam->GetRay();
-	D3DXVECTOR3 posLocalRay;
-	D3DXVECTOR3 posWorld = GetWorldPosition();
-	BOOL bResult = FALSE;
-	FLOAT fLength;
-	HRESULT hr;
-	D3DXMATRIX mtxInv;
-
-	posWorld.y = posV.y;
-
-	if (CRay(posV, *pPlayerCam->GetPosR()).GetLength() >= Vec3::Length(posV, posWorld))
-	{
-		// ワールド座標系を自身のローカル座標系に逆変換するマトリックスを求める
-		D3DXMatrixInverse(&mtxInv, nullptr, GetMatrix());
-
-		// 逆変換マトリックスで座標をローカル座標へ変換
-		D3DXVec3TransformCoord(&posLocalV, &posV, &mtxInv);
-		D3DXVec3TransformNormal(&posLocalRay, &ray, &mtxInv);
-		ray = Vec3::Normalize(ray);
-
-		hr = D3DXIntersect(m_pMesh,
-			&posLocalV,
-			&posLocalRay,
-			&bResult,
-			nullptr,
-			nullptr,
-			nullptr,
-			&fLength,
-			nullptr,
-			nullptr);
-
-	}
-
-	m_bHitByPlayerCamRay = (bResult) ? true : false;
 }
 
 //==================================================================================
@@ -192,21 +149,33 @@ void CObjectXQuaternion::Update(void)
 //==================================================================================
 void CObjectXQuaternion::Draw(void)
 {
-	CManager* pManager = CManager::GetInstance();			// マネージャーへのポインタ
-	CRenderer* pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
+	CManager *pManager = CManager::GetInstance();			// マネージャーへのポインタ
+	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
-	CTexture* pTexture = CTexture::GetInstance();			// テクスチャへのポインタ
+	CTexture *pTexture = CTexture::GetInstance();			// テクスチャへのポインタ
 	D3DMATERIAL9 matDef;				// 現在のマテリアル保存用
-	D3DXMATERIAL* pMat = nullptr;		// マテリアルデータへのポインタ
 
 	// ワールドマトリックスの初期化
 	D3DXMatrixIdentity(&m_mtxWorld);
 
-	// クォータニオンによるマトリックス計算
-	Mtx::CalcWorld(&m_mtxWorld,
-		m_pMtxParent,
-		m_pos,
-		m_qua);
+	if (m_scale == VECTOR3_ONE)
+	{ // スケーリングを行わないクォータニオンによるマトリックス計算
+		Mtx::CalcWorld(&m_mtxWorld,
+			m_pMtxParent,
+			m_pos,
+			m_qua);
+	}
+	else
+	{ // スケーリング含むクォータニオンによるマトリックス計算
+		Mtx::CalcWorld(&m_mtxWorld,
+			m_pMtxParent,
+			m_scale,
+			m_pos,
+			m_qua);
+	}
+
+	// マトリックスが計算されたためフラグを立てる
+	m_bCalcMatrix = true;
 
 	//  ワールドマトリックスの設定
 	pDevice->SetTransform(D3DTS_WORLD, &m_mtxWorld);
@@ -214,43 +183,32 @@ void CObjectXQuaternion::Draw(void)
 	//  現在のマテリアルを保存
 	pDevice->GetMaterial(&matDef);
 
-	// マテリアルを取得
-	pMat = static_cast<D3DXMATERIAL*>(m_pBuffMat->GetBufferPointer());
-
-	if (m_bHitByPlayerCamRay)
-	{ // αテストを有効にする + Zバッファへの書き込みを無効にする
-		pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
-		pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
-		pDevice->SetRenderState(D3DRS_ALPHAREF, 30);
-		pDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
-	}
-
 	// 各マテリアルを描画
 	for (int nCntMat = 0; nCntMat < static_cast<int>(m_dwNumMat); nCntMat++)
 	{
-		D3DMATERIAL9 matSub = pMat[nCntMat].MatD3D;
-
-		if (m_bHitByPlayerCamRay == true)
-		{
-			matSub.Diffuse.a = 0.3f;
+		D3DMATERIAL9 matSub = m_vMat.at(nCntMat);
+		if (m_fAlpha != DEFAULT_ALPHA)
+		{ // α値の変更が有効なら、α値を変更
+			matSub.Diffuse.a = m_fAlpha;
 		}
+
+		// 各マテリアルのα値以外に色の濃さを掛ける
+		matSub.Ambient.r *= m_fDarkness;
+		matSub.Ambient.g *= m_fDarkness;
+		matSub.Ambient.b *= m_fDarkness;
+
+		matSub.Diffuse.r *= m_fDarkness;
+		matSub.Diffuse.g *= m_fDarkness;
+		matSub.Diffuse.b *= m_fDarkness;
 
 		// マテリアルの設定
 		pDevice->SetMaterial(&matSub);
 
 		// テクスチャの設定
-		pDevice->SetTexture(0, pTexture->GetAddress(m_pIdx[nCntMat]));
+		pDevice->SetTexture(0, pTexture->GetAddress(m_vIdx.at(nCntMat)));
 
 		// モデル(パーツ)の描画
 		m_pMesh->DrawSubset(nCntMat);
-	}
-
-	if (m_bHitByPlayerCamRay)
-	{ // αテストを無効にする + Zバッファへの書き込みを有効にする
-		pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
-		pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_ALWAYS);
-		pDevice->SetRenderState(D3DRS_ALPHAREF, 0);
-		pDevice->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 	}
 
 	// 保存していたマテリアルを戻す
@@ -260,13 +218,60 @@ void CObjectXQuaternion::Draw(void)
 //==================================================================================
 // --- 絶対座標の取得処理 ---
 //==================================================================================
-D3DXVECTOR3 CObjectXQuaternion::GetWorldPosition(void) const
+Vector3 CObjectXQuaternion::GetWorldPosition(void)
 {
-	D3DXVECTOR3 posWorld;		// 変換後の位置
+	Vector3 posWorld = VECTOR3_NULL;		// 変換後の位置
+
+	if (m_bCalcMatrix == false)
+	{ // もしマトリックスが計算されていなければ、マトリックスを計算
+		Mtx::CalcWorld(&m_mtxWorld,
+			m_pMtxParent,
+			m_scale,
+			m_pos,
+			m_qua);
+
+		// 計算フラグを立てる
+		m_bCalcMatrix = true;
+	}
 
 	// 位置を変換
-	D3DXVec3TransformCoord(&posWorld, &m_pos, &m_mtxWorld);
+	D3DXVec3TransformCoord(&posWorld, &posWorld, &m_mtxWorld);
 	return posWorld;
+}
+
+//==================================================================================
+// --- マトリックスの計算処理 ---
+//==================================================================================
+const Matrix *CObjectXQuaternion::CalcMatrix(void)
+{ // マトリックスを即時計算する
+	if (m_bCalcMatrix == false)
+	{ // 未だマトリックスを計算していなければ
+		Mtx::CalcWorld(&m_mtxWorld,
+			m_pMtxParent,
+			m_scale,
+			m_pos,
+			m_qua);
+
+		// 計算フラグを立てる
+		m_bCalcMatrix = true;
+	}
+
+	return &m_mtxWorld;
+}
+
+//==================================================================================
+// --- マトリックスの計算処理 (本体のマトリックスは計算しない) ---
+//==================================================================================
+Matrix *CObjectXQuaternion::CalcMatrixUnaffect(Matrix *pOut) const
+{ // nullならスキップ
+	if (pOut == nullptr) return nullptr;
+
+	// 引数のポインタにマトリックスの計算結果を代入
+	return Mtx::CalcWorld(pOut,
+		m_pMtxParent,
+		m_scale,
+		m_pos,
+		m_qua);
 }
 
 //==================================================================================
@@ -274,7 +279,7 @@ D3DXVECTOR3 CObjectXQuaternion::GetWorldPosition(void) const
 //==================================================================================
 void CObjectXQuaternion::CaluQuaternion(void)
 {
-	D3DXQUATERNION quaMove;				// 計算先
+	Quaternion quaMove;				// 計算先
 
 	// クォータニオンを初期化
 	D3DXQuaternionIdentity(&quaMove);
@@ -286,6 +291,70 @@ void CObjectXQuaternion::CaluQuaternion(void)
 
 	// クォータニオンを適用
 	m_qua = m_qua * quaMove;
+}
+
+//==================================================================================
+// --- レイとの衝突判定処理 ---
+//==================================================================================
+bool CObjectXQuaternion::IsHitByRay(const Vector3 &start, const Vector3 &vec, const float fLength)
+{
+	auto pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);
+	Vector3 posLocal;			// ローカル座標系へ変換した始点
+	Vector3 posLocalRay;		// ローカル座標系へ変換したレイベクトル
+	BOOL bResult = FALSE;		// 衝突判定結果
+	FLOAT fLengthToStart;		// 衝突座標との距離
+	Matrix mtxInv;				// 逆行列
+
+	// プレイヤーカメラが存在しない場合、スキップ
+	if (pPlayerCam == nullptr) return false;
+
+	// スケーリングを無視する為、マトリックスを再計算
+	Mtx::Identity(&mtxInv);
+	Mtx::CalcWorld(&mtxInv, GetParent(), *GetPosition(), *GetQuaternion());
+
+	// ワールド座標系を自身のローカル座標系に逆変換するマトリックスを求める
+	Mtx::Inverse(&mtxInv, mtxInv);
+
+	// 逆変換マトリックスで座標をローカル座標へ変換
+	D3DXVec3TransformCoord(&posLocal, &start, &mtxInv);
+	D3DXVec3TransformNormal(&posLocalRay, &vec, &mtxInv);
+	posLocalRay = Vec3::Normalize(posLocalRay);
+
+	// 変換したレイベクトルとオブジェクトの衝突判定
+	if (FAILED(D3DXIntersect(m_pMesh,
+		&posLocal,
+		&posLocalRay,
+		&bResult,
+		nullptr,
+		nullptr,
+		nullptr,
+		&fLengthToStart,
+		nullptr,
+		nullptr)))
+	{ // 判定失敗
+		return false;
+	}
+	else
+	{ // boolへ変換
+		return (bResult != FALSE && fLengthToStart < fLength);
+	}
+}
+
+//==================================================================================
+// --- プレイヤーカメラのレイとの衝突判定処理 ---
+//==================================================================================
+bool CObjectXQuaternion::IsHitByPlayerCamRay(void)
+{
+	auto pPlayerCam = CCamera::GetCamera(CCamera::TYPE_PLAYER);
+
+	// nullの場合スキップ
+	if (pPlayerCam == nullptr) return false;
+
+	Vector3 posV = *pPlayerCam->GetPosV();		// 視点
+	Vector3 posR = *pPlayerCam->GetPosR();		// 注視点
+
+	// カメラのレイを用いて判定
+	return IsHitByRay(posV, pPlayerCam->GetRay(), CRay(posV, posR).GetLength());
 }
 
 //==================================================================================
@@ -308,7 +377,7 @@ void CObjectXQuaternion::SetAngle(const float fAngle)
 //==================================================================================
 void CObjectXQuaternion::AddAngle(const float fAngle)
 {
-	D3DXQUATERNION quaMove;		// クォータニオン
+	Quaternion quaMove;		// クォータニオン
 
 	// クォータニオンの設定処理
 	D3DXQuaternionRotationAxis(&quaMove,
@@ -337,37 +406,37 @@ HRESULT	CObjectXQuaternion::LoadXFile(const char* pXFileName)
 	// Xファイルの読み込み
 	hr = D3DXLoadMeshFromX(pXFileName,			// 読み込むXファイル名
 		D3DXMESH_SYSTEMMEM,
-		pDevice,						// デバイスポインタ
+		pDevice,			// デバイスポインタ
 		NULL,
 		&m_pBuffMat,		// マテリアルへのポインタ
 		NULL,
 		&m_dwNumMat,		// マテリアルの数
-		&m_pMesh);		// メッシュへのポインタ
+		&m_pMesh);			// メッシュへのポインタ
 	if (FAILED(hr))
 	{ // 読み込み失敗
 		return E_FAIL;
 	}
 
-	// マテリアル数分だけ、インデックス用バッファを確保
-	m_pIdx = new int[static_cast<int>(m_dwNumMat)];
-	memset(m_pIdx, -1, sizeof(int) * m_dwNumMat);
-
 	// マテリアルデータへのポインタを取得
 	pMat = static_cast<D3DXMATERIAL*>(m_pBuffMat->GetBufferPointer());
 
+	// マテリアル数分、各配列を確保
+	m_vIdx.reserve(m_dwNumMat);
+	m_vMat.reserve(m_dwNumMat);
+
 	for (int nCntMat = 0; nCntMat < static_cast<int>(m_dwNumMat); nCntMat++)
-	{ // マテリアル数分だけテクスチャチェック
-		if (pMat[nCntMat].pTextureFilename != NULL)
-		{ // テクスチャの読み込み
-			m_pIdx[nCntMat] = pTexture->Register(pMat[nCntMat].pTextureFilename);
-		}
+	{ // マテリアル数分だけ繰り返し
+		// マテリアルカラー取得
+		m_vMat.push_back(pMat[nCntMat].MatD3D);
+
+		// テクスチャの読み込み
+		m_vIdx.push_back(pTexture->Register(pMat[nCntMat].pTextureFilename));
 	}
 
 	// 頂点数を取得
 	nNumVtx = m_pMesh->GetNumVertices();
 
 	// 頂点フォーマットのサイズを取得
-	DWORD dwFvf = m_pMesh->GetFVF();
 	dwSizeFVF = D3DXGetFVFVertexSize(m_pMesh->GetFVF());
 
 	// 頂点バッファをロック
@@ -376,7 +445,7 @@ HRESULT	CObjectXQuaternion::LoadXFile(const char* pXFileName)
 	// 頂点の最大、最小値を取得
 	for (int nCntVtx = 0; nCntVtx < nNumVtx; nCntVtx++)
 	{
-		D3DXVECTOR3 vtx = *(D3DXVECTOR3*)pVtxBuff;	// 頂点座標の代入
+		Vector3 vtx = *(Vector3*)pVtxBuff;	// 頂点座標の代入
 
 		// 最小値を取得
 		m_vtxMin.x = (m_vtxMin.x > vtx.x) ? vtx.x : m_vtxMin.x;

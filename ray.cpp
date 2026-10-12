@@ -26,7 +26,7 @@ CRay::CRay()
 //==================================================================================
 // --- コンストラクタ (始点と方向ベクトルと長さを指定) ---
 //==================================================================================
-CRay::CRay(const D3DXVECTOR3 &start, const D3DXVECTOR3 &vec, const float fLength)
+CRay::CRay(const Vector3 &start, const Vector3 &vec, const float fLength)
 { // 引数を保存
 	m_start = start;
 	m_vec = vec;
@@ -39,7 +39,7 @@ CRay::CRay(const D3DXVECTOR3 &start, const D3DXVECTOR3 &vec, const float fLength
 //==================================================================================
 // --- コンストラクタ (始点と終点指定) ---
 //==================================================================================
-CRay::CRay(const D3DXVECTOR3 &start = VECTOR3_NULL, const D3DXVECTOR3 &end = VECTOR3_NULL)
+CRay::CRay(const Vector3 &start = VECTOR3_NULL, const Vector3 &end = VECTOR3_NULL)
 { // 引数を保存
 	m_start = start;
 	m_end = end;
@@ -61,13 +61,15 @@ CRay::~CRay()
 //==================================================================================
 void CRay::Draw(const int nFrame)
 { // フレーム数 + 1で生成 (1のままだと、Updateで減少して即死する)
+#ifdef _DEBUG
 	CObjectLine::Create(m_start, m_end)->SetLife(nFrame + 1);
+#endif
 }
 
 //==================================================================================
 // --- 始点設定処理 ---
 //==================================================================================
-void CRay::SetStart(const D3DXVECTOR3 &start)
+void CRay::SetStart(const Vector3 &start)
 { // 引数保存
 	m_start = start;
 
@@ -79,7 +81,7 @@ void CRay::SetStart(const D3DXVECTOR3 &start)
 //==================================================================================
 // --- 終点設定処理 ---
 //==================================================================================
-void CRay::SetEnd(const D3DXVECTOR3 &end)
+void CRay::SetEnd(const Vector3 &end)
 { // 引数保存
 	m_end = end;
 
@@ -91,7 +93,7 @@ void CRay::SetEnd(const D3DXVECTOR3 &end)
 //==================================================================================
 // --- 方向ベクトル設定処理 ---
 //==================================================================================
-void CRay::SetVector(const D3DXVECTOR3 &vec)
+void CRay::SetVector(const Vector3 &vec)
 { // 引数保存
 	m_vec = vec;
 

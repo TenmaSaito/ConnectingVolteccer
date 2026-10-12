@@ -12,9 +12,10 @@
 // *** インクルードファイル ***
 //**********************************************************************************
 #include "main.h"
+#include <concepts>
 
 //**********************************************************************************
-// *** モードクラス ***
+// *** シーンクラス ***
 //**********************************************************************************
 class CScene
 {
@@ -22,10 +23,13 @@ public:
 	// モードの種類
 	typedef enum
 	{
-		MODE_TITLE = 0,		// タイトル
+		MODE_NONE = 0,		// 無し
+		MODE_TITLE,			// タイトル
+		MODE_TUTORIAL,		// チュートリアル
 		MODE_GAME,			// ゲーム
-		MODE_GAMEOVER,		// ゲームオーバー
-		MODE_GAMECLEAR,		// ゲームクリア
+		MODE_RESULT,		// リザルト
+		MODE_RANKING,		// ランキング
+		MODE_EDIT,			// エディット
 		MODE_MAX
 	} MODE;
 
@@ -33,7 +37,7 @@ public:
 	virtual ~CScene();
 
 	static CScene *Create(const MODE mode);
-	static CScene *Create(const MODE mode, CScene **ppOut);
+	static CScene *Create(const MODE mode, std::unique_ptr<CScene> &rpOut);
 
 	virtual HRESULT Init(void) = 0;
 	virtual void Uninit(void) = 0;
@@ -43,5 +47,24 @@ public:
 
 private:
 	MODE m_mode;		// 現在のモード
+};
+
+//**********************************************************************************
+// *** シーンのモード取得用CRTPクラス ***
+//**********************************************************************************
+template<class Derived, CScene::MODE myMode>
+class CSceneBase : public CScene
+{
+public:
+	CSceneBase() : CScene(myMode) {}
+	static constexpr MODE GetOwnMode(void) { return myMode; }
+};
+
+// クラスがシーンの条件を満たしているかの条件
+template<class T>
+concept IsScene = std::derived_from<T, CScene> &&
+requires (T t)
+{ // 自クラスがどのモードに属しているかを取得する関数
+	T::GetOwnMode();
 };
 #endif

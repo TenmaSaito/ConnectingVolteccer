@@ -29,9 +29,9 @@ public:
 	{
 		LPDIRECT3DVERTEXBUFFER9 pVtxBuff;		// 頂点バッファ
 		int nIdxTexture;	// テクスチャインデックス
-		D3DXVECTOR3 pos;	// 位置
-		D3DXVECTOR3 rot;	// 角度
-		float fRadius;		// 半径
+		Vector3 pos;	// 位置
+		Vector3 rot;	// 角度
+		float fRadius;	// 半径
 	};
 
 	CCircleTransition();
