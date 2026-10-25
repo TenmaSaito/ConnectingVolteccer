@@ -1,0 +1,119 @@
+{
+  "$schema_comment": "This is a project-specific policy draft, not a clang-tidy native configuration.",
+  "version": "0.1",
+  "basis": "cpp_TKG.zip source patterns with user-requested overrides",
+  "enforcement": {
+    "scope": "PR changed declarations and files",
+    "legacy_mode": "warn_only",
+    "ignore_paths": [
+      ".git/**",
+      ".vs/**",
+      "Debug/**",
+      "Release/**",
+      "**/generated/**",
+      "**/third_party/**"
+    ]
+  },
+  "names": {
+    "variables": {
+      "pattern": "lowerCamelCase after prefixes",
+      "primitive_prefixes": {
+        "int": "n",
+        "float": "f",
+        "double": "d",
+        "bool": "b",
+        "char": "c",
+        "UINT": "u",
+        "DWORD": "dw",
+        "size_t": "n"
+      },
+      "containers": {
+        "std::vector": "v",
+        "std::array": "a",
+        "std::deque": "d",
+        "std::list": "l"
+      },
+      "user_defined_types": {
+        "class": "no type prefix required",
+        "struct": "no type prefix required",
+        "enum": "no type prefix required"
+      },
+      "smart_pointers": [
+        "std::unique_ptr",
+        "std::shared_ptr"
+      ],
+      "pointers": "p (overrides the underlying value type prefix); pointer-to-pointer pp",
+      "const_ref": "same prefix as value of referenced type; no automatic r prefix",
+      "mutable_ref": "allow r prefix as legacy but do not require",
+      "class_member": "m_ + normal variable name",
+      "struct_field": "no m_ required",
+      "const_variable": "same as normal typed variable, not a named constant",
+      "string_view": "permit no prefix or s, to preserve existing examples"
+    },
+    "constexpr_constant": {
+      "case": "UPPER_CASE",
+      "preferred_declaration": "constexpr"
+    },
+    "legacy_semantic_constant": {
+      "case": "UPPER_CASE",
+      "allowed_declarations": [
+        "inline const",
+        "inline static const",
+        "static const"
+      ],
+      "condition": "must be explicitly allowlisted AND constexpr must be impossible"
+    },
+    "macros": {
+      "case": "UPPER_CASE"
+    },
+    "enum_values": {
+      "case": "UPPER_CASE"
+    },
+    "functions": {
+      "case": "PascalCase",
+      "exceptions": [
+        "main",
+        "WinMain",
+        "operators",
+        "external/API overrides"
+      ]
+    },
+    "types": {
+      "class": [
+        "PascalCase",
+        "lowerCamelCase"
+      ],
+      "struct": [
+        "PascalCase",
+        "lowerCamelCase"
+      ],
+      "enum": [
+        "PascalCase",
+        "lowerCamelCase"
+      ],
+      "type_prefix_required": false
+    },
+    "cpp_files": {
+      "extensions": [
+        ".h",
+        ".hpp",
+        ".cpp",
+        ".cc"
+      ],
+      "allowed_base_styles": [
+        "lowerCamelCase",
+        "snake_case"
+      ],
+      "exceptions": [
+        "pch.h",
+        "CMakeLists.txt",
+        "third-party/generated files"
+      ]
+    }
+  },
+  "checks": {
+    "constexpr_suggestion": "Only suggest constexpr for identifiers explicitly intended as semantic constants (e.g. uppercase constant name); do not propose converting arbitrary const local variables.",
+    "type_resolution": "Use actual C++ AST and source-level typedef spelling for UINT/DWORD; regex alone is insufficient",
+    "diagnostic": "file, line, symbol, declared type, violated rule, suggested name, safe-fix availability"
+  }
+}

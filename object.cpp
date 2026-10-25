@@ -84,7 +84,7 @@ void CObject::NotifyAll(std::string_view message)
 	{ // nullの場合スキップ
 		if (pObserver == nullptr) continue;
 
-		// 自身が死んだことを通知
+		// 通知
 		pObserver->Notified(this, message);
 	}
 }
@@ -395,7 +395,7 @@ void CObject::RemoveList(void)
 //==================================================================================
 // --- 自身の死亡を観察者へ通知する処理 ---
 //==================================================================================
-void CObject::NofifyAllWhenDeath(void)
+void CObject::NotifyAllWhenDeath(void)
 { // 自身が死んだことを通知
 	NotifyAll(NOTIFY_WHEN_DEATH);
 }

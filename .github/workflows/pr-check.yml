@@ -1,0 +1,387 @@
+name: PR 自動品質チェック
+run-name: "PR #${{ github.event.pull_request.number }} の自動検査"
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-guard-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  config:
+    name: ビルド検査設定の確認
+    runs-on: ubuntu-latest
+    env:
+      BUILD_SYSTEM: ${{ vars.BUILD_SYSTEM }}
+    steps:
+      - name: BUILD_SYSTEMを確認
+        shell: bash
+        run: |
+          case "$BUILD_SYSTEM" in
+            vs2019|cmake|emscripten) echo "ビルド方式: $BUILD_SYSTEM" ;;
+            *) echo '::error::BUILD_SYSTEM は vs2019 / cmake / emscripten のいずれかを指定してください'; exit 1 ;;
+          esac
+
+  naming:
+    name: 命名規則チェック
+    runs-on: ubuntu-latest
+    env:
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      STRICT_NAMING: ${{ vars.STRICT_NAMING }}
+    steps:
+      # PRのマージ結果。ここにはSecretsを渡さない
+      - name: PRのソースコードを取得
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # チェッカーと規則はPR内で変更されたものを使わず、ベース側のものを使う
+      - name: ベースブランチから検査ツールと命名規則を取得
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: .prguard-base
+          persist-credentials: false
+
+      - name: GitHub上にPythonを準備
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: ファイル名の命名規則を検査
+        id: filenames
+        continue-on-error: true
+        run: >-
+          python .prguard-base/tools/check_filenames.py
+          --base "$BASE_SHA" --head "$HEAD_SHA"
+          --policy .prguard-base/naming_policy.json
+
+      - name: C++変数名・定数名の命名規則を検査
+        id: identifiers
+        continue-on-error: true
+        run: |
+          if [ "${STRICT_NAMING,,}" = "true" ]; then
+            python .prguard-base/tools/check_identifiers.py \
+              --base "$BASE_SHA" --head "$HEAD_SHA" \
+              --policy .prguard-base/naming_policy.json
+          else
+            python .prguard-base/tools/check_identifiers.py \
+              --base "$BASE_SHA" --head "$HEAD_SHA" \
+              --policy .prguard-base/naming_policy.json --no-fail
+          fi
+
+      - name: Discord通知用のPR情報を作成
+        if: always()
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          python - <<'PYMETA'
+          import json, os
+          from pathlib import Path
+          Path('reports').mkdir(exist_ok=True)
+          Path('reports/pr_metadata.json').write_text(
+              json.dumps({'pr_number': int(os.environ['PR_NUMBER']),
+                          'head_sha': os.environ['HEAD_SHA']}, ensure_ascii=False),
+              encoding='utf-8')
+          PYMETA
+
+      - name: 検査結果をGitHubの概要に表示
+        if: always()
+        run: python .prguard-base/tools/ci_summary.py
+
+      - name: 検査レポートを保存
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-quality-report
+          path: reports/*.json
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: 命名チェックの合否を判定
+        if: always()
+        env:
+          FILE_RESULT: ${{ steps.filenames.outcome }}
+          IDENT_RESULT: ${{ steps.identifiers.outcome }}
+        run: |
+          if [ "$FILE_RESULT" != "success" ]; then
+            echo 'ファイル名の命名規則チェックに失敗しました。注釈とレポートを確認してください。'
+            exit 1
+          fi
+          if [ "$IDENT_RESULT" != "success" ]; then
+            echo 'C++識別子の命名規則チェックに失敗しました（厳格モードの違反を含む）。'
+            exit 1
+          fi
+
+  build-vs2019:
+    name: ビルド確認（Visual Studio 2019）
+    if: ${{ vars.BUILD_SYSTEM == 'vs2019' }}
+    runs-on: windows-2022
+    env:
+      PYTHONIOENCODING: 'utf-8'
+      PYTHONUTF8: '1'
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      STRICT_SEMANTIC_NAMING: ${{ vars.STRICT_SEMANTIC_NAMING }}
+    permissions:
+      contents: read
+    steps:
+      - name: ソースコードを取得
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 信頼済みのAST検査ツールをベースから取得
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: .prguard-base
+          persist-credentials: false
+      - name: Pythonを準備（ビルド構成の判定用）
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: MSBuildを準備
+        uses: microsoft/setup-msbuild@v2
+      - name: ソリューションの有効なビルド構成を確認
+        id: solution-config
+        shell: pwsh
+        env:
+          SOLUTION: ${{ vars.VS_SOLUTION }}
+          VS_CONFIGURATION: ${{ vars.VS_CONFIGURATION }}
+          VS_PLATFORM: ${{ vars.VS_PLATFORM }}
+        run: |
+          python tools/select_vs_solution_config.py --solution "$env:SOLUTION" --configuration "$env:VS_CONFIGURATION" --platform "$env:VS_PLATFORM"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Visual C++開発環境を準備（ClangのMSVC互換解析にも使用）
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ steps.solution-config.outputs.platform == 'x64' && 'x64' || 'x86' }}
+      - name: Visual Studio ビルド確認（DirectX 9対応）
+        shell: pwsh
+        env:
+          SOLUTION: ${{ vars.VS_SOLUTION }}
+          BUILD_CONFIGURATION: ${{ steps.solution-config.outputs.configuration }}
+          BUILD_PLATFORM: ${{ steps.solution-config.outputs.platform }}
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          # 1. D3DX9をNuGetから取得
+          $packageDir = Join-Path $env:RUNNER_TEMP "dxsdk"
+
+          nuget install Microsoft.DXSDK.D3DX `
+            -Version 9.29.952.8 `
+            -OutputDirectory "$packageDir" `
+            -Source "https://api.nuget.org/v3/index.json" `
+            -NonInteractive
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "D3DX9の取得に失敗しました"
+          }
+
+          # 2. ヘッダーとライブラリを検索
+          $header = Get-ChildItem $packageDir -Recurse `
+            -Filter "d3dx9.h" -File |
+            Select-Object -First 1
+
+          $arch = $env:BUILD_PLATFORM
+          if ($arch -eq "Win32") { $arch = "x86" }
+
+          if ($arch -notin @("x86", "x64")) {
+            throw "未対応のプラットフォーム: $arch"
+          }
+
+          $buildFlavor = if ($env:BUILD_CONFIGURATION -eq "Debug") {
+            "debug"
+          } else {
+            "release"
+          }
+          
+          $library = Get-ChildItem $packageDir -Recurse `
+            -Filter "d3dx9.lib" -File |
+            Where-Object {
+              $_.FullName -match "[\\/]$buildFlavor[\\/]lib[\\/]$arch[\\/]"
+            } |
+            Select-Object -First 1
+
+          if (-not $header -or -not $library) {
+            throw "D3DX9のヘッダーまたはライブラリが見つかりません"
+          }
+          $includeDir = $header.DirectoryName
+          $libDir = $library.DirectoryName
+
+          Write-Host "D3DX9 Include: $includeDir"
+          Write-Host "D3DX9 Library: $libDir"
+
+          # 3. CI専用のMSBuild設定を生成
+          $targets = Join-Path $env:RUNNER_TEMP "D3DX9.CI.targets"
+
+          $xmlLines = @(
+            '<Project>'
+            '  <ItemDefinitionGroup>'
+            '    <ClCompile>'
+            "      <AdditionalIncludeDirectories>$includeDir;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>"
+            '      <AdditionalOptions>/source-charset:.932 /execution-charset:.932 %(AdditionalOptions)</AdditionalOptions>'
+            '    </ClCompile>'
+            '    <Link>'
+            "      <AdditionalLibraryDirectories>$libDir;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>"
+            '    </Link>'
+            '  </ItemDefinitionGroup>'
+            '</Project>'
+          )
+
+          Set-Content -Path $targets -Value $xmlLines -Encoding utf8
+
+          # 4. Visual Studioビルド
+          msbuild "$env:SOLUTION" /m `
+            "/p:Configuration=$env:BUILD_CONFIGURATION" `
+            "/p:Platform=$env:BUILD_PLATFORM" `
+            "/p:ForceImportAfterCppTargets=$targets"
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Visual Studioビルドに失敗しました"
+          }
+
+
+      - name: MSBuildログをコンパイルデータベースへ変換
+        id: compdb
+        shell: pwsh
+        run: |
+          python .prguard-base/tools/msbuild_tlog_to_compdb.py --root . --out compile_commands.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Clang ASTによる意味解析（VS / D3DX9）
+        id: semantic
+        shell: pwsh
+        run: |
+          Get-Command clang-cl -ErrorAction Stop | Out-Host
+          $flags = @()
+          if ($env:STRICT_SEMANTIC_NAMING -ne 'true') { $flags += '--no-fail' }
+          python .prguard-base/tools/check_semantic_naming.py `
+            --base "$env:BASE_SHA" --head "$env:HEAD_SHA" `
+            --compdb compile_commands.json `
+            --policy .prguard-base/naming_policy.json `
+            --report reports/semantic_naming.json @flags
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: AST解析結果をGitHub Summaryに追記
+        if: always()
+        shell: pwsh
+        run: python .prguard-base/tools/semantic_summary.py --report reports/semantic_naming.json
+      - name: AST解析結果を通知用に保存
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-semantic-report
+          path: reports/semantic_naming.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  build-cmake:
+    name: ビルド確認（CMake）
+    if: ${{ vars.BUILD_SYSTEM == 'cmake' }}
+    runs-on: ubuntu-latest
+    env:
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      STRICT_SEMANTIC_NAMING: ${{ vars.STRICT_SEMANTIC_NAMING }}
+    steps:
+      - name: ソースコードを取得
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 信頼済みのAST検査ツールをベースから取得
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: .prguard-base
+          persist-credentials: false
+      - name: Clangを準備
+        run: clang++ --version
+      - name: CMake構成を生成
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+      - name: CMakeでビルド
+        run: cmake --build build --parallel 2
+      - name: CTestでテストを実行
+        run: ctest --test-dir build --output-on-failure --no-tests=ignore
+      - name: Clang ASTによる意味解析（CMake）
+        id: semantic
+        shell: bash
+        run: |
+          flags=()
+          if [ "${STRICT_SEMANTIC_NAMING,,}" != 'true' ]; then flags+=(--no-fail); fi
+          python3 .prguard-base/tools/check_semantic_naming.py \
+            --base "$BASE_SHA" --head "$HEAD_SHA" \
+            --compdb build/compile_commands.json \
+            --policy .prguard-base/naming_policy.json \
+            --report reports/semantic_naming.json "${flags[@]}"
+      - name: AST解析結果をGitHub Summaryに追記
+        if: always()
+        run: python3 .prguard-base/tools/semantic_summary.py --report reports/semantic_naming.json
+      - name: AST解析結果を通知用に保存
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-semantic-report
+          path: reports/semantic_naming.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  build-emscripten:
+    name: ビルド確認（Emscripten / VS Code）
+    if: ${{ vars.BUILD_SYSTEM == 'emscripten' }}
+    runs-on: ubuntu-latest
+    env:
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      STRICT_SEMANTIC_NAMING: ${{ vars.STRICT_SEMANTIC_NAMING }}
+    steps:
+      - name: ソースコードを取得
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 信頼済みのAST検査ツールをベースから取得
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: .prguard-base
+          persist-credentials: false
+      - name: Emscriptenを準備
+        uses: emscripten-core/setup-emsdk@v15
+        with:
+          version: ${{ vars.EMSDK_VERSION || '4.0.10' }}
+      - name: ブラウザ向けCMake構成を生成
+        run: emcmake cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+      - name: ビルドを実行
+        run: cmake --build build --parallel 2
+      - name: Clang ASTによる意味解析（Emscripten）
+        id: semantic
+        shell: bash
+        run: |
+          flags=()
+          if [ "${STRICT_SEMANTIC_NAMING,,}" != 'true' ]; then flags+=(--no-fail); fi
+          python3 .prguard-base/tools/check_semantic_naming.py \
+            --base "$BASE_SHA" --head "$HEAD_SHA" \
+            --compdb build/compile_commands.json \
+            --policy .prguard-base/naming_policy.json \
+            --report reports/semantic_naming.json "${flags[@]}"
+      - name: AST解析結果をGitHub Summaryに追記
+        if: always()
+        run: python3 .prguard-base/tools/semantic_summary.py --report reports/semantic_naming.json
+      - name: AST解析結果を通知用に保存
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-semantic-report
+          path: reports/semantic_naming.json
+          if-no-files-found: warn
+          retention-days: 7
