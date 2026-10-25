@@ -1,0 +1,82 @@
+name: PR チェック結果のDiscord通知
+on:
+  pull_request_target:
+    types: [opened]
+  workflow_run:
+    workflows: ["PR 自動品質チェック"]
+    types: [completed]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  notify-opened:
+    name: PR作成をDiscordへ通知
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 通知スクリプトを取得（安全のためデフォルトブランチから）
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - name: PR作成メッセージを送信
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python3 tools/notify_discord.py opened
+  notify-results:
+    name: 検査結果をDiscordへ通知
+    if: github.event_name == 'workflow_run'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 通知スクリプトを取得（安全のためデフォルトブランチから）
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      # 別ワークフロー(run-id)の成果物をGitHub公式Actionで取得する。
+      # ダウンロードしたPR由来のデータは実行せず、JSONのテキストとしてのみ扱う。
+      - name: 検査レポートを取得
+        id: get-report
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: pr-quality-report
+          path: downloaded-report
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      # こちらはPR側のJSONデータとしてのみ取り扱い、実行やimportは禁止。
+      - name: Clang AST結果レポートを取得
+        id: get-semantic
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: pr-semantic-report
+          path: downloaded-semantic
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: 検査結果メッセージを送信
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          REPORT_DIR: downloaded-report
+          SEMANTIC_REPORT_DIR: downloaded-semantic
+          SEMANTIC_EXPECTED: ${{ vars.BUILD_SYSTEM == 'vs2019' || vars.BUILD_SYSTEM == 'cmake' || vars.BUILD_SYSTEM == 'emscripten' }}
+          REPORT_DOWNLOAD_RESULT: ${{ steps.get-report.outcome }}
+        run: python3 tools/notify_discord.py completed
+
+  notify-test:
+    name: Discordへのテスト送信
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 通知スクリプトをデフォルトブランチから取得
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - name: Discordに接続テストを送信
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python3 tools/notify_discord.py test

@@ -1,0 +1,24 @@
+# Partial baseline only. Type-aware project rules remain in naming_policy.json.
+# Do not treat this as a complete replacement for the custom AST checker.
+Checks: '-*,readability-identifier-naming'
+CheckOptions:
+  - key: readability-identifier-naming.FunctionCase
+    value: CamelCase
+  - key: readability-identifier-naming.MethodCase
+    value: CamelCase
+  - key: readability-identifier-naming.MacroDefinitionCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.EnumConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.ScopedEnumConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.ConstexprVariableCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.GlobalConstexprVariableCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.LocalConstexprVariableCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.StaticConstexprVariableCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.ClassConstexprCase
+    value: UPPER_CASE

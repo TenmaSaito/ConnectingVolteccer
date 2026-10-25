@@ -114,7 +114,7 @@ private:
 #if ENABLE_OBJECT_LIST
 	void AddList(void);
 	void RemoveList(void);
-	void NofifyAllWhenDeath(void);
+	void NotifyAllWhenDeath(void);
 
 	static CObject *m_apTop[MAX_OBJPRIORITY];		// 先頭オブジェクトへのポインタ
 	static CObject *m_apCur[MAX_OBJPRIORITY];		// 最後尾オブジェクトへのポインタ
