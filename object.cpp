@@ -339,7 +339,7 @@ void CObject::Release(void)
 #endif
 
 	// Ž€–S‚µ‚½‚±‚Æ‚ð’Ê’m
-	NofifyAllWhenDeath();
+	NotifyAllWhenDeath();
 }
 
 //==================================================================================
