@@ -18,6 +18,12 @@
 #include "matrix.h"
 #include "color.h"
 
+//**********************************************************************************
+// *** マクロ定義 ***
+//**********************************************************************************
+#define DEBUG_EFFECT_LIFE		(10)		// デバッグ用エフェクトの寿命
+#define DEBUG_EFFECT_RADIUS		(10.0f)		// デバッグ用エフェクトの半径
+
 //==================================================================================
 // --- メッシュフィールドの作成 ---
 //==================================================================================
@@ -481,7 +487,7 @@ HRESULT CMeshField::Init(const Vector3 &pos,
 			nCntIdx++;
 		}
 
-		for (int nCntIdx = 0; nCntIdx < 4; nCntIdx++)
+		for (int nCntIdx = 0; nCntIdx < DEFAULT_VERTEX_NUM; nCntIdx++)
 		{ // 最初の四角形のインデックスを保存
 			m_aIdxFirstBlock[nCntIdx] = pIdx[nCntIdx];
 		}
@@ -846,7 +852,7 @@ void CMeshField::Update(void)
 		}
 
 		// エフェクトを生成
-		CEffect::Create(posVtx, 10, 10.0f);
+		CEffect::Create(posVtx, DEBUG_EFFECT_LIFE, DEBUG_EFFECT_RADIUS);
 
 		// 情報表示
 		pProc->Print("[操作中インデックス : %d (A/Dで変更)]\n", m_nIdxControl);
@@ -893,7 +899,7 @@ void CMeshField::Draw(void)
 float CMeshField::GetHeight(const Vector3 &pos)
 {
 	CManager *pManager = CManager::GetInstance();	// マネージャーへのポインタ
-	Vector3 aVtx[4] = { VECTOR3_NULL };		// 当たり判定をする頂点座標
+	Vector3 aVtx[DEFAULT_VERTEX_NUM] = { VECTOR3_NULL };		// 当たり判定をする頂点座標
 	Vector3 posStart = VECTOR3_NULL;		// 割合計算の開始地点
 	float fHeight = 0.0f;			// 計算結果
 
@@ -928,7 +934,7 @@ float CMeshField::GetHeight(const Vector3 &pos)
 	nIdxZ = static_cast<int>(norDiff.z / fZBlock);
 
 	int nIdxBlock = (m_nNumZBlock * nIdxZ) + nIdxX;		// 現在いるブロックの番号
-	int aIdx[4];		// 判定をするインデックス
+	int aIdx[DEFAULT_VERTEX_NUM];		// 判定をするインデックス
 
 	// 判定をするインデックスを求める
 	aIdx[0] = m_aIdxFirstBlock[0] + (nIdxBlock + nIdxZ);
@@ -941,7 +947,7 @@ float CMeshField::GetHeight(const Vector3 &pos)
 	// 頂点バッファをロック
 	if (SUCCEEDED(CMesh::LockVertex(&pVtx)))
 	{ // ロック成功時
-		for (int nCntVtx = 0; nCntVtx < 4; nCntVtx++)
+		for (int nCntVtx = 0; nCntVtx < DEFAULT_VERTEX_NUM; nCntVtx++)
 		{ // メッシュフィールドのインデックスの頂点座標を求める
 			aVtx[nCntVtx] = pVtx[aIdx[nCntVtx]].pos;
 		}

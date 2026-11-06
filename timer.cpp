@@ -241,7 +241,7 @@ void CTimer::Uninit(void)
 //==================================================================================
 void CTimer::Update(void)
 {
-	if (m_nTime > 0 && m_nCounter % 60 == 0 && m_bUpdate == true)
+	if (m_nTime > 0 && m_nCounter % CManager::SecToFrame(1) == 0 && m_bUpdate == true)
 	{ // 0秒より大きい且つ60秒経ったらカウントダウン
 		AddTimer(-1);
 	}
@@ -271,7 +271,7 @@ void CTimer::Draw(void)
 	pDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
 	pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
 	pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
-	pDevice->SetRenderState(D3DRS_ALPHAREF, 30);
+	pDevice->SetRenderState(D3DRS_ALPHAREF, DEFAULT_ALPHA_REF);
 
 	for (auto &pNumber : m_apNumber)
 	{ // タイマーが生成した数値オブジェクトを描画

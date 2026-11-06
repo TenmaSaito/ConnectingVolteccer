@@ -14,6 +14,12 @@
 #include "util.h"
 #include "effect.h"
 
+//**********************************************************************************
+// *** マクロ定義 ***
+//**********************************************************************************
+#define DEBUG_EFFECT_LIFE		(1000)		// デバッグ用エフェクトの寿命
+#define DEBUG_EFFECT_RADIUS		(5)			// デバッグ用エフェクトの半径
+
 //==================================================================================
 // --- メッシュスフィアの作成 ---
 //==================================================================================
@@ -180,7 +186,7 @@ void CMeshSphere::SetTop(VERTEX_3D *pVtx, WORD *pIdx)
 		fAngle += fIncreaseAngle;
 		fAngle = Util::FixedRotation(fAngle);
 
-		CEffect::Create(pos, 1000, 5);
+		CEffect::Create(pos, DEBUG_EFFECT_LIFE, DEBUG_EFFECT_RADIUS);
 	}
 
 	// インデックス設定
@@ -228,7 +234,7 @@ void CMeshSphere::SetUnder(VERTEX_3D *pVtx, WORD *pIdx)
 		fAngle += fIncreaseAngle;
 		fAngle = Util::FixedRotation(fAngle);
 
-		CEffect::Create(pos, 1000, 5);
+		CEffect::Create(pos, DEBUG_EFFECT_LIFE, DEBUG_EFFECT_RADIUS);
 	}
 
 	// インデックス設定

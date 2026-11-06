@@ -51,6 +51,9 @@
 #define FINISH_DISP_DURATIONE	(CManager::SecToFrame(3))		// Finishポリゴンが表示される時間
 #define POLYGON_SCALE_VALUE		(2.5f)		// ポリゴンの初期の拡大倍率
 #define POLYGON_ALPHA_VALUE		(0.05f)		// ポリゴンのα値の増減値
+#define TIMER_DIGIT				(3)			// タイマーの桁数
+#define TIME_LIMIT				(120)		// ゲームの制限時間 (秒)
+#define LANDMARK_SCORE_RATE		(0.1f)		// 電気のついたランドマーク1つ当たりに加算される割合
 
 //**********************************************************************************
 // *** 定数宣言 ***
@@ -244,7 +247,7 @@ void CGame::Start(void)
 	pFrame->BindTexture(CTexture::GetInstance()->Register(FRAME_PATH));
 
 	// タイマー生成
-	m_pTimer = CTimer::Create(TIMER_POS, TIMER_SIZE, 3, 120);
+	m_pTimer = CTimer::Create(TIMER_POS, TIMER_SIZE, TIMER_DIGIT, TIME_LIMIT);
 
 	// コンボ表示生成
 	m_pCombo = CCombo::Create(COMBO_POS, VECTOR3_NULL);
@@ -430,7 +433,7 @@ void CGame::UpdateEnd(void)
 			float fPercent = static_cast<float>(nNumLighting)					// 電気のついた家の割合
 				/ static_cast<float>(pMap->GetNumBuilding());
 
-			fPercent += static_cast<float>(m_nNumLightingLandmark) * 0.1f;		// 電気のついたランドマークの割合を追加
+			fPercent += static_cast<float>(m_nNumLightingLandmark) * LANDMARK_SCORE_RATE;		// 電気のついたランドマークの割合を追加
 
 			// 割合を書き出し
 			pFile->Write(fPercent);

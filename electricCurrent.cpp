@@ -24,6 +24,11 @@
 //**********************************************************************************
 #define THUNDER_MAX		(Vector3(40.0f, 0.0f, 0.0f))		// 雷エフェクトの最大値
 #define THUNDER_MIN		(Vector3(-40.0f, 0.0f, 0.0f))		// 雷エフェクトの最小値
+#define CURRENT_HEIGHT_OFFSET	(1125.0f)		// 電流の発生位置の高さのオフセット
+#define VIBRATION_L_POWER	(15000)			// 電流発生時の左モーターの振動の強さ
+#define VIBRATION_R_POWER	(20000)			// 電流発生時の右モーターの振動の強さ
+#define VIBRATION_TIME_CUT	(5)				// 電流の合計時間から差し引く振動時間
+#define THUNDER_END_EPSILON	(5.0f)			// 雷エフェクトが終了したとみなす許容誤差
 
 //==================================================================================
 // --- 生成処理 ---
@@ -97,7 +102,7 @@ HRESULT CElectricCurrent::Init(CObjectXQuaternion *pStart,
 	m_fTotalTime = fTotalTime;
 
 	// 位置を上にずらす
-	m_pos.y = pStart->GetVtxMax()->y + 1125.0f;
+	m_pos.y = pStart->GetVtxMax()->y + CURRENT_HEIGHT_OFFSET;
 
 	// マトリックスを生成
 	Mtx::CalcWorld(&m_mtxWorld, m_pos, *pQuaStart);
@@ -111,7 +116,7 @@ HRESULT CElectricCurrent::Init(CObjectXQuaternion *pStart,
 	if (pManager->GetMode() == CScene::MODE_GAME
 		|| pManager->GetMode() == CScene::MODE_TUTORIAL)
 	{// ゲームもしくはチュートリアルシーンならば、バイブレーション発生
-		pJoypad->SetVibration(15000, 20000, m_fTotalTime - 5);
+		pJoypad->SetVibration(VIBRATION_L_POWER, VIBRATION_R_POWER, m_fTotalTime - VIBRATION_TIME_CUT);
 	}
 
 	return S_OK;
@@ -157,7 +162,7 @@ void CElectricCurrent::Update(void)
 		m_bGenerate = true;
 	}
 
-	if ((m_pThunder->IsEndAnim(5.0f) 
+	if ((m_pThunder->IsEndAnim(THUNDER_END_EPSILON) 
 		|| CManager::GetInstance()->GetMode() != CScene::MODE_GAME)
 		&& m_bGenerate == true)
 	{ // 電流がある程度短くなったもしくはゲームシーン以外で、既に次の電線に電気を流したなら終了

@@ -58,6 +58,8 @@
 #define SCREEN_SIZE			Vector2(SCREEN_WIDTH, SCREEN_HEIGHT)						// ウィンドウのサイズ
 #define SCREEN_MIDDLE		Vector3(SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f, 0.0f)	// ウィンドウの真ん中
 #define DEFAULT_VERTEX_NUM	(4)		// 板ポリのデフォルトの頂点数
+#define DEFAULT_PRIMITIVE_NUM	(2)		// 板ポリのデフォルトのプリミティブ数
+#define DEFAULT_ALPHA_REF	(30)	// アルファテストのデフォルトの基準値
 #define FVF_VERTEX_2D		(D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1)								// 2D頂点フォーマット
 #define FVF_VERTEX_3D		(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX1)					// 3D頂点フォーマット
 #define FVF_VERTEX_3D_MULTI	(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEX2)	// マルチテクスチャ3D頂点フォーマット

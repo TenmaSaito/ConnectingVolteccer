@@ -21,6 +21,10 @@
 //**********************************************************************************
 #define FEEDBACK_SIZE		(8.0f)		// フィードバック用ポリゴンの差分
 #define FEEDBACK_ALPHA		(0.80f)		// フィードバック用ポリゴンのα値
+#define CLEAR_COLOR			D3DCOLOR_RGBA(0, 0, 50, 0)	// 画面クリア時の色
+#define MT_PROJ_FOVY		(45.0f)		// マルチターゲット描画用プロジェクションの視野角
+#define MT_PROJ_NEAR		(1.0f)		// マルチターゲット描画用プロジェクションの最短距離
+#define MT_PROJ_FAR			(10000.0f)	// マルチターゲット描画用プロジェクションの最遠距離
 
 //==================================================================================
 // --- コンストラクタ ---
@@ -152,7 +156,7 @@ HRESULT CRenderer::Init(HWND hWnd, BOOL bWindow)
 	}
 
 #ifdef ENABLE_FEEDBACK_EFFECT
-	for (int nCntMulti = 0; nCntMulti < 2; nCntMulti++)
+	for (int nCntMulti = 0; nCntMulti < FEEDBACK_TEX_NUM; nCntMulti++)
 	{
 		// レンダリングターゲット用テクスチャ作成
 		if (FAILED(m_pD3DDevice->CreateTexture(SCREEN_WIDTH,
@@ -207,7 +211,7 @@ HRESULT CRenderer::Init(HWND hWnd, BOOL bWindow)
 	}
 
 	// フィードバック用頂点バッファ生成
-	m_pD3DDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * 4,
+	m_pD3DDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * DEFAULT_VERTEX_NUM,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_2D,
 		D3DPOOL_MANAGED,
@@ -342,7 +346,7 @@ void CRenderer::Draw(void)
 		// 画面クリア(バックバッファとZバッファのクリア)
 		m_pD3DDevice->Clear(0, NULL,
 			(D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER),
-			D3DCOLOR_RGBA(0, 0, 50, 0), 1.0f, 0);
+			CLEAR_COLOR, 1.0f, 0);
 
 		// 全てのオブジェクトを描画
 		CObject::DrawAll();
@@ -431,10 +435,10 @@ void CRenderer::ChangeTarget(const Vector3 &posV,
 	// プロジェクションマトリックスの作成
 	fAspect = static_cast<float>(pViewportMT->Width) / static_cast<float>(pViewportMT->Height);
 	D3DXMatrixPerspectiveFovLH(&mtxProj,
-		D3DXToRadian(45.0f),						
+		D3DXToRadian(MT_PROJ_FOVY),						
 		fAspect,				
-		1.0f,					
-		10000.0f);				
+		MT_PROJ_NEAR,					
+		MT_PROJ_FAR);				
 
 	// プロジェクションマトリックスの設定
 	m_pD3DDevice->GetTransform(D3DTS_PROJECTION, &m_mtxProjDef);
@@ -530,7 +534,7 @@ void CRenderer::DrawFeedBack(void)
 	// ポリゴンの描画
 	m_pD3DDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP,
 		0,
-		2);
+		DEFAULT_PRIMITIVE_NUM);
 }
 
 //==================================================================================
@@ -566,7 +570,7 @@ void CRenderer::DrawScreen(void)
 	// ポリゴンの描画
 	m_pD3DDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP,
 		0,
-		2);
+		DEFAULT_PRIMITIVE_NUM);
 
 	// 頂点バッファのα値の適用を有効に設定
 	m_pD3DDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);

@@ -164,7 +164,7 @@ HRESULT CObject2D::Init(void)
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
 
 	// 頂点バッファ作成
-	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * 4,
+	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * DEFAULT_VERTEX_NUM,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_2D,
 		D3DPOOL_MANAGED,
@@ -243,7 +243,7 @@ HRESULT CObject2D::Init(const Vector3 &pos)
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
 
 	// 頂点バッファ作成
-	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * 4,
+	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * DEFAULT_VERTEX_NUM,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_2D,
 		D3DPOOL_MANAGED,
@@ -324,7 +324,7 @@ HRESULT CObject2D::Init(const Vector3 &pos, const Vector3 &rot)
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
 
 	// 頂点バッファ作成
-	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * 4,
+	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * DEFAULT_VERTEX_NUM,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_2D,
 		D3DPOOL_MANAGED,
@@ -405,7 +405,7 @@ HRESULT CObject2D::Init(const Vector2 &size)
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();				// デバイスへのポインタ
 
 	// 頂点バッファ作成
-	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * 4,
+	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * DEFAULT_VERTEX_NUM,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_2D,
 		D3DPOOL_MANAGED,
@@ -486,7 +486,7 @@ HRESULT CObject2D::Init(const Vector3 &pos, const Vector2 &size)
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();				// デバイスへのポインタ
 
 	// 頂点バッファ作成
-	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * 4,
+	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * DEFAULT_VERTEX_NUM,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_2D,
 		D3DPOOL_MANAGED,
@@ -682,7 +682,7 @@ void CObject2D::Draw(void)
 		// ポリゴンの描画
 		pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP,
 			0,
-			2);
+			DEFAULT_PRIMITIVE_NUM);
 	}
 }
 

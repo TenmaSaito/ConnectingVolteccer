@@ -19,6 +19,13 @@
 //**********************************************************************************
 #define RANKING_PATH	"data/SCORE/ranking.bin"		// ランキングデータ書き出し先
 #define RANKING_STRING_PATH		"data/TEXTURE/number/ranking.png"		// ランキングの文字のテクスチャパス
+#define INVALID_SCORE			(-1000.0f)	// 今回のスコアが無い場合の無効値
+#define RANKING_STRING_POS		Vector3(SCREEN_MIDDLE.x, 60.0f, 0.0f)	// ランキングの文字の座標
+#define RANKING_STRING_SIZE		Vector2(600.0f, 90.0f)		// ランキングの文字のサイズ
+#define RANKING_POS_X			(750.0f)	// 各順位の表示のX座標
+#define RANKING_INTERVAL_Y		(120.0f)	// 各順位の表示の縦の間隔
+#define RANKING_OFFSET_Y		(50.0f)		// 各順位の表示のYのオフセット
+#define RANKING_SIZE			Vector2(75.0f, 90.0f)	// 各順位の表示のサイズ
 
 //==================================================================================
 // --- 生成処理 ---
@@ -61,7 +68,7 @@ CRankingManager::~CRankingManager()
 HRESULT CRankingManager::Init(const bool bAddCurrent)
 { // ランキングを読み込み
 	std::unique_ptr pFile = std::make_unique<CFileStream>();		// ファイルストリームへのポインタ
-	float fScore = -1000.0f;		// 今回のスコア
+	float fScore = INVALID_SCORE;		// 今回のスコア
 
 	// ファイル読み込み失敗時、処理スキップ
 	if (pFile->OpenFile(RANKING_PATH, true) == false) return E_FAIL;
@@ -105,8 +112,8 @@ HRESULT CRankingManager::Init(const bool bAddCurrent)
 	}
 
 	// ランキングの文字を作成
-	m_pRankingPolygon = CObject2D::Create(Vector3(SCREEN_MIDDLE.x, 60.0f, 0.0f),
-		Vector2(600.0f, 90.0f));
+	m_pRankingPolygon = CObject2D::Create(RANKING_STRING_POS,
+		RANKING_STRING_SIZE);
 
 	// テクスチャ割り当て
 	m_pRankingPolygon->BindTexture(CTexture::GetInstance()->Register(RANKING_STRING_PATH));
@@ -114,12 +121,12 @@ HRESULT CRankingManager::Init(const bool bAddCurrent)
 	for (int nCntRanking = 0; nCntRanking < MAX_RANKING_NUM; nCntRanking++)
 	{ // ランキング生成
 		bool bBlink = (m_aScore[nCntRanking] == fScore);		// 今回読み込んだスコアとランキングのスコアが一致しているか
-		Vector3 pos = Vector3(750.0f, 120.0f * (nCntRanking + 1), 0.0f);		// ランキングの位置
-		pos.y += 50.0f;
+		Vector3 pos = Vector3(RANKING_POS_X, RANKING_INTERVAL_Y * (nCntRanking + 1), 0.0f);		// ランキングの位置
+		pos.y += RANKING_OFFSET_Y;
 
 		// ランキングを生成
 		m_apRankingDrawer[nCntRanking].reset(CRankingDrawer::Create(pos,
-			Vector2(75.0f, 90.0f),
+			RANKING_SIZE,
 			nCntRanking,
 			m_aScore[nCntRanking],
 			bBlink));

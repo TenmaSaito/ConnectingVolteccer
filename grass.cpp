@@ -22,6 +22,8 @@
 // *** マクロ定義 ***
 //**********************************************************************************
 #define OX_EPSILON		(0.00001f)		// 浮動小数による判定誤差防止
+#define CONTACT_ROT_SPEED	(0.4f)			// プレイヤーと接触した際に目標角度へ近づく速度
+#define ROT_RETURN_SPEED	(0.035f)		// 目標角度が元の角度へ戻る速度
 
 //==================================================================================
 // --- 生成処理 ---
@@ -81,7 +83,7 @@ HRESULT CGrass::Init(const Vector3 &pos, const Vector2 &size, const float fSwayS
 	VERTEX_3D *pVtx = nullptr;		// 頂点情報へのポインタ
 
 	// 頂点バッファ作成
-	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_3D) * 4,
+	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_3D) * DEFAULT_VERTEX_NUM,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_3D,
 		D3DPOOL_MANAGED,
@@ -159,7 +161,7 @@ void CGrass::Uninit(void)
 //==================================================================================
 void CGrass::Update(void)
 {
-	if (m_fSpeed == 0.4f)
+	if (m_fSpeed == CONTACT_ROT_SPEED)
 	{ // プレイヤーと接触直後
 		m_rot.x = (m_rotDest.x - m_rot.x) * m_fSpeed;
 		m_rot.z = (m_rotDest.z - m_rot.z) * m_fSpeed;
@@ -171,8 +173,8 @@ void CGrass::Update(void)
 
 	m_rot = Vec3::FixedRotation(m_rot);
 
-	m_rotDest.x += (0.0f - m_rotDest.x) * 0.035f;
-	m_rotDest.z += (0.0f - m_rotDest.z) * 0.035f;
+	m_rotDest.x += (0.0f - m_rotDest.x) * ROT_RETURN_SPEED;
+	m_rotDest.z += (0.0f - m_rotDest.z) * ROT_RETURN_SPEED;
 }
 
 //==================================================================================
@@ -206,7 +208,7 @@ void CGrass::Draw(void)
 	// ポリゴンの描画
 	pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP,
 		0,
-		2);
+		DEFAULT_PRIMITIVE_NUM);
 }
 
 //==================================================================================
@@ -252,7 +254,7 @@ bool CGrass::Collision(const Vector3 &pos, const float fRadius)
 	m_rotDest = Vec3::FixedRotation(m_rotDest);
 
 	// 目標角度に近づく速度を変更
-	m_fSpeed = 0.4f;
+	m_fSpeed = CONTACT_ROT_SPEED;
 
 	return true;
 }

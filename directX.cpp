@@ -14,6 +14,8 @@
 // *** マクロ定義 ***
 //**********************************************************************************
 #define TIME_PERIOD			(1)						// 分解能の値
+#define FPS_MEASURE_INTERVAL	(500)					// FPSを計測する間隔 (ミリ秒)
+#define MILLISEC_PER_SEC		(1000)					// 1秒当たりのミリ秒
 
 //==================================================================================
 // --- コンストラクタ ---
@@ -68,17 +70,17 @@ void CDirectX::DirectXProc(HINSTANCE hInstance, HWND hWnd, BOOL bWindowed, int n
 		{ // スレッドループ
 			{ // DirectXの処理
 				dwCurrentTime = timeGetTime();				// 現在時刻を取得
-				if ((dwCurrentTime - dwFPSLastTime) >= 500)
+				if ((dwCurrentTime - dwFPSLastTime) >= FPS_MEASURE_INTERVAL)
 				{// 0.5秒経過
 					// FPSを計測
-					int nFPS = (dwFrameCount * 1000) / (dwCurrentTime - dwFPSLastTime);
+					int nFPS = (dwFrameCount * MILLISEC_PER_SEC) / (dwCurrentTime - dwFPSLastTime);
 					pManager->SetFPS(nFPS);
 
 					dwFPSLastTime = dwCurrentTime;			// FPSを計測した時刻を取得
 					dwFrameCount = 0;						// フレームカウントをクリア
 				}
 
-				if ((dwCurrentTime - dwExecLastTimeUpdate) >= static_cast<DWORD>(1000 / DEFAULT_APPLICATION_UPDATE_PER_SECOND))
+				if ((dwCurrentTime - dwExecLastTimeUpdate) >= static_cast<DWORD>(MILLISEC_PER_SEC / DEFAULT_APPLICATION_UPDATE_PER_SECOND))
 				{ // 60分の1秒経過
 					dwExecLastTimeUpdate = dwCurrentTime;		// 処理開始時刻[現在時刻]を保存
 
@@ -86,7 +88,7 @@ void CDirectX::DirectXProc(HINSTANCE hInstance, HWND hWnd, BOOL bWindowed, int n
 					pManager->Update();
 				}
 
-				if ((dwCurrentTime - dwExecLastTimeDraw) >= static_cast<DWORD>(1000 / DEFAULT_APPLICATION_DRAW_PER_SECOND))
+				if ((dwCurrentTime - dwExecLastTimeDraw) >= static_cast<DWORD>(MILLISEC_PER_SEC / DEFAULT_APPLICATION_DRAW_PER_SECOND))
 				{ // 1 / フレームレート秒経過
 					dwExecLastTimeDraw = dwCurrentTime;			// 処理開始時刻[現在時刻]を保存
 

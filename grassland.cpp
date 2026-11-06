@@ -29,6 +29,7 @@
 #define DEF_MINSWAYSPEED	(0.01f)				// 基本の最小揺れ速度
 #define DEF_MAXSWAYWIDTH	(HALF_PI * 0.75f)	// 基本の最大揺れ幅
 #define DEF_MINSWAYWIDTH	(0.01f)				// 基本の最小揺れ幅
+#define PLAYER_COLLISION_RADIUS	(50.0f)			// プレイヤーと草むらの当たり判定の半径
 
 //==================================================================================
 // --- 生成処理 ---
@@ -245,7 +246,7 @@ void CGrassLand::Update(void)
 	}
 
 	// プレイヤーと草むらの当たり判定
-	if(pPlayer != nullptr) Collision(*pPlayer->GetPosition(), 50.0f);
+	if(pPlayer != nullptr) Collision(*pPlayer->GetPosition(), PLAYER_COLLISION_RADIUS);
 }
 
 //==================================================================================

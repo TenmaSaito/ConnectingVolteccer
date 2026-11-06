@@ -23,6 +23,8 @@
 // *** マクロ定義 ***
 //**********************************************************************************
 #define SCALE_DECREASE		(-0.03f)		// スケール減少値
+#define LIFE_MIN			(3)				// エフェクトを生成する最低限の体力
+#define PERCENT_MAX			(100)			// 発生確率の最大値 (%)
 
 //==================================================================================
 // --- 生成処理 ---
@@ -140,8 +142,8 @@ void CParticleQuaternion::Update(void)
 
 	for (int nCntEffect = 0; nCntEffect < m_setting.nNumEffectFrame + nNumEffectVariation; nCntEffect++)
 	{ // エフェクト生成
-		if (m_setting.nLife < 3) continue;
-		if (m_setting.nPercent != 0 && rand() % 100 >= m_setting.nPercent) continue;
+		if (m_setting.nLife < LIFE_MIN) continue;
+		if (m_setting.nPercent != 0 && rand() % PERCENT_MAX >= m_setting.nPercent) continue;
 
 		// 体力の最大値を計算
 		int nLifeMax = (m_setting.nEffectLifeMax != 0) ? m_setting.nEffectLifeMax : m_setting.nLife - 1;

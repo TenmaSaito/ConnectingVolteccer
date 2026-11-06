@@ -133,7 +133,7 @@ void CEdit::Start(void)
 	CPlanet *pPlanet = nullptr;		// 惑星へのポインタ
 
 	// プレイヤー出現
-	m_pPlayer = CPlayer::Create(PLAYER_MOTION_PATH, Vector3(0.0f, 1115.0f, 0.0f), VECTOR3_NULL);
+	m_pPlayer = CPlayer::Create(PLAYER_MOTION_PATH, Vector3(0.0f, PLANET_HEIGHT, 0.0f), VECTOR3_NULL);
 	pMap->BindPlayer(m_pPlayer);
 
 	// マップ読み込み + 惑星へのポインタを取得

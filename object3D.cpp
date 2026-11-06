@@ -263,7 +263,7 @@ void CObject3D::Draw(void)
 	// ポリゴンの描画
 	pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP,
 		0,
-		2);
+		DEFAULT_PRIMITIVE_NUM);
 
 	// ライティングを有効に設定
 	pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
@@ -371,10 +371,10 @@ void CObject3D::SetColor(const Color &col)
 //==================================================================================
 float CObject3D::GetHeight(const Vector3 &pos)
 {
-	Vector3 aVtx[4];			// 各頂点の座標
+	Vector3 aVtx[DEFAULT_VERTEX_NUM];			// 各頂点の座標
 	float fHeight = 0.0f;	// 計算結果
 
-	for (int nCntVtx = 0; nCntVtx < 4; nCntVtx++)
+	for (int nCntVtx = 0; nCntVtx < DEFAULT_VERTEX_NUM; nCntVtx++)
 	{ // 各頂点のマトリックス適用版を求める
 		D3DXVec3TransformCoord(&aVtx[nCntVtx], &m_aVtx[nCntVtx], &m_mtxWorld);
 	}

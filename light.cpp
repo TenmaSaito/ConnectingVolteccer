@@ -21,6 +21,12 @@
 #define DEFAULT_FOVY		(45.0f)		// 視野角
 #define DEFAULT_ZN			(0.0f)		// 最短距離
 #define DEFAULT_ZF			(10000.0f)	// 最遠距離
+#define LIGHT_SUB_COL		Color(0.7f, 0.7f, 0.7f, 1.0f)	// 補助ライトの拡散光
+#define LIGHT_BACK_COL		Color(0.3f, 0.3f, 0.3f, 1.0f)	// 背面ライトの拡散光
+#define LIGHT_MAIN_DIR		Vector3(0.0f, -0.8f, -0.4f)		// メインライトの方向
+#define LIGHT_SUB_DIR		Vector3(-0.3f, 0.4f, 0.5f)		// 補助ライトの方向
+#define LIGHT_BACK_DIR		Vector3(0.2f, 0.1f, 0.1f)		// 背面ライトの方向
+#define LIGHT_DIR_MOVE		(0.01f)		// デバッグ操作時のライトの方向の変化量
 
 //==================================================================================
 // --- コンストラクタ ---
@@ -56,20 +62,20 @@ void CLight::Init(void)
 	m_aLight[2].Type = D3DLIGHT_DIRECTIONAL;
 
 	// ライトの拡散光を設定
-	m_aLight[0].Diffuse = Color(1.0f, 1.0f, 1.0f, 1.0f);
-	m_aLight[1].Diffuse = Color(0.7f, 0.7f, 0.7f, 1.0f);
-	m_aLight[2].Diffuse = Color(0.3f, 0.3f, 0.3f, 1.0f);
+	m_aLight[0].Diffuse = COLOR_ONE;
+	m_aLight[1].Diffuse = LIGHT_SUB_COL;
+	m_aLight[2].Diffuse = LIGHT_BACK_COL;
 
 	// ライトの方向を設定
-	vecDir[0] = Vector3(0.0f, -0.8f, -0.4f);
+	vecDir[0] = LIGHT_MAIN_DIR;
 	D3DXVec3Normalize(&vecDir[0], &vecDir[0]);
 	m_aLight[0].Direction = vecDir[0];
 
-	vecDir[1] = Vector3(-0.3f, 0.4f, 0.5f);
+	vecDir[1] = LIGHT_SUB_DIR;
 	D3DXVec3Normalize(&vecDir[1], &vecDir[1]);
 	m_aLight[1].Direction = vecDir[1];
 
-	vecDir[2] = Vector3(0.2f, 0.1f, 0.1f);
+	vecDir[2] = LIGHT_BACK_DIR;
 	D3DXVec3Normalize(&vecDir[2], &vecDir[2]);
 	m_aLight[2].Direction = vecDir[2];
 
@@ -120,29 +126,29 @@ void CLight::Update(void)
 
 		if (pKeyboard->GetPress(DIK_Q))
 		{
-			vecDir.x += 0.01f;
+			vecDir.x += LIGHT_DIR_MOVE;
 		}
 		else if (pKeyboard->GetPress(DIK_A))
 		{
-			vecDir.x -= 0.01f;
+			vecDir.x -= LIGHT_DIR_MOVE;
 		}
 
 		if (pKeyboard->GetPress(DIK_W))
 		{
-			vecDir.y += 0.01f;
+			vecDir.y += LIGHT_DIR_MOVE;
 		}
 		else if (pKeyboard->GetPress(DIK_S))
 		{
-			vecDir.y -= 0.01f;
+			vecDir.y -= LIGHT_DIR_MOVE;
 		}
 
 		if (pKeyboard->GetPress(DIK_E))
 		{
-			vecDir.z += 0.01f;
+			vecDir.z += LIGHT_DIR_MOVE;
 		}
 		else if (pKeyboard->GetPress(DIK_D))
 		{
-			vecDir.z -= 0.01f;
+			vecDir.z -= LIGHT_DIR_MOVE;
 		}
 
 		// 正規化

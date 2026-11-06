@@ -36,6 +36,11 @@
 #define GAUGE_TIME		(static_cast<float>(COMBO_TIME))		// コンボ表示が完全に消えるまでの時間
 #define GAUGE_VALUE		(CManager::SecToRatio(GAUGE_TIME))		// 1フレーム当たりのゲージの線形補間の増加係数
 #define SHOCKED_COL		(Color(Colors::GetColor(Colors::C_DIMGRAY)))	// 感電時のテクスチャカラー
+#define COMBO_OFFSET_RATE_X	(0.6f)		// コンボ表示のX方向のずらし量 (コンボ表示サイズに対する割合)
+#define COMBO_OFFSET_RATE_Y	(0.4f)		// コンボ表示のY方向のずらし量 (コンボ表示サイズに対する割合)
+#define GAUGE_OFFSET_RATE_Y	(0.6f)		// ゲージのY方向のずらし量 (数値サイズに対する割合)
+#define CATMULLROM_TIME_ADD	(0.05f)		// 拡縮補間の1フレーム当たりの時間の増加量
+#define CATMULLROM_TIME_HALF	(0.5f)		// 拡縮補間の拡大と縮小が切り替わる時間
 
 //==================================================================================
 // --- 生成処理 ---
@@ -96,8 +101,8 @@ HRESULT CCombo::Init(const Vector3 &pos, const Vector3 &rot)
 	Vector3 posCombo;		// コンボ表示用ポリゴンの座標
 
 	// ポリゴンの位置を計算
-	posCombo.x = pos.x + (fWidthAll * 0.5f) - (COMBO_SIZE.x * 0.6f);
-	posCombo.y = pos.y + (COMBO_SIZE.y * 0.4f);
+	posCombo.x = pos.x + (fWidthAll * 0.5f) - (COMBO_SIZE.x * COMBO_OFFSET_RATE_X);
+	posCombo.y = pos.y + (COMBO_SIZE.y * COMBO_OFFSET_RATE_Y);
 	posCombo.z = 0.0f;
 
 	// コンボ表示用ポリゴンを作成 (描画はしない)
@@ -109,7 +114,7 @@ HRESULT CCombo::Init(const Vector3 &pos, const Vector3 &rot)
 
 	// ポリゴンの位置を計算
 	posGauge.x = pos.x;
-	posGauge.y = pos.y + (NUMBER_SIZE.y * 0.6f);
+	posGauge.y = pos.y + (NUMBER_SIZE.y * GAUGE_OFFSET_RATE_Y);
 	posGauge.z = 0.0f;
 
 	// ゲージ用ポリゴンを作成 (描画はしない)
@@ -191,7 +196,7 @@ void CCombo::Draw(void)
 	pDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
 	pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
 	pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
-	pDevice->SetRenderState(D3DRS_ALPHAREF, 30);
+	pDevice->SetRenderState(D3DRS_ALPHAREF, DEFAULT_ALPHA_REF);
 
 	for (auto &pNumber : m_apNumber)
 	{ // タイマーが生成した数値オブジェクトを描画
@@ -369,12 +374,12 @@ void CCombo::UpdateScale(void)
 {
 	if (m_fTimeCatmullRom < 1.0f && m_bContinuing == true)
 	{ // 補間用変数が1.0f未満の場合
-		m_fTimeCatmullRom += 0.05f;		// 時間を加算
+		m_fTimeCatmullRom += CATMULLROM_TIME_ADD;		// 時間を加算
 		Vector2 value;		// 計算後のサイズ
 		Vector2 defSize = NUMBER_SIZE;				// 基本のサイズ
 		Vector2 magSize = defSize * SIZE_MAGNI;		// 拡大時の最大サイズ
 
-		if (m_fTimeCatmullRom <= 0.5f)
+		if (m_fTimeCatmullRom <= CATMULLROM_TIME_HALF)
 		{ // サイズ拡大処理
 			D3DXVec2CatmullRom(&value, &magSize, &defSize, &magSize, &defSize, m_fTimeCatmullRom);
 		}

@@ -31,6 +31,10 @@
 #define ORBIT_POS_Y_RANGE		(125.0f)		// オービットの移動幅
 #define MIN_ORBIT_WIDTH			(10.0f)			// オービットの最小サイズ
 #define MAX_ORBIT_WIDTH			(25.0f)			// オービットの最大サイズ
+#define VOLT_ORBIT_ROT			Vector3(0.0f, HALF_PI, 0.0f)	// 電気のオービットの向き
+#define VOLT_ORBIT_NUM			(50)			// 電気のオービットの分割数
+#define VOLT_ORBIT_WIDTH		(0.1f)			// 電気のオービットの初期の幅
+#define SCALE_ZERO_BORDER		(0.5f)			// 縦幅を0とみなす大きさ
 
 //==================================================================================
 // --- コンストラクタ ---
@@ -160,7 +164,7 @@ void CLineScaleUpTransition::StartTransition(const int nTransitionTime, const CS
 	m_nTransitionTime = nTransitionTime;
 
 	// オービットを生成
-	m_pVoltOrbit2D = CMeshOrbit2D::Create(FIRST_POSITION, Vector3(0.0f, HALF_PI, 0.0f), 50, 0.1f);
+	m_pVoltOrbit2D = CMeshOrbit2D::Create(FIRST_POSITION, VOLT_ORBIT_ROT, VOLT_ORBIT_NUM, VOLT_ORBIT_WIDTH);
 	m_pVoltOrbit2D->SetColor(Colors::GetColor(Colors::C_YELLOW));
 
 	CSound *pSound = CManager::GetInstance()->GetSound();		// サウンドへのポインタ7
@@ -258,7 +262,7 @@ void CLineScaleUpTransition::UpdateTransitionOut(void)
 	scaleNext.x = pScale->x;					// 幅はそのまま
 	scaleNext.y = pScale->y * SCALE_DOWN_VALUE;	// 縦幅を縮小していく
 
-	if (scaleNext.y <= 0.5f) scaleNext.y = 0.0f;
+	if (scaleNext.y <= SCALE_ZERO_BORDER) scaleNext.y = 0.0f;
 
 	// サイズを適用
 	m_pVolt->SetSize(scaleNext);

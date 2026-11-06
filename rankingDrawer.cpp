@@ -22,6 +22,7 @@
 #define DOT_PATH			"data/TEXTURE/number/dot.png"			// 小数点テクスチャのパス
 #define PERCENT_PATH		"data/TEXTURE/number/percent.png"		// パーセントテクスチャのパス
 #define RADIAN_VELOCITY		(0.125f)		// 角度の回転速度
+#define SMALL_SCALE_RATE	(0.85f)		// ランキング表示の数値の基本サイズに対する縮小率
 
 //**********************************************************************************
 // *** 定数宣言 ***
@@ -107,9 +108,9 @@ HRESULT CRankingDrawer::Init(const Vector3 &pos,
 	// パーセント表示の設定
 	auto setting = c_defSetting;		// 基本設定をコピー
 	setting.fValue = fScore;			// 値を変更
-	setting.numScale = c_defSetting.numScale * 0.85f;
-	setting.dotScale = c_defSetting.dotScale * 0.85f;
-	setting.percentScale = c_defSetting.percentScale * 0.85f;
+	setting.numScale = c_defSetting.numScale * SMALL_SCALE_RATE;
+	setting.dotScale = c_defSetting.dotScale * SMALL_SCALE_RATE;
+	setting.percentScale = c_defSetting.percentScale * SMALL_SCALE_RATE;
 	setting.start = Vector3(pos.x + (scale.x * 0.5f) + (setting.numScale.x), pos.y, 0.0f);		// 開始座標を変更
 
 	// テクスチャインデックスを変更

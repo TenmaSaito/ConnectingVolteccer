@@ -59,7 +59,7 @@ private:
 	Vector3 m_pos;			// 位置
 	Vector3 m_rot;			// 角度
 	Vector2 m_size;			// サイズ
-	Vector3 m_aVtx[4];		// 各頂点座標
+	Vector3 m_aVtx[DEFAULT_VERTEX_NUM];		// 各頂点座標
 	bool m_bDirty;			// マトリックスの更新フラグ
 	bool m_bXYPlane;		// XY平面フラグ
 };

@@ -20,6 +20,8 @@
 #define INIT_WIDTH		(100)		// 初期の幅
 #define INIT_HEIGHT		(100)		// 初期の高さ
 #define TEX_PATH		"data/TEXTURE/Anim/voltNumber000.png"		// 数値のテクスチャ
+#define NUMBER_TEX_DIV	(10)		// 数値テクスチャの横の分割数
+#define NUMBER_TEX_WIDTH	(1.0f / NUMBER_TEX_DIV)	// 数値テクスチャ一つ分の横幅
 
 //**********************************************************************************
 // *** 定数宣言 ***
@@ -87,7 +89,7 @@ HRESULT CNumber::Init(const TYPE type, const Vector3 &pos, const Vector2 &size, 
 	m_col = COLOR_ONE;
 
 	// 頂点バッファ作成
-	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * 4,
+	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * DEFAULT_VERTEX_NUM,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_2D,
 		D3DPOOL_MANAGED,
@@ -139,11 +141,11 @@ HRESULT CNumber::Init(const TYPE type, const Vector3 &pos, const Vector2 &size, 
 	pVtx[3].col = Color(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// テクスチャ座標設定
-	int nUV = m_nNumber % 10;
-	pVtx[0].tex = Vector2(0.1f * nUV, 0.0f);
-	pVtx[1].tex = Vector2(0.1f * nUV + 0.1f, 0.0f);
-	pVtx[2].tex = Vector2(0.1f * nUV, 1.0f);
-	pVtx[3].tex = Vector2(0.1f * nUV + 0.1f, 1.0f);
+	int nUV = m_nNumber % NUMBER_TEX_DIV;
+	pVtx[0].tex = Vector2(NUMBER_TEX_WIDTH * nUV, 0.0f);
+	pVtx[1].tex = Vector2(NUMBER_TEX_WIDTH * nUV + NUMBER_TEX_WIDTH, 0.0f);
+	pVtx[2].tex = Vector2(NUMBER_TEX_WIDTH * nUV, 1.0f);
+	pVtx[3].tex = Vector2(NUMBER_TEX_WIDTH * nUV + NUMBER_TEX_WIDTH, 1.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuff->Unlock();
@@ -189,7 +191,7 @@ void CNumber::Draw(void)
 	// ポリゴンの描画
 	pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP,
 		0,
-		2);
+		DEFAULT_PRIMITIVE_NUM);
 }
 
 //==================================================================================
@@ -369,11 +371,11 @@ void CNumber::SetNumber(const int nValue)
 	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
 
 	// テクスチャ座標設定
-	int nUV = m_nNumber % 10;
-	pVtx[0].tex = Vector2(0.1f * nUV, 0.0f);
-	pVtx[1].tex = Vector2(0.1f * nUV + 0.1f, 0.0f);
-	pVtx[2].tex = Vector2(0.1f * nUV, 1.0f);
-	pVtx[3].tex = Vector2(0.1f * nUV + 0.1f, 1.0f);
+	int nUV = m_nNumber % NUMBER_TEX_DIV;
+	pVtx[0].tex = Vector2(NUMBER_TEX_WIDTH * nUV, 0.0f);
+	pVtx[1].tex = Vector2(NUMBER_TEX_WIDTH * nUV + NUMBER_TEX_WIDTH, 0.0f);
+	pVtx[2].tex = Vector2(NUMBER_TEX_WIDTH * nUV, 1.0f);
+	pVtx[3].tex = Vector2(NUMBER_TEX_WIDTH * nUV + NUMBER_TEX_WIDTH, 1.0f);
 
 	// 頂点バッファをアンロック
 	m_pVtxBuff->Unlock();

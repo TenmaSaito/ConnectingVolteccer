@@ -26,10 +26,13 @@
 //**********************************************************************************
 #define LIGHTNING_TIME		(CManager::SecToFrame(1.5f))	// 感電の持続時間
 #define PLAYER_EFFECT_SIZE	(Vector2(250.0f, 250.0f))		// プレイヤーのエフェクトのサイズ
+#define PLAYER_EFFECT_PRIORITY	(2)			// プレイヤーのエフェクトの描画優先順位
 #define SCREEN_EFFECT_SIZE	(SCREEN_SIZE * 1.1f)			// スクリーンエフェクトのサイズ
 #define WARNING_EFFECT_SIZE	(Vector2(800.0f, 204.8f))		// 警告エフェクトのサイズ
 #define WARNING_PATH		"data/TEXTURE/effect/shock.png"	// 警告用テクスチャのパス
 #define WARNING_BLINK_NUM	(3)			// 警告の点滅する回数
+#define VIBRATION_L_POWER	(40000)		// 感電時の左モーターの振動の強さ
+#define VIBRATION_R_POWER	(35000)		// 感電時の右モーターの振動の強さ
 
 //**********************************************************************************
 // *** 定数宣言 ***
@@ -114,7 +117,7 @@ HRESULT CShock::Init(const Matrix *pMtxParent, const Vector3 &offset)
 		VECTOR3_NULL, 
 		PLAYER_EFFECT_SIZE,
 		INT_MAX,
-		2);
+		PLAYER_EFFECT_PRIORITY);
 	m_pPlayerEffect->BindTexture(pTexture->Register(c_asPlayerEffectPath[0]));
 	m_pPlayerEffect->SetParent(m_pMtxParent);
 	m_pPlayerEffect->SetDisp(false);
@@ -227,5 +230,5 @@ void CShock::Set(void)
 	pSound->Play(CSound::LABEL_SE_ELECTRIC_SHOCK);
 
 	// バイブレーションを発生させる
-	pJoypad->SetVibration(40000, 35000, LIGHTNING_TIME);
+	pJoypad->SetVibration(VIBRATION_L_POWER, VIBRATION_R_POWER, LIGHTNING_TIME);
 }

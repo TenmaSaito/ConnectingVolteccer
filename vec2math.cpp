@@ -208,13 +208,13 @@ Vector2 Vec2::FixedRotation(const Vector2 &rot)
 	Vector2 fixed;		// C³Œã‚ÌŠp“x
 
 	// XŽ²‚ðC³
-	fixed.x = (rot.x > D3DX_PI) ? rot.x - D3DX_PI * 2.0f :
-		((rot.x <= -D3DX_PI) ? rot.x + D3DX_PI * 2.0f :
+	fixed.x = (rot.x > D3DX_PI) ? rot.x - DOUBLE_PI :
+		((rot.x <= -D3DX_PI) ? rot.x + DOUBLE_PI :
 			rot.x);
 
 	// YŽ²‚ðC³
-	fixed.y = (rot.y > D3DX_PI) ? rot.y - D3DX_PI * 2.0f :
-		((rot.y <= -D3DX_PI) ? rot.y + D3DX_PI * 2.0f :
+	fixed.y = (rot.y > D3DX_PI) ? rot.y - DOUBLE_PI :
+		((rot.y <= -D3DX_PI) ? rot.y + DOUBLE_PI :
 			rot.y);
 
 	return fixed;

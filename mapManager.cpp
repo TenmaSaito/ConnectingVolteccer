@@ -35,6 +35,7 @@
 // *** マクロ定義 ***
 //**********************************************************************************
 #define LATEST_MAPFILE		"data/Maps/latestMapPath.bin"		// 直近のマップパスを書いてあるファイル
+#define MAPFILE_FLOAT_PRECISION	(2)		// マップ書き出し時の小数点以下の桁数
 
 //**********************************************************************************
 // *** マップ情報構造体 ***
@@ -302,7 +303,7 @@ void CMapManager::Save(std::string_view sMapFile, const bool bLatest)
 	if (pFile->CreateFile(sMapFile, true, CFileStream::FLAG_OVERWRITE))
 	{
 		// 書き出し時に小数第2位まで書き出すことを指定
-		(*pOfs) << std::fixed << std::setprecision(2);
+		(*pOfs) << std::fixed << std::setprecision(MAPFILE_FLOAT_PRECISION);
 
 		THIS_FILE_OBJECT_TYPEINFO objTypeInfo = {};		// タイプ情報
 

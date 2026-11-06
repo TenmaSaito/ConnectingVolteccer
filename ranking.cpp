@@ -23,6 +23,9 @@
 //**********************************************************************************
 #define RANKING_PATH	"data/SCORE/ranking.bin"		// ランキングデータ書き出し先
 #define MAX_RANKING		(5)		// 最大順位
+#define PLANET_ROT_SPEED	(0.005f)		// 惑星の1フレーム当たりの回転角度
+#define CAMERA_POS_V		Vector3(1500.0f, 250.0f, -5000.0f)	// ランキング画面のカメラの視点
+#define CAMERA_POS_R		Vector3(1500.0f, 250.0f, 0.0f)		// ランキング画面のカメラの注視点
 
 //==================================================================================
 // --- コンストラクタ ---
@@ -70,7 +73,7 @@ void CRanking::Update(void)
 
 	// 惑星を回転
 	Vector3 vecQua = Vector3(0.0f, D3DX_PI, 0.0f);		// 軸
-	float fAngle = 0.005f;	// 回転度数
+	float fAngle = PLANET_ROT_SPEED;	// 回転度数
 	Quaternion qua;			// かけ合わせるクォータニオン
 
 	// クォータニオンを計算
@@ -124,7 +127,7 @@ void CRanking::Start(void)
 	pMap->LoadConnectID();
 
 	// ランキング画面のカメラを生成して、フォーカスを変更
-	CRankingCamera::Create(Vector3(1500.0f, 250.0f, -5000.0f), Vector3(1500.0f, 250.0f, 0.0f))->SetFocus();
+	CRankingCamera::Create(CAMERA_POS_V, CAMERA_POS_R)->SetFocus();
 
 	CSound *pSound = pManager->GetSound();		// サウンドへのポインタ
 

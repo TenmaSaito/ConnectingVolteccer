@@ -15,6 +15,11 @@
 #include "vec3math.h"
 #include "color.h"
 
+//**********************************************************************************
+// *** マクロ定義 ***
+//**********************************************************************************
+#define LINE_VERTEX_NUM		(2)		// ラインの頂点数
+
 //==================================================================================
 // --- 生成処理 (始点と終点指定) ---
 //==================================================================================
@@ -178,7 +183,7 @@ HRESULT CObjectLine::CreateVertex(void)
 	HRESULT hr = S_OK;				// 結果
 
 	// 頂点作成
-	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_3D) * 2,
+	hr = pDevice->CreateVertexBuffer(sizeof(VERTEX_3D) * LINE_VERTEX_NUM,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_3D,
 		D3DPOOL_MANAGED,

@@ -118,7 +118,7 @@ HRESULT CElectricalCable::Init(CObjectXQuaternion *pStart,
 	fLength = Vec3::Length(posEnd, posStart);
 
 	// 頂点バッファの作成
-	pDevice->CreateVertexBuffer(sizeof(VERTEX_3D) * 4,
+	pDevice->CreateVertexBuffer(sizeof(VERTEX_3D) * DEFAULT_VERTEX_NUM,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_3D,
 		D3DPOOL_MANAGED,
@@ -231,7 +231,7 @@ void CElectricalCable::Draw(void)
 	// ポリゴンの描画
 	pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP,
 		0,
-		2);
+		DEFAULT_PRIMITIVE_NUM);
 
 	// カリングとライティングを有効に設定
 	pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);

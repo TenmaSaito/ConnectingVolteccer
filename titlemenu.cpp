@@ -34,8 +34,11 @@
 #define LOGO_SIZE		Vector2(700.0f, 200.0f)			// ロゴのサイズ
 #define LOGO_FILEPATH	"data/TEXTURE/title_ui/titlelogo.png"	// ロゴテクスチャへのパス
 #define CIRCLE_COL		Color(1.0f, 1.0f, 1.0f, 0.3f)		// 円形ポリゴンの色
-#define SELECT_COL		Color()
-#define UNSELECT_COL	Color()
+#define SELECT_COL		Color(1.0f, 1.0f, 1.0f, 1.0f)	// 選択中のメニューの色
+#define UNSELECT_COL	Color(1.0f, 1.0f, 1.0f, 0.5f)	// 選択されていないメニューの色
+#define MENU_ARC_RADIUS_INIT	(SCREEN_SIZE.y * 0.5f)	// 生成時のメニューを並べる円弧の半径
+#define MENU_ARC_RADIUS		(SCREEN_SIZE.y * 0.75f)	// メニューを並べる円弧の半径
+#define PLANET_ROT_SPEED		(0.01f)		// メニュー切り替え時の惑星の回転速度
 
 //**********************************************************************************
 // *** 定数宣言 ***
@@ -106,7 +109,7 @@ HRESULT CTitleMenu::Init(void)
 		float fAngle = FIRST_ANGLE - (MENU_ANGLE * uCntPoly);		// 角度
 
 		// ポリゴンの位置を計算
-		Vector2 pos2 = Vec2::Arc(SCREEN_SIZE.y * 0.5f,
+		Vector2 pos2 = Vec2::Arc(MENU_ARC_RADIUS_INIT,
 			fAngle,
 			Vector2(0.0f, SCREEN_MIDDLE.y));
 
@@ -118,11 +121,11 @@ HRESULT CTitleMenu::Init(void)
 		// 色を設定
 		if (uCntPoly == 0U)
 		{ // 一番最初のメニューのみ不透明にする
-			m_apMenu.at(uCntPoly)->SetColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
+			m_apMenu.at(uCntPoly)->SetColor(SELECT_COL);
 		}
 		else
 		{ // それ以外のメニューは半透明にする
-			m_apMenu.at(uCntPoly)->SetColor(Color(1.0f, 1.0f, 1.0f, 0.5f));
+			m_apMenu.at(uCntPoly)->SetColor(UNSELECT_COL);
 		}
 
 		// テクスチャを登録
@@ -135,7 +138,7 @@ HRESULT CTitleMenu::Init(void)
 			+ (MENU_ANGLE * m_fTypeDest);		// 角度
 
 		// ポリゴンの位置を計算
-		Vector2 pos2 = Vec2::Arc(SCREEN_SIZE.y * 0.75f,
+		Vector2 pos2 = Vec2::Arc(MENU_ARC_RADIUS,
 			fAngle,
 			Vector2(0.0f, SCREEN_MIDDLE.y));
 
@@ -148,11 +151,11 @@ HRESULT CTitleMenu::Init(void)
 		// 色を設定
 		if (uCntPoly == 0U + m_currentType && m_lastType == m_currentType)
 		{ // 一番最初のメニューのみ不透明にする
-			m_apMenu.at(uCntPoly)->SetColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
+			m_apMenu.at(uCntPoly)->SetColor(SELECT_COL);
 		}
 		else
 		{ // それ以外のメニューは半透明にする
-			m_apMenu.at(uCntPoly)->SetColor(Color(1.0f, 1.0f, 1.0f, 0.5f));
+			m_apMenu.at(uCntPoly)->SetColor(UNSELECT_COL);
 		}
 	}
 
@@ -238,7 +241,7 @@ void CTitleMenu::Update(void)
 			+ (MENU_ANGLE * m_fTypeDest);		// 角度
 
 		// ポリゴンの位置を計算
-		Vector2 pos2 = Vec2::Arc(SCREEN_SIZE.y * 0.75f,
+		Vector2 pos2 = Vec2::Arc(MENU_ARC_RADIUS,
 			fAngle,
 			Vector2(0.0f, SCREEN_MIDDLE.y));
 
@@ -251,11 +254,11 @@ void CTitleMenu::Update(void)
 		// 色を設定
 		if (uCntPoly == 0U + m_currentType && m_lastType == m_currentType)
 		{ // 一番最初のメニューのみ不透明にする
-			m_apMenu.at(uCntPoly)->SetColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
+			m_apMenu.at(uCntPoly)->SetColor(SELECT_COL);
 		}
 		else
 		{ // それ以外のメニューは半透明にする
-			m_apMenu.at(uCntPoly)->SetColor(Color(1.0f, 1.0f, 1.0f, 0.5f));
+			m_apMenu.at(uCntPoly)->SetColor(UNSELECT_COL);
 		}
 	}
 
@@ -273,7 +276,7 @@ void CTitleMenu::Update(void)
 
 		// 惑星を回転
 		Vector3 vecQua = Vector3(0.0f, 0.0f, 1.0f);		// 軸
-		float fAngle = 0.01f * (m_currentType - m_lastType);	// 回転度数
+		float fAngle = PLANET_ROT_SPEED * (m_currentType - m_lastType);	// 回転度数
 		Quaternion qua;			// かけ合わせるクォータニオン
 
 		// クォータニオンを計算
@@ -298,7 +301,7 @@ void CTitleMenu::Draw(void)
 	// αテストを有効にする + Zバッファへの書き込みを無効にする
 	pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
 	pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
-	pDevice->SetRenderState(D3DRS_ALPHAREF, 30);
+	pDevice->SetRenderState(D3DRS_ALPHAREF, DEFAULT_ALPHA_REF);
 
 	//m_pCircle->Draw();
 

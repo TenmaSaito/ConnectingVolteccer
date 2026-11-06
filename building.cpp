@@ -50,6 +50,10 @@
 #define DETACHED_HOUSE_ROOF_POS		(2)		// 一軒家の屋根のマテリアルインデックス
 #define LIGHT_OUT_COL_VALUE			(0.35f)	// 電気がついていない時の家のマテリアルの暗さ(alpha以外)
 #define COL_VALUE_INCREASE			(0.05f)	// マテリアルが明るくなる際の一フレームの増加量
+#define SHADOW_OFFSET		Vector3(0.0f, 0.1f, 0.0f)	// 影ポリゴンのオフセット (地面とのちらつき防止)
+#define SHADOW_SCALE		(2.75f)		// 建物の大きさに対する影のサイズの倍率
+#define SCALE_WAVE_AMPLITUDE	(0.1f)		// 拡縮アニメーションの振れ幅
+#define FIND_POLE_LENGTH_MAX	(10000.0f)	// 電柱を探す際の距離の初期値 (十分大きな値)
 
 //**********************************************************************************
 // *** 定数宣言 ***
@@ -214,9 +218,9 @@ HRESULT CBuilding::Init(const Vector3 &position,
 	// 影を追加
 	// TODO : ここは影用のクラスに置き換える事 + 円形の建物には円のテクスチャを使用すること
 	CObject3D *pObj3D = CObject3D::Create(false,
-		Vector3(0.0f, 0.1f, 0.0f),
+		SHADOW_OFFSET,
 		Vec3::Zero,
-		Vector2(GetVtxMax()->x * 2.75f, GetVtxMax()->z * 2.75f));
+		Vector2(GetVtxMax()->x * SHADOW_SCALE, GetVtxMax()->z * SHADOW_SCALE));
 	pObj3D->SetParent(GetMatrix());
 	pObj3D->SetColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
 	pObj3D->BindTexture(CTexture::GetInstance()->Register(SHADOW_PATH));
@@ -255,8 +259,8 @@ HRESULT CBuilding::Init(const Vector3 &position)
 	m_fValue = SCALE_VALUE;
 
 	// 光の柱用のビルボードを生成
-	m_pPillar = CLightingPillar::Create(Vector3(0.0f, 500.0f, 0.0f),
-		Vector2(25.0f, 1000.0f),
+	m_pPillar = CLightingPillar::Create(PILLAR_POS,
+		PILLAR_SIZE,
 		COLOR_ONE);
 	m_pPillar->BindTexture(CTexture::GetInstance()->Register(PILLAR_PATH));
 
@@ -327,9 +331,9 @@ void CBuilding::Update(void)
 			m_fLerp += m_fValue;
 
 			// サイズ計算
-			scale.x = 1.0f + sinf(m_fLerp) * 0.1f;
-			scale.y = 1.0f - sinf(m_fLerp) * 0.1f;
-			scale.z = 1.0f + sinf(m_fLerp) * 0.1f;
+			scale.x = 1.0f + sinf(m_fLerp) * SCALE_WAVE_AMPLITUDE;
+			scale.y = 1.0f - sinf(m_fLerp) * SCALE_WAVE_AMPLITUDE;
+			scale.z = 1.0f + sinf(m_fLerp) * SCALE_WAVE_AMPLITUDE;
 
 			// 拡縮変更
 			SetScale(scale);
@@ -433,7 +437,7 @@ void CBuilding::Draw(void)
 	{ // αテストを有効にする + Zバッファへの書き込みを無効にする
 		pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
 		pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
-		pDevice->SetRenderState(D3DRS_ALPHAREF, 30);
+		pDevice->SetRenderState(D3DRS_ALPHAREF, DEFAULT_ALPHA_REF);
 		pDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
 
 		// α値を変更
@@ -478,7 +482,7 @@ bool CBuilding::IsLandmark(const TYPE type)
 void CBuilding::FindUtilityPole(void)
 {
 	CObject *pObject = CObject::GetTop(UTILITYPOLE_PRIORITY);		// 最初のオブジェクト
-	float fLengthMin = 10000.0f;			// 現状最も近い電柱との距離
+	float fLengthMin = FIND_POLE_LENGTH_MAX;			// 現状最も近い電柱との距離
 	Vector3 pos;		// 建物のワールド座標
 	auto vpPole = CMapManager::GetInstance()->GetUtilityPole();		// 現時点でマップに存在する電柱へのポインタ
 

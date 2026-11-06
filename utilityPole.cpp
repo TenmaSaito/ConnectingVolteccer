@@ -42,6 +42,8 @@
 #define CONNECT_LENGTH		(700.0f)	// 繋げられる電柱の距離の最大値
 #define CONNECT_LENGTH_EX	(30.0f)		// 発電所の場合の追加差分
 #define AIMING_ROTATE_SPD	(0.04f)		// エイムアイコンの回転速度
+#define AIMING_SCALE_BASE	(1.25f)		// エイムアイコンの基本の拡縮倍率
+#define RAY_LENGTH_MAX		(10000.0f)	// 無限長とみなすレイの長さ
 #define ENABLE_BUILDING_RAY_DECISION	// 建物をまたがないかの判定
 
 //**********************************************************************************
@@ -236,7 +238,7 @@ void CUtilityPole::Update(void)
 	}
 
 	float fRotate = m_apBillboard[ICON_AIMING]->GetRotation()->y;		// 現在のポリゴンの角度
-	float fScale = 1.25f + (sinf(fRotate) * 0.5f);		// 拡縮倍率
+	float fScale = AIMING_SCALE_BASE + (sinf(fRotate) * 0.5f);		// 拡縮倍率
 
 	// 回転
 	m_apBillboard[ICON_AIMING]->SetRotation(Vector3(0.0f, fRotate + AIMING_ROTATE_SPD, 0.0f));
@@ -476,7 +478,7 @@ bool CUtilityPole::CanFocus(const CPlayer *pPlayer)
 			if (Vec3::Length(x->GetWorldPosition(), posPlayerWorld) > Vec3::Length(posWorld, posPlayerWorld)) return;
 
 			// 無限長のレイと当たったか判定
-			bHit = x->IsHitByRay(posPlayerWorld, rayPlayerToPole, 10000.0f);
+			bHit = x->IsHitByRay(posPlayerWorld, rayPlayerToPole, RAY_LENGTH_MAX);
 		});
 
 	// 一つの建物にでも当たっていたら失敗
@@ -541,7 +543,7 @@ void CUtilityPole::FindCanConnectPole(void)
 				if (Vec3::Length(x->GetWorldPosition(), posWorldUpper) > Vec3::Length(posWorldUpperAnother, posWorldUpper)) return;
 
 				// 無限長のレイと当たったか判定
-				bHit = x->IsHitByRay(posWorldUpper, rayPlayerToPole, 10000.0f);
+				bHit = x->IsHitByRay(posWorldUpper, rayPlayerToPole, RAY_LENGTH_MAX);
 			});
 
 		// どれか一つの建物に当たっていたらスキップ

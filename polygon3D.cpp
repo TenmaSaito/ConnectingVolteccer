@@ -173,7 +173,7 @@ void CPolygon3D::Draw(void)
 	// ƒ|ƒŠƒSƒ“‚Ì•`‰æ
 	pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP,
 		0,
-		2);
+		DEFAULT_PRIMITIVE_NUM);
 
 	// •`‰æŒãŠÖ”ŒÄ‚Ño‚µ
 	if (m_afterDraw) m_afterDraw(pDevice);

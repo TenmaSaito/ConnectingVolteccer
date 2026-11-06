@@ -237,7 +237,7 @@ void CPowerPlant::Draw(void)
 	{ // αテストを有効にする + Zバッファへの書き込みを無効にする
 		pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
 		pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
-		pDevice->SetRenderState(D3DRS_ALPHAREF, 30);
+		pDevice->SetRenderState(D3DRS_ALPHAREF, DEFAULT_ALPHA_REF);
 		pDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
 
 		// α値を変更

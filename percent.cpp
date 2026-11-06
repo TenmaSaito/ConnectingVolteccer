@@ -18,6 +18,7 @@
 //**********************************************************************************
 #define UPPER_NUM		(3)			// 小数点以上の桁数
 #define LOWER_NUM		(2)			// 小数点以下の桁数
+#define PERCENT_TO_INT	(10000.0f)	// 割合を小数点以下LOWER_NUM桁込みの整数パーセントへ変換する倍率
 static_assert(MAX_PERCENT_NUM >= (UPPER_NUM + LOWER_NUM));		// 桁数が超えていないかチェック
 
 //==================================================================================
@@ -65,7 +66,7 @@ HRESULT CPercent::Init(const Setting &setting)
 	const Vector2 &percentScale = m_setting.percentScale;		// パーセントのサイズ
 	const float &fMargin = m_setting.fMargin;			// 各桁の余裕
 	const int &nNumberType = m_setting.nNumberType;		// 数値のテクスチャタイプ
-	const int &nValue = static_cast<int>(m_setting.fValue * 10000.0f);		// int用パーセント
+	const int &nValue = static_cast<int>(m_setting.fValue * PERCENT_TO_INT);		// int用パーセント
 	m_fAlpha = 1.0f;
 
 	// 桁数分だけメモリを確保
@@ -200,7 +201,7 @@ void CPercent::SetValue(const float fValue)
 { // 引数を保存
 	m_setting.fValue = fValue;
 
-	const int &nValue = static_cast<int>(m_setting.fValue * 10000.0f);		// int用パーセント
+	const int &nValue = static_cast<int>(m_setting.fValue * PERCENT_TO_INT);		// int用パーセント
 
 	for (int nCntNumber = 0; nCntNumber < MAX_PERCENT_NUM; nCntNumber++)
 	{ // 各桁の数値を求める

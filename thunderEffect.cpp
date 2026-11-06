@@ -23,6 +23,17 @@
 // *** マクロ定義 ***
 //**********************************************************************************
 #define EFFECT_GRADATION_PATH		"data/TEXTURE/gradation102.jpg"		// 雷エフェクトのテクスチャ
+#define ORBIT_MIN_WIDTH			(3.0f)			// オービットの最小幅
+#define ORBIT_MAX_WIDTH			(30.0f)			// オービットの最大幅
+#define ORBIT_OFFSET_1			Vector3(10.0f, 0.0f, 0.0f)		// オービットのオフセット1
+#define ORBIT_OFFSET_2			Vector3(-10.0f, 0.0f, 0.0f)		// オービットのオフセット2
+#define ORBIT_NUM				(10)			// オービットの分割数
+#define SPARK_PERCENT_MAX		(100)			// スパーク発生判定の乱数の最大値
+#define SPARK_PERCENT_BORDER	(60)			// この値を超えたらスパークを発生させる
+#define SPARK_SPEED_MIN			(3.0f)			// スパークの速度の最小値
+#define SPARK_SPEED_MAX			(6.0f)			// スパークの速度の最大値
+#define SPARK_LIFE_MIN			(5)				// スパークの寿命の最小値
+#define SPARK_LIFE_MAX			(10)			// スパークの寿命の最大値
 
 //==================================================================================
 // --- 生成処理 ---
@@ -82,11 +93,11 @@ HRESULT CThunderEffect::Init(const Vector3 &min,
 	VERTEX_3D *pVtx = nullptr;			// 頂点へのポインタ
 
 	// オービットの最大最小値を設定
-	m_fMinWidth = 3.0f;
-	m_fMaxWidth = 30.0f;
+	m_fMinWidth = ORBIT_MIN_WIDTH;
+	m_fMaxWidth = ORBIT_MAX_WIDTH;
 
 	// オービットを生成
-	m_pOrbit = CMeshOrbit3D::Create(&m_mtxWorld, Vector3(10.0f, 0.0f, 0.0f), Vector3(-10.0f, 0.0f, 0.0f), 10);
+	m_pOrbit = CMeshOrbit3D::Create(&m_mtxWorld, ORBIT_OFFSET_1, ORBIT_OFFSET_2, ORBIT_NUM);
 	if (m_pOrbit == nullptr)
 	{ // 生成失敗
 		return E_FAIL;
@@ -152,12 +163,12 @@ void CThunderEffect::Update(void)
 	// 自身の位置を取得
 	D3DXVec3TransformCoord(&posSpark, &m_pos, m_pMtxParent);
 
-	if (pRand->Generate(0, 100) > 60)
+	if (pRand->Generate(0, SPARK_PERCENT_MAX) > SPARK_PERCENT_BORDER)
 	{ // スパークエフェクトを生成
 		CSparkEffect::Create(posSpark,
 			Vector3(0.0f, pRand->Generate(0.0f, DOUBLE_PI), 0.0f),
-			pRand->Generate(3.0f, 6.0f), 
-			pRand->Generate(5, 10));
+			pRand->Generate(SPARK_SPEED_MIN, SPARK_SPEED_MAX), 
+			pRand->Generate(SPARK_LIFE_MIN, SPARK_LIFE_MAX));
 	}
 }
 

@@ -56,6 +56,10 @@
 #define SLIDING_BLEND			(7)			// 電柱スライドモーションへ移行する際のブレンド時間
 #define RIDING_BLEND			(10)		// 発電所待機モーションへ移行する際のブレンド時間
 #define NEUTRAL_BLEND			(10)		// 通常待機モーションへ移行する際のブレンド時間
+#define MOVE_BLEND				(10)		// 移動モーションへ移行する際のブレンド時間
+#define DEBUG_RAY_OFFSET		Vector3(0.0f, 100.0f, 0.0f)		// デバッグ表示用のレイの発射位置のオフセット
+#define FOCUS_LENGTH_MAX		(10000.0f)	// フォーカスする電柱を探す際の距離の初期値 (十分大きな値)
+#define FOCUS_POLE_RESERVE		(10)		// フォーカス可能な電柱の配列の事前確保数
 #define PLAYERCAM_DEFROT		Vector3(0.0f, 0.0f, -0.4f)		// デフォルトのカメラ角度
 #define PLAYERCAM_RIDINGROT		Vector3(0.0f, 0.0f, -1.16f)		// 電柱に乗っているときのカメラ角度
 #define SHOCK_OFFSET			Vector3(0.0f, 50.0f, 0.0f)		// 感電時のエフェクトのオフセット
@@ -426,7 +430,7 @@ void CPlayer::ChangeRidingPole(CUtilityPole *pNext)
 	m_vecQua = Vec2::ToVector3(Vec2::Direction(fAngle));
 	m_vecQua.z = m_vecQua.y;
 	m_vecQua.y = 0.0f;
-	CRay(m_offset + Vector3(0.0f, 100.0f, 0.0f), m_vecQua, FLT_MAX).Draw();
+	CRay(m_offset + DEBUG_RAY_OFFSET, m_vecQua, FLT_MAX).Draw();
 
 	// オフセットを電柱上に設定
 	m_pos.y = m_offset.y + pNext->GetVtxMax()->y;
@@ -538,7 +542,7 @@ void CPlayer::InputMoving(void)
 			move.x += sinf(pCameraRot->y - QUARTER_PI) * PLAYER_SPD;
 
 			// カメラの角度に合わせて、モデルの目標角度を求める！
-			m_rotDest.y = (pCameraRot->y - (D3DX_PI * 1.25f));
+			m_rotDest.y = (pCameraRot->y - (D3DX_PI + QUARTER_PI));
 		}
 		else if (pKeyboard->GetPress(DIK_D))
 		{ // Dを押したとき
@@ -547,7 +551,7 @@ void CPlayer::InputMoving(void)
 			move.x += sinf(pCameraRot->y + QUARTER_PI) * PLAYER_SPD;
 
 			// カメラの角度に合わせて、モデルの目標角度を求める！
-			m_rotDest.y = (pCameraRot->y + (D3DX_PI * 1.25f));
+			m_rotDest.y = (pCameraRot->y + (D3DX_PI + QUARTER_PI));
 		}
 		else
 		{ // 純粋なW入力時
@@ -563,7 +567,7 @@ void CPlayer::InputMoving(void)
 			&& m_pMotion->GetBlendType() != MOTIONTYPE_MOVE)
 		{ // 移動モーション
 			type = MOTIONTYPE_MOVE;
-			nFrameBleand = 10;
+			nFrameBleand = MOVE_BLEND;
 		}
 	}
 	else if (pKeyboard->GetPress(DIK_S))
@@ -571,8 +575,8 @@ void CPlayer::InputMoving(void)
 		if (pKeyboard->GetPress(DIK_A))
 		{ // Aを押したとき
 			// カメラの角度に合わせて、平行移動！
-			move.z += cosf(pCameraRot->y + (D3DX_PI * 1.25f)) * PLAYER_SPD;
-			move.x += sinf(pCameraRot->y + (D3DX_PI * 1.25f)) * PLAYER_SPD;
+			move.z += cosf(pCameraRot->y + (D3DX_PI + QUARTER_PI)) * PLAYER_SPD;
+			move.x += sinf(pCameraRot->y + (D3DX_PI + QUARTER_PI)) * PLAYER_SPD;
 
 			// カメラの角度に合わせて、モデルの目標角度を求める！
 			m_rotDest.y = (pCameraRot->y + QUARTER_PI);
@@ -580,8 +584,8 @@ void CPlayer::InputMoving(void)
 		else if (pKeyboard->GetPress(DIK_D))
 		{ // Dを押したとき
 			// カメラの角度に合わせて、平行移動！
-			move.z += cosf(pCameraRot->y - (D3DX_PI * 1.25f)) * PLAYER_SPD;
-			move.x += sinf(pCameraRot->y - (D3DX_PI * 1.25f)) * PLAYER_SPD;
+			move.z += cosf(pCameraRot->y - (D3DX_PI + QUARTER_PI)) * PLAYER_SPD;
+			move.x += sinf(pCameraRot->y - (D3DX_PI + QUARTER_PI)) * PLAYER_SPD;
 
 			// カメラの角度に合わせて、モデルの目標角度を求める！
 			m_rotDest.y = (pCameraRot->y - QUARTER_PI);
@@ -600,14 +604,14 @@ void CPlayer::InputMoving(void)
 			&& m_pMotion->GetBlendType() != MOTIONTYPE_MOVE)
 		{ // 移動モーション
 			type = MOTIONTYPE_MOVE;
-			nFrameBleand = 10;
+			nFrameBleand = MOVE_BLEND;
 		}
 	}
 	else if (pKeyboard->GetPress(DIK_A))
 	{ // Aを押したとき
 		// カメラの角度に合わせて、平行移動！
-		move.z += cosf(pCameraRot->y + (D3DX_PI * 1.5f)) * PLAYER_SPD;
-		move.x += sinf(pCameraRot->y + (D3DX_PI * 1.5f)) * PLAYER_SPD;
+		move.z += cosf(pCameraRot->y + (D3DX_PI + HALF_PI)) * PLAYER_SPD;
+		move.x += sinf(pCameraRot->y + (D3DX_PI + HALF_PI)) * PLAYER_SPD;
 
 		// カメラの角度に合わせて、モデルの目標角度を求める！
 		m_rotDest.y = (pCameraRot->y + HALF_PI);
@@ -616,7 +620,7 @@ void CPlayer::InputMoving(void)
 			&& m_pMotion->GetBlendType() != MOTIONTYPE_MOVE)
 		{ // 移動モーション
 			type = MOTIONTYPE_MOVE;
-			nFrameBleand = 10;
+			nFrameBleand = MOVE_BLEND;
 		}
 	}
 	else if (pKeyboard->GetPress(DIK_D))
@@ -626,13 +630,13 @@ void CPlayer::InputMoving(void)
 		move.x += sinf(pCameraRot->y + HALF_PI) * PLAYER_SPD;
 
 		// カメラの角度に合わせて、モデルの目標角度を求める！
-		m_rotDest.y = (pCameraRot->y + (D3DX_PI * 1.5f));
+		m_rotDest.y = (pCameraRot->y + (D3DX_PI + HALF_PI));
 
 		if (m_pMotion->GetType() == MOTIONTYPE_NEUTRAL
 			&& m_pMotion->GetBlendType() != MOTIONTYPE_MOVE)
 		{ // 移動モーション
 			type = MOTIONTYPE_MOVE;
-			nFrameBleand = 10;
+			nFrameBleand = MOVE_BLEND;
 		}
 	}
 	else if (pJoypad->GetStick(CJoypad::STICK_LEFT, &stick) && Vec3::Length(stick) > STICK_DEADZONE)
@@ -651,7 +655,7 @@ void CPlayer::InputMoving(void)
 			&& m_pMotion->GetBlendType() != MOTIONTYPE_MOVE)
 		{ // 移動モーション
 			type = MOTIONTYPE_MOVE;
-			nFrameBleand = 10;
+			nFrameBleand = MOVE_BLEND;
 		}
 	}
 	else
@@ -660,7 +664,7 @@ void CPlayer::InputMoving(void)
 			&& m_pMotion->GetBlendType() != MOTIONTYPE_NEUTRAL)
 		{ // 移動モーション
 			type = MOTIONTYPE_NEUTRAL;
-			nFrameBleand = 10;
+			nFrameBleand = NEUTRAL_BLEND;
 		}
 
 		bMove = false;			// 操作されていないためfalse
@@ -1129,13 +1133,13 @@ void CPlayer::FindNearestPole(void)
 	Vector3 vecCam = VECTOR3_NULL;			// カメラの方向ベクトル
 	Vector3 pos = VECTOR3_NULL;				// プレイヤーの絶対座標
 	CUtilityPole *pPoleNear = nullptr;		// 最も画面の中心に近い電柱へのポインタ
-	float fLengthMin = 10000.0f;			// 各絶対座標を結んで最小だった値
+	float fLengthMin = FOCUS_LENGTH_MAX;			// 各絶対座標を結んで最小だった値
 
 #ifdef ENABLE_CAN_FOCUS_POLE_VECTOR
 	std::vector<CUtilityPole*> vPole;		// プレイヤーがフォーカス可能な電柱へのポインタ
 
 	// 事前にサイズを確保
-	vPole.reserve(10);
+	vPole.reserve(FOCUS_POLE_RESERVE);
 #endif
 
 	// プレイヤーの絶対座標を求める

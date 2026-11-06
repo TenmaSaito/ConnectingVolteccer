@@ -51,7 +51,7 @@ private:
 	Vector2 m_size;			// サイズ
 	int m_nNumXBlock;			// X分割数
 	int m_nNumZBlock;			// Z分割数
-	int m_aIdxFirstBlock[4];	// 最初のブロックのインデックス
+	int m_aIdxFirstBlock[DEFAULT_VERTEX_NUM];	// 最初のブロックのインデックス
 	int m_nIdxControl;			// 操作している頂点インデックス
 	Matrix m_mtxWorld;		// マトリックス
 };

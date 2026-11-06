@@ -21,6 +21,7 @@
 #define MAX_RADIUS				(SCREEN_WIDTH)		// ”¼Œa‚ÌÅ‘å’l
 #define RADIUS_INCREASE			(23.0f)		// ”¼Œa‚Ì‘‰Á’l
 #define RADIUS_DECREASE			(23.0f)		// ”¼Œa‚ÌŒ¸­’l
+#define RADIUS_CHANGE_BORDER	(100.0f)	// ŽŸ‚Ì‰~‚ÌŠgk‚ðŽn‚ß‚é”¼Œa‚ÌŠî€
 
 //==================================================================================
 // --- ƒRƒ“ƒXƒgƒ‰ƒNƒ^ ---
@@ -64,7 +65,7 @@ HRESULT CCircleTransition::Init(void)
 		float fRadius = circle.fRadius;			// ”¼Œa
 
 		// ’¸“_ƒoƒbƒtƒ@‚ðì¬
-		pDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * 4,
+		pDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * DEFAULT_VERTEX_NUM,
 			D3DUSAGE_WRITEONLY,
 			FVF_VERTEX_2D,
 			D3DPOOL_MANAGED,
@@ -184,7 +185,7 @@ void CCircleTransition::Draw(void)
 		// ƒ|ƒŠƒSƒ“‚Ì•`‰æ
 		pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP,
 			0,
-			2);
+			DEFAULT_PRIMITIVE_NUM);
 	}
 }
 
@@ -211,7 +212,7 @@ void CCircleTransition::EndTransition(const int nTransitionTime)
 void CCircleTransition::UpdateTransitionIn(void)
 {
 	Circle *pPrev = nullptr;		// ‘O‰ñ‚Ì‰~
-	float fRadiusUp = 100.0f;		// ”¼Œa‚ðŠg‘å‚·‚éŠî€
+	float fRadiusUp = RADIUS_CHANGE_BORDER;		// ”¼Œa‚ðŠg‘å‚·‚éŠî€
 	float fIncrease = RADIUS_INCREASE;		// Šg‘å‚·‚é‘å‚«‚³
 
 	for (auto &circle : m_aCircle)
@@ -247,7 +248,7 @@ void CCircleTransition::UpdateTransitionIn(void)
 void CCircleTransition::UpdateTransitionOut(void)
 {
 	Circle *pNext = nullptr;		// ŽŸ‚Ì‰~
-	float fRadiusLow = MAX_RADIUS - 100.0f;		// ”¼Œa‚ðk¬‚·‚éŠî€
+	float fRadiusLow = MAX_RADIUS - RADIUS_CHANGE_BORDER;		// ”¼Œa‚ðk¬‚·‚éŠî€
 	float fDecrease = RADIUS_DECREASE;			// k¬‚·‚é‘å‚«‚³
 
 	for (int nCntCircle = CIRCLE_NUM - 1; nCntCircle > -1; nCntCircle--)

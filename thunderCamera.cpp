@@ -20,6 +20,7 @@
 // *** マクロ定義 ***
 //**********************************************************************************
 #define EX_LIGHT_IDX		(3)		// 特殊に追加するライトのインデックス
+#define EX_LIGHT_COL		Color(0.3f, 0.3f, 0.3f, 1.0f)	// 特殊に追加するライトの拡散光
 
 //==================================================================================
 // --- 生成処理 ---
@@ -69,7 +70,7 @@ HRESULT CThunderCamera::Init(const float fLength)
 	m_light.Type = D3DLIGHT_DIRECTIONAL;
 
 	// ライトの拡散光を設定
-	m_light.Diffuse = Color(0.3f, 0.3f, 0.3f, 1.0f);
+	m_light.Diffuse = EX_LIGHT_COL;
 
 	// カメラを初期化
 	CCamera::Init(VECTOR3_NULL, VECTOR3_NULL);

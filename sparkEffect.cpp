@@ -22,6 +22,11 @@
 // *** マクロ定義 ***
 //**********************************************************************************
 #define EFFECT_GRADATION_PATH		"data/TEXTURE/gradation102.jpg"		// 雷エフェクトのテクスチャ
+#define ORBIT_MIN_WIDTH			(0.5f)			// オービットの最小幅
+#define ORBIT_MAX_WIDTH			(10.0f)			// オービットの最大幅
+#define ORBIT_OFFSET_1			Vector3(10.0f, 0.0f, 0.0f)		// オービットのオフセット1
+#define ORBIT_OFFSET_2			Vector3(-10.0f, 0.0f, 0.0f)		// オービットのオフセット2
+#define POS_RANDOM_MAGNI		(2)				// 座標のランダム値の倍率
 
 //==================================================================================
 // --- 生成処理 ---
@@ -92,8 +97,8 @@ HRESULT CSparkEffect::Init(const Vector3 &pos,
 	Matrix mtxParentTemp;			// 都度生成される疑似的な親マトリックス
 
 	// オービットの最大最小値を設定
-	m_fMinWidth = 0.5f;
-	m_fMaxWidth = 10.0f;
+	m_fMinWidth = ORBIT_MIN_WIDTH;
+	m_fMaxWidth = ORBIT_MAX_WIDTH;
 
 	// 引数を保存
 	m_min = min;
@@ -121,7 +126,7 @@ HRESULT CSparkEffect::Init(const Vector3 &pos,
 	D3DXMatrixMultiply(&m_mtxWorld, &m_mtxWorld, &mtxParentTemp);
 
 	// オービットを生成
-	m_pOrbit = CMeshOrbit3D::Create(&m_mtxWorld, Vector3(10.0f, 0.0f, 0.0f), Vector3(-10.0f, 0.0f, 0.0f));
+	m_pOrbit = CMeshOrbit3D::Create(&m_mtxWorld, ORBIT_OFFSET_1, ORBIT_OFFSET_2);
 	if (m_pOrbit == nullptr)
 	{ // 生成失敗
 		return E_FAIL;
@@ -171,7 +176,7 @@ void CSparkEffect::Update(void)
 	m_posParent += Vec3::Direction(m_rotParent + Vector3(1.0f, 0.0f, 0.0f)) * m_fSpeed;
 
 	// 座標を更新
-	m_pos.x = CRand::GetInstance()->Generate(m_min.x, m_max.x) * 2;
+	m_pos.x = CRand::GetInstance()->Generate(m_min.x, m_max.x) * POS_RANDOM_MAGNI;
 
 	// オフセットを更新
 	m_pOrbit->SetOffset(Vector3(fWidth * 0.5f, 0.0f, 0.0f), Vector3(-fWidth * 0.5f, 0.0f, 0.0f));

@@ -327,8 +327,8 @@ Vector3 Vec3::Direction(const Vector3 &angle)
 //==================================================================================
 Vector3 Vec3::Random(void)
 {
-	float fTheta = (D3DX_PI * 2) * (float)rand() / RAND_MAX;	// ランダムな角度1
-	float fPhi = (D3DX_PI * 2) * (float)rand() / RAND_MAX;		// ランダムな角度2
+	float fTheta = DOUBLE_PI * (float)rand() / RAND_MAX;	// ランダムな角度1
+	float fPhi = DOUBLE_PI * (float)rand() / RAND_MAX;		// ランダムな角度2
 
 	// 球面座標を返す
 	return Vector3(sinf(fPhi) * sinf(fTheta), cosf(fPhi), cosf(fPhi) * sinf(fTheta));

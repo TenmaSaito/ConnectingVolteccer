@@ -23,6 +23,14 @@
 #include "mapManager.h"
 #include "planet.h"
 
+//**********************************************************************************
+// *** マクロ定義 ***
+//**********************************************************************************
+#define PLANET_ROT_SPEED	(0.005f)		// 惑星の1フレーム当たりの回転角度
+#define CAMERA_POS_X		(2100.0f)	// タイトル画面のカメラのX座標
+#define CAMERA_POS_Y		(0.0f)		// タイトル画面のカメラのY座標
+#define CAMERA_POS_Z		(-2800.0f)	// タイトル画面のカメラの視点のZ座標
+
 //==================================================================================
 // --- コンストラクタ ---
 //==================================================================================
@@ -63,7 +71,7 @@ void CTitle::Update(void)
 	// 惑星を回転
 	CMapManager *pMap = CMapManager::GetInstance();		// マップマネージャへのポインタ
 	Vector3 vecQua = Vector3(0.0f, D3DX_PI, 0.0f);		// 軸
-	float fAngle = 0.005f;	// 回転度数
+	float fAngle = PLANET_ROT_SPEED;	// 回転度数
 	Quaternion qua;			// かけ合わせるクォータニオン
 
 	// クォータニオンを計算
@@ -93,9 +101,9 @@ void CTitle::Start(void)
 {
 	// 仮置きでカメラを生成 (自動解放)
 	// TODO : ここのカメラはタイトル用のカメラを作って置き換える事！
-	float x = 2100.0f;
-	float y = 0.0f;
-	CTitleCamera *pCamera = CTitleCamera::Create(Vector3(x, y, -2800.0f), Vector3(x, y, 0.0f));
+	float x = CAMERA_POS_X;
+	float y = CAMERA_POS_Y;
+	CTitleCamera *pCamera = CTitleCamera::Create(Vector3(x, y, CAMERA_POS_Z), Vector3(x, y, 0.0f));
 	pCamera->SetFocus();
 
 	// タイトル画面のメニューを生成

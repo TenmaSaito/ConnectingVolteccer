@@ -278,7 +278,7 @@ void CObjectBillboard3D::Draw(void)
 	{ // αテストを有効にする
 		pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
 		pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
-		pDevice->SetRenderState(D3DRS_ALPHAREF, 30);
+		pDevice->SetRenderState(D3DRS_ALPHAREF, DEFAULT_ALPHA_REF);
 	}
 
 	// 描画前関数呼び出し
@@ -287,7 +287,7 @@ void CObjectBillboard3D::Draw(void)
 	// ポリゴンの描画
 	pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP,
 		0,
-		2);
+		DEFAULT_PRIMITIVE_NUM);
 
 	// 描画後関数呼び出し
 	if (m_afterDraw) m_afterDraw(pDevice);

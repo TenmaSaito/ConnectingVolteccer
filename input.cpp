@@ -13,6 +13,11 @@
 #include "vec3math.h"
 
 //**********************************************************************************
+// *** マクロ定義 ***
+//**********************************************************************************
+#define INPUT_PRESS_BIT		(0x80)		// 入力状態の押下を示すビット
+
+//**********************************************************************************
 // *** 入力クラス ***
 //**********************************************************************************
 
@@ -190,7 +195,7 @@ void CInputKeyboard::Update(void)
 //==================================================================================
 bool CInputKeyboard::GetPress(const int nKey)
 { // プレス状態を返す
-	return (m_aKeyState[nKey] & 0x80) ? true : false;
+	return (m_aKeyState[nKey] & INPUT_PRESS_BIT) ? true : false;
 }
 
 //==================================================================================
@@ -198,7 +203,7 @@ bool CInputKeyboard::GetPress(const int nKey)
 //==================================================================================
 bool CInputKeyboard::GetTrigger(const int nKey)
 { // トリガー状態を返す
-	return (m_aKeyStateTrigger[nKey] & 0x80) ? true : false;
+	return (m_aKeyStateTrigger[nKey] & INPUT_PRESS_BIT) ? true : false;
 }
 
 //==================================================================================
@@ -206,7 +211,7 @@ bool CInputKeyboard::GetTrigger(const int nKey)
 //==================================================================================
 bool CInputKeyboard::GetRelease(const int nKey)
 { // リリース状態を返す
-	return (m_aKeyStateRelease[nKey] & 0x80) ? true : false;
+	return (m_aKeyStateRelease[nKey] & INPUT_PRESS_BIT) ? true : false;
 }
 
 //==================================================================================
@@ -218,13 +223,13 @@ bool CInputKeyboard::GetRepeat(const int nKey, const int nWaitPress, const int n
 	m_nKeyStateRepeat[nKey]++;
 	if (m_nKeyStateRepeat[nKey] < nWaitPress)
 	{ // リピートカウントが移行待機時間内なら、トリガーの判定を返す
-		return (m_aKeyStateTrigger[nKey] & 0x80) ? true : false;
+		return (m_aKeyStateTrigger[nKey] & INPUT_PRESS_BIT) ? true : false;
 	}
 	else
 	{ // リピートカウントがプレスへの移行待機時間を超えたなら
 		if (m_nKeyStateRepeat[nKey] % nInterval == 0)
 		{ // インターバル分時間が経ったら、プレスの判定を返す
-			return (m_aKeyState[nKey] & 0x80) ? true : false;
+			return (m_aKeyState[nKey] & INPUT_PRESS_BIT) ? true : false;
 		}
 		else
 		{ // インターバル中なら失敗
@@ -352,7 +357,7 @@ void CInputMouse::Update(void)
 //==================================================================================
 bool CInputMouse::GetPress(const int nKey)
 { // プレス状態を返す
-	return (m_aMouseState[nKey] & 0x80) ? true : false;
+	return (m_aMouseState[nKey] & INPUT_PRESS_BIT) ? true : false;
 }
 
 //==================================================================================
@@ -360,7 +365,7 @@ bool CInputMouse::GetPress(const int nKey)
 //==================================================================================
 bool CInputMouse::GetTrigger(const int nKey)
 { // トリガー状態を返す
-	return (m_aMouseStateTrigger[nKey] & 0x80) ? true : false;
+	return (m_aMouseStateTrigger[nKey] & INPUT_PRESS_BIT) ? true : false;
 }
 
 //==================================================================================
@@ -368,7 +373,7 @@ bool CInputMouse::GetTrigger(const int nKey)
 //==================================================================================
 bool CInputMouse::GetRelease(const int nKey)
 { // リリース状態を返す
-	return (m_aMouseStateRelease[nKey] & 0x80) ? true : false;
+	return (m_aMouseStateRelease[nKey] & INPUT_PRESS_BIT) ? true : false;
 }
 
 //==================================================================================

@@ -24,6 +24,11 @@
 //**********************************************************************************
 #define NOTE_MOVABLE_MIN	(Vector3(0.2f, 0.0f, 0.2))
 #define NOTE_MOVABLE_MAX	(Vector3)
+#define NOTE_MOVE			(Vector3(0.1f, 6.0f, 0.1f))		// 音符パーティクルの移動量
+#define NOTE_SCALE			(Vector2(125.0f, 125.0f))		// 音符パーティクルのサイズ
+#define NOTE_MOVE_VARIATION	(Vector3(10.0f, 3.0f, 10.0f))	// 音符パーティクルの移動量のばらつき
+#define NOTE_PERCENT		(2)				// 音符パーティクルの発生確率 (%)
+#define NOTE_EFFECT_LIFE	(45)				// 音符エフェクトの最大寿命 (フレーム)
 
 //==================================================================================
 // --- 生成処理 ---
@@ -72,12 +77,12 @@ HRESULT CHappyNote::Init(const Vector3 &offset,
 		.SetVecQua(vecQua)
 		.SetAngle(fAngle)
 		.SetLife(INT_MAX)
-		.SetMove(Vector3(0.1f, 6.0f, 0.1f))
-		.SetScale(Vector2(125.0f, 125.0f))
+		.SetMove(NOTE_MOVE)
+		.SetScale(NOTE_SCALE)
 		.SetNumEffectFrame(1)
-		.SetMoveVariation(Vector3(10.0f, 3.0f, 10.0f))
-		.SetPercent(2)
-		.SetEffectLifeMax(45)
+		.SetMoveVariation(NOTE_MOVE_VARIATION)
+		.SetPercent(NOTE_PERCENT)
+		.SetEffectLifeMax(NOTE_EFFECT_LIFE)
 		.Build();
 
 	// 親マトリックスとテクスチャを設定

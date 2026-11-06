@@ -29,6 +29,9 @@
 // *** マクロ定義 ***
 //**********************************************************************************
 #define SCORE_POS			(Vector3(700.0f, 300.0f, 0.0f))	// スコアの開始座標
+#define PLANET_ROT_SPEED	(0.005f)		// 惑星の1フレーム当たりの回転角度
+#define CAMERA_POS_V		(Vector3(1500.0f, 0.0f, -3800.0f))	// リザルト画面のカメラの視点
+#define CAMERA_POS_R		(Vector3(1500.0f, 0.0f, 0.0f))		// リザルト画面のカメラの注視点
 
 //==================================================================================
 // --- コンストラクタ ---
@@ -75,7 +78,7 @@ void CResult::Update(void)
 
 	// 惑星を回転
 	Vector3 vecQua = Vector3(0.0f, D3DX_PI, 0.0f);		// 軸
-	float fAngle = 0.005f;	// 回転度数
+	float fAngle = PLANET_ROT_SPEED;	// 回転度数
 	Quaternion qua;			// かけ合わせるクォータニオン
 
 	// クォータニオンを計算
@@ -109,7 +112,7 @@ void CResult::Start(void)
 	pMap->LoadConnectID();
 
 	// リザルト画面カメラを生成
-	CResultCamera *pResultCamera = CResultCamera::Create(Vector3(1500.0f, 0.0f, -3800.0f), Vector3(1500.0f, 0.0f, 0.0f));
+	CResultCamera *pResultCamera = CResultCamera::Create(CAMERA_POS_V, CAMERA_POS_R);
 	pResultCamera->SetFocus();
 
 	std::unique_ptr pFile = std::make_unique<CFileStream>();		// ファイルストリームへのポインタ
