@@ -101,9 +101,9 @@ void CTitle::Start(void)
 {
 	// 仮置きでカメラを生成 (自動解放)
 	// TODO : ここのカメラはタイトル用のカメラを作って置き換える事！
-	float x = CAMERA_POS_X;
-	float y = CAMERA_POS_Y;
-	CTitleCamera *pCamera = CTitleCamera::Create(Vector3(x, y, CAMERA_POS_Z), Vector3(x, y, 0.0f));
+	float fX = CAMERA_POS_X;
+	float fY = CAMERA_POS_Y;
+	CTitleCamera *pCamera = CTitleCamera::Create(Vector3(fX, fY, CAMERA_POS_Z), Vector3(fX, fY, 0.0f));
 	pCamera->SetFocus();
 
 	// タイトル画面のメニューを生成
