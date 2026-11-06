@@ -82,4 +82,14 @@ class SemanticTests(unittest.TestCase):
             self.assertIn('/std:c++20',command)
             self.assertEqual(command.count(str(source)),1)
 
+    def test_msvc_charset_options(self):
+        entry={'directory':'.','file':'test.cpp',
+               'arguments':['cl.exe','/c','/source-charset:.932','/execution-charset:.932',
+                            '/source-charset:utf-8','/D','WIN32','test.cpp']}
+        command,_,_=parse_command(entry)
+        self.assertNotIn('/source-charset:.932',command)
+        self.assertNotIn('/execution-charset:.932',command)
+        self.assertIn('/source-charset:utf-8',command)
+        self.assertIn('WIN32',command)
+
 if __name__=='__main__': unittest.main()

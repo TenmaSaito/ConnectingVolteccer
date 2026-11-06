@@ -296,7 +296,14 @@ def parse_command(entry: dict) -> tuple[list[str],Path,Path]:
                     result.extend([arg,args[i+1]])
                     i+=2
                     continue
-            if low.startswith(('/d','/i','/fi','/std:','/imsvc','/external:i','/source-charset:','/execution-charset:')):
+            if low.startswith(('/source-charset:','/execution-charset:')):
+                # clang-cl only accepts utf-8 here; MSVC code-page values such
+                # as '.932' make clang-cl fail, so they are dropped for parsing.
+                if low.split(':',1)[1] in ('utf-8','utf8'):
+                    result.append(arg)
+                i+=1
+                continue
+            if low.startswith(('/d','/i','/fi','/std:','/imsvc','/external:i')):
                 result.append(arg)
             i+=1
             continue
