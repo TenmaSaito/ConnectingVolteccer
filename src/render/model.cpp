@@ -1,0 +1,199 @@
+//==================================================================================
+// 
+// オブジェクトXクラスのソースファイル [objectX.cpp]
+// Author : TENMA SAITO
+// Date   : 2026/6/1
+// 
+//==================================================================================
+//**********************************************************************************
+// *** インクルードファイル ***
+//**********************************************************************************
+#include "render/model.h"
+#include "core/manager.h"
+#include "render/renderer.h"
+#include "render/texture.h"
+#include "math/matrix.h"
+
+//==================================================================================
+// --- オブジェクト3Dの生成処理 ---
+//==================================================================================
+CModel *CModel::Create(const char *pXFileName,
+	const Vector3 &pos, 
+	const Vector3& rot)
+{
+	CModel *pObject3D = new CModel;		// 生成したオブジェクトへのポインタ
+	if (pObject3D != nullptr)
+	{ // 生成に成功していれば、初期化処理
+		pObject3D->Init(pXFileName, pos, rot);
+	}
+
+	return pObject3D;
+}
+
+//==================================================================================
+// --- コンストラクタ ---
+//==================================================================================
+CModel::CModel()
+{ // メンバ変数をクリア
+	m_pMesh = nullptr;
+	m_pBuffMat = nullptr;
+	m_dwNumMat = 0;
+	m_pos = VECTOR3_NULL;
+	m_rot = VECTOR3_NULL;
+	m_pParent = nullptr;
+	m_customMat = INVALID_MAT;
+	m_nIdxTexture = INVALID_TEX_ID;
+	D3DXMatrixIdentity(&m_mtxWorld);
+}
+
+//==================================================================================
+// --- デストラクタ ---
+//==================================================================================
+CModel::~CModel()
+{
+}
+
+//==================================================================================
+// --- 初期化処理 ---
+//==================================================================================
+HRESULT CModel::Init(const char *pXFileName, const Vector3 &pos, const Vector3 &rot)
+{
+	CManager *pManager = CManager::GetInstance();			// マネージャーへのポインタ
+	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
+	CTexture *pTexture = CTexture::GetInstance();			// テクスチャへのポインタ
+	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
+	D3DXMATERIAL *pMat = NULL;		// マテリアルへのポインタ
+	HRESULT hr = S_OK;				// モデル読み込み結果
+
+	// Xファイルの読み込み
+	hr = D3DXLoadMeshFromX(pXFileName,			// 読み込むXファイル名
+		D3DXMESH_SYSTEMMEM,
+		pDevice,		// デバイスポインタ
+		NULL,
+		&m_pBuffMat,	// マテリアルへのポインタ
+		NULL,
+		&m_dwNumMat,	// マテリアルの数
+		&m_pMesh);		// メッシュへのポインタ
+	if (FAILED(hr))
+	{ // 読み込み失敗
+		return -1;
+	}
+
+	// マテリアル数分だけ、インデックス用バッファを確保
+	m_vIdx.reserve(m_dwNumMat);
+
+	// マテリアルデータへのポインタを取得
+	pMat = static_cast<D3DXMATERIAL*>(m_pBuffMat->GetBufferPointer());
+
+	for (int nCntMat = 0; nCntMat < static_cast<int>(m_dwNumMat); nCntMat++)
+	{ // マテリアル数分だけテクスチャチェック
+		// テクスチャの読み込み
+		m_vIdx.emplace_back(pTexture->Register(pMat[nCntMat].pTextureFilename));
+	}
+
+	// 引数の値を保存
+	m_pos = pos;
+	m_rot = rot;
+	m_posLocal = pos;
+	m_rotLocal = rot;
+	m_sFileName.append(pXFileName);
+
+	// 初期化結果を返す
+	return S_OK;
+}
+
+//==================================================================================
+// --- 終了処理 ---
+//==================================================================================
+void CModel::Uninit(void)
+{
+	// メッシュを解放
+	SafeRelease(m_pMesh);
+	
+	// マテリアルを解放
+	SafeRelease(m_pBuffMat);
+
+	// インデックスを破棄
+	m_vIdx.clear();
+}
+
+//==================================================================================
+// --- 更新処理 ---
+//==================================================================================
+void CModel::Update(void)
+{
+}
+
+//==================================================================================
+// --- 描画処理 ---
+//==================================================================================
+void CModel::Draw(void)
+{
+	CManager *pManager = CManager::GetInstance();			// マネージャーへのポインタ
+	CRenderer *pRenderer = pManager->GetRenderer();			// レンダラーへのポインタ
+	CTexture *pTexture = CTexture::GetInstance();			// テクスチャへのポインタ
+	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
+	D3DXMATERIAL *pMat = nullptr;	// マテリアルへのポインタ
+	D3DMATERIAL9 matDef;			// 現在のマテリアル保存用
+	Matrix mtxParent;				// 親マトリックス
+
+	// ワールドマトリックスの初期化
+	D3DXMatrixIdentity(&m_mtxWorld);
+
+	// ワールドマトリックスの設定
+	Mtx::CalcWorld(&m_mtxWorld, m_pos, m_rot);
+
+	if (m_pParent != nullptr)
+	{ // 親モデルが存在するなら、親モデルのマトリックス取得
+		mtxParent = *m_pParent->GetMtxWorld();
+	}
+	else
+	{ // 存在しないなら、プレイヤ―のマトリックス取得
+		pDevice->GetTransform(D3DTS_WORLD, &mtxParent);
+	}
+
+	// マトリックスを掛け合わせる
+	D3DXMatrixMultiply(&m_mtxWorld, &m_mtxWorld, &mtxParent);
+
+	// ワールドマトリックスの設定
+	pDevice->SetTransform(D3DTS_WORLD, &m_mtxWorld);
+
+	//  現在のマテリアルを保存
+	pDevice->GetMaterial(&matDef);
+
+	// マテリアルを取得
+	pMat = static_cast<D3DXMATERIAL*>(m_pBuffMat->GetBufferPointer());
+
+	// 各マテリアルを描画
+	for (int nCntMat = 0; nCntMat < static_cast<int>(m_dwNumMat); nCntMat++)
+	{
+		D3DMATERIAL9 matD3D = pMat[nCntMat].MatD3D;		// マテリアル
+		constexpr D3DMATERIAL9 matInvalid = INVALID_MAT;			// カスタムマテリアル無効値
+		if (memcmp(&m_customMat, &matInvalid, sizeof(D3DMATERIAL9)) != 0)
+		{ // 無効値でなければ、マテリアルを指定
+			matD3D = m_customMat;
+		}
+
+		// マテリアルの設定
+		pDevice->SetMaterial(&matD3D);
+
+		// テクスチャの設定 (指定テクスチャインデックスが無効出なければそちらを優先)
+		pDevice->SetTexture(0, pTexture->GetAddress((m_nIdxTexture != INVALID_TEX_ID) ? m_nIdxTexture : m_vIdx.at(nCntMat)));
+
+		// モデル(パーツ)の描画
+		m_pMesh->DrawSubset(nCntMat);
+	}
+
+	// 保存していたマテリアルを戻す
+	pDevice->SetMaterial(&matDef);
+}
+
+//==================================================================================
+// --- モデルのコピー生成処理 ---
+//==================================================================================
+CModel *CModel::CreateCopy(void) const
+{ // 自身のコピーを生成
+	return CModel::Create(m_sFileName.c_str(),
+		m_pos,
+		m_rot);
+}

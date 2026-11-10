@@ -1,0 +1,121 @@
+//==================================================================================
+// 
+// シーンクラスのソースファイル [scene.cpp]
+// Author : TENMA SAITO
+// Date   : 2026/6/24
+// 
+//==================================================================================
+//**********************************************************************************
+// *** インクルードファイル ***
+//**********************************************************************************
+#include "scene/scene.h"
+#include "scene/title.h"
+#include "scene/tutorial.h"
+#include "scene/game.h"
+#include "scene/result.h"
+#include "scene/ranking.h"
+#include "scene/edit.h"
+
+//==================================================================================
+// --- モードの設定処理 ---
+//==================================================================================
+CScene *CScene::Create(const MODE mode)
+{
+	CScene *pScene = nullptr;		// 生成したシーン
+
+	// モード別にインスタンス生成
+	switch (mode)
+	{
+	case MODE_TITLE:		// タイトルシーンを生成
+		pScene = new CTitle;
+		break;
+
+	case MODE_TUTORIAL:		// チュートリアルシーンを生成
+		pScene = new CTutorial;
+		break;
+
+	case MODE_GAME:			// ゲームシーンを生成
+		pScene = new CGame;
+		break;
+
+	case MODE_RESULT:		// リザルトシーンを生成
+		pScene = new CResult;
+		break;
+
+	case MODE_RANKING:		// ランキングシーンを生成
+		pScene = new CRanking;
+		break;
+
+	case MODE_EDIT:			// エディットシーンを生成
+		pScene = new CEdit;
+		break;
+	}
+
+	if (pScene != nullptr)
+	{ // 生成成功時、シーンの初期化
+		pScene->Init();
+	}
+
+	return pScene;
+}
+
+//==================================================================================
+// --- モードの設定処理 (pOutに代入後初期化) ---
+//==================================================================================
+CScene *CScene::Create(const MODE mode, std::unique_ptr<CScene> &rpOut)
+{
+	CScene *pScene = nullptr;		// 生成したシーン
+
+	// モード別にインスタンス生成
+	switch (mode)
+	{
+	case MODE_TITLE:		// タイトルシーンを生成
+		pScene = new CTitle;
+		break;
+
+	case MODE_TUTORIAL:		// チュートリアルシーンを生成
+		pScene = new CTutorial;
+		break;
+
+	case MODE_GAME:			// ゲームシーンを生成
+		pScene = new CGame;
+		break;
+
+	case MODE_RESULT:		// リザルトシーンを生成
+		pScene = new CResult;
+		break;
+
+	case MODE_RANKING:		// ランキングシーンを生成
+		pScene = new CRanking;
+		break;
+
+	case MODE_EDIT:			// エディットシーンを生成
+		pScene = new CEdit;
+		break;
+	}
+
+	// ポインタ設定
+	rpOut.reset(pScene);
+
+	if (pScene != nullptr)
+	{ // 生成成功時、シーンの初期化
+		pScene->Init();
+	}
+
+	return pScene;
+}
+
+//==================================================================================
+// --- コンストラクタ ---
+//==================================================================================
+CScene::CScene(const MODE mode)
+{ // メンバ変数のクリア
+	m_mode = mode;
+}
+
+//==================================================================================
+// --- デストラクタ ---
+//==================================================================================
+CScene::~CScene()
+{
+}

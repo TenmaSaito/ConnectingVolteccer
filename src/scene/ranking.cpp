@@ -1,0 +1,143 @@
+//==================================================================================
+// 
+// ランキングシーンクラスのソースファイル [ranking.cpp]
+// Author : TENMA SAITO
+// Date   : 2026/9/10
+// 
+//==================================================================================
+//**********************************************************************************
+// *** インクルードファイル ***
+//**********************************************************************************
+#include "scene/ranking.h"
+#include "core/manager.h"
+#include "input/input.h"
+#include "input/joypad.h"
+#include "sound/sound.h"
+#include "game/stage/mapManager.h"
+#include "game/stage/planet.h"
+#include "scene/rankingManager.h"
+#include "render/rankingCamera.h"
+
+//**********************************************************************************
+// *** マクロ定義 ***
+//**********************************************************************************
+#define RANKING_PATH	"data/SCORE/ranking.bin"		// ランキングデータ書き出し先
+#define MAX_RANKING		(5)		// 最大順位
+
+//**********************************************************************************
+// *** 定数宣言 ***
+//**********************************************************************************
+namespace
+{
+	const Vector3 CAMERA_POS_V = Vector3(1500.0f, 250.0f, -5000.0f);		// ランキング画面のカメラの視点
+	const Vector3 CAMERA_POS_R = Vector3(1500.0f, 250.0f, 0.0f);		// ランキング画面のカメラの注視点
+	constexpr float PLANET_ROT_SPEED = 0.005f;		// 惑星の1フレーム当たりの回転角度
+}
+
+//==================================================================================
+// --- コンストラクタ ---
+//==================================================================================
+CRanking::CRanking()
+{ // メンバ変数のクリア
+	m_pPlanet = nullptr;
+	m_pRankingManager = nullptr;
+}
+
+//==================================================================================
+// --- デストラクタ ---
+//==================================================================================
+CRanking::~CRanking()
+{
+}
+
+//==================================================================================
+// --- 初期化処理 ---
+//==================================================================================
+HRESULT CRanking::Init(void)
+{
+	// 開始処理
+	Start();
+
+	return S_OK;
+}
+
+//==================================================================================
+// --- 終了処理 ---
+//==================================================================================
+void CRanking::Uninit(void)
+{
+}
+
+//==================================================================================
+// --- 更新処理 ---
+//==================================================================================
+void CRanking::Update(void)
+{
+	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
+	CInputKeyboard *pKeyboard = pManager->GetInputKeyboard();		// キーボードへのポインタ
+	CJoypad *pJoypad = pManager->GetJoypad();			// ジョイパッドへのポインタ
+	CMapManager *pMap = CMapManager::GetInstance();		// マップへのポインタ
+
+	// 惑星を回転
+	Vector3 vecQua = Vector3(0.0f, D3DX_PI, 0.0f);		// 軸
+	float fAngle = PLANET_ROT_SPEED;	// 回転度数
+	Quaternion qua;			// かけ合わせるクォータニオン
+
+	// クォータニオンを計算
+	D3DXQuaternionIdentity(&qua);
+	D3DXQuaternionRotationAxis(&qua,
+		&vecQua,
+		fAngle);
+
+	// 惑星に掛ける
+	pMap->GetPlanet()->MultiplyQuaternion(qua);
+
+	if ((pKeyboard->GetTrigger(DIK_RETURN)
+		|| pJoypad->GetTrigger(CJoypad::KEY_A)
+		|| pJoypad->GetTrigger(CJoypad::KEY_START))
+		&& pManager->GetState() == CSceneTransition::STATE_STAY)
+	{ // タイトル画面へ戻る
+		pManager->SetTransition(CScene::MODE_TITLE);
+	}
+
+	// 全カメラの更新処理
+	CCamera::UpdateAll();
+}
+
+//==================================================================================
+// --- 描画処理 ---
+//==================================================================================
+void CRanking::Draw(void)
+{
+
+}
+
+//==================================================================================
+// --- 初期化後呼び出し処理 ---
+//==================================================================================
+void CRanking::Start(void)
+{
+	CManager *pManager = CManager::GetInstance();		// マネージャへのポインタ
+
+	if (pManager->GetModeOld() == MODE_RESULT)
+	{ // リザルト画面から遷移した場合、今回の結果をランキングに保存し結果を表示
+		m_pRankingManager = CRankingManager::Create(true);
+	}
+	else
+	{ // それ以外のシーンから遷移した場合、現在のランキングを表示
+		m_pRankingManager = CRankingManager::Create(false);
+	}
+
+	CMapManager *pMap = CMapManager::GetInstance();		// マップへのポインタ
+
+	// 今回の接続インデックスを読み込み
+	pMap->LoadConnectID();
+
+	// ランキング画面のカメラを生成して、フォーカスを変更
+	CRankingCamera::Create(CAMERA_POS_V, CAMERA_POS_R)->SetFocus();
+
+	CSound *pSound = pManager->GetSound();		// サウンドへのポインタ
+
+	// タイトル画面のBGMを流す
+	pSound->Play(CSound::LABEL_BGM_RESULT);
+}
